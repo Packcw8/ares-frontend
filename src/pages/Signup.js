@@ -1,44 +1,64 @@
 import { useState } from 'react';
 import api from '../services/api';
+import Layout from '../components/Layout';
+import { useNavigate } from 'react-router-dom';
 
 export default function Signup() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/auth/signup', form); // removed unused 'res'
+      await api.post('/auth/signup', form);
       alert('Signup successful!');
+      navigate('/login'); // redirect after signup
     } catch (err) {
       alert(err.response?.data?.detail || 'Signup failed');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Sign Up</h2>
-      <input
-        type="text"
-        placeholder="Name"
-        value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-        required
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={form.email}
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={form.password}
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
-        required
-      />
-      <button type="submit">Sign Up</button>
-    </form>
+    <Layout>
+      <h2 className="text-xl font-bold mb-4">Create Your Account</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          placeholder="Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          required
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          required
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+        />
+        <button
+          type="submit"
+          className="w-full bg-[#0A2A42] text-white py-2 rounded-lg font-semibold"
+        >
+          Sign Up
+        </button>
+        <p className="text-sm text-center text-gray-600">
+          Already have an account?{' '}
+          <a href="/login" className="text-[#0A2A42] font-medium hover:underline">
+            Log in
+          </a>
+        </p>
+      </form>
+    </Layout>
   );
 }
