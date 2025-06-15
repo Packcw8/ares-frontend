@@ -1,4 +1,4 @@
-// src/pages/Home.js
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 
 export default function Home() {
@@ -20,14 +20,14 @@ export default function Home() {
           { label: 'Document Vault', icon: '🗃️', link: '/vault' },
           { label: 'Public Ratings', icon: '⭐', link: '/ratings' },
         ].map((item, i) => (
-          <a
+          <Link
             key={i}
-            href={item.link}
+            to={item.link}
             className="bg-white shadow-sm rounded-xl flex items-center px-4 py-3 text-base font-medium"
           >
             <span className="mr-3 text-xl">{item.icon}</span>
             {item.label.toUpperCase()}
-          </a>
+          </Link>
         ))}
       </div>
 
