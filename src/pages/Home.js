@@ -15,6 +15,7 @@ export default function Home() {
           { label: 'Complaint Builder', icon: '📄' },
           { label: 'Official Profiles', icon: '👤' },
           { label: 'Document Vault', icon: '🗃️' },
+          { label: 'Public Ratings', icon: '⭐', link: '/ratings' },
         ].map((item, i) => (
           <div key={i} className="bg-white shadow-sm rounded-xl flex items-center px-4 py-3 text-base font-medium">
             <span className="mr-3 text-xl">{item.icon}</span>
