@@ -7,7 +7,7 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post('/auth/signup', form);
+      await api.post('/auth/signup', form); // removed unused 'res'
       alert('Signup successful!');
     } catch (err) {
       alert(err.response?.data?.detail || 'Signup failed');
@@ -17,9 +17,27 @@ export default function Signup() {
   return (
     <form onSubmit={handleSubmit}>
       <h2>Sign Up</h2>
-      <input type="text" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
-      <input type="email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
-      <input type="password" placeholder="Password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required />
+      <input
+        type="text"
+        placeholder="Name"
+        value={form.name}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
+        required
+      />
+      <input
+        type="email"
+        placeholder="Email"
+        value={form.email}
+        onChange={(e) => setForm({ ...form, email: e.target.value })}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={form.password}
+        onChange={(e) => setForm({ ...form, password: e.target.value })}
+        required
+      />
       <button type="submit">Sign Up</button>
     </form>
   );
