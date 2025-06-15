@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import Layout from '../components/Layout';
-import { useNavigate } from 'react-router-dom';
 
 export default function Signup() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
@@ -12,7 +12,7 @@ export default function Signup() {
     try {
       await api.post('/auth/signup', form);
       alert('Signup successful!');
-      navigate('/login'); // redirect after signup
+      navigate('/login');
     } catch (err) {
       alert(err.response?.data?.detail || 'Signup failed');
     }
@@ -54,9 +54,9 @@ export default function Signup() {
         </button>
         <p className="text-sm text-center text-gray-600">
           Already have an account?{' '}
-          <a href="/login" className="text-[#0A2A42] font-medium hover:underline">
+          <Link to="/login" className="text-[#0A2A42] font-medium hover:underline">
             Log in
-          </a>
+          </Link>
         </p>
       </form>
     </Layout>

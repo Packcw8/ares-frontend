@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api, { setAuthToken } from '../services/api';
 import Layout from '../components/Layout';
 
@@ -13,7 +13,7 @@ export default function Login() {
       const res = await api.post('/auth/login', form);
       localStorage.setItem('token', res.data.access_token);
       setAuthToken(res.data.access_token);
-      navigate('/home'); // redirect after login
+      navigate('/home');
     } catch (err) {
       alert(err.response?.data?.detail || 'Login failed');
     }
@@ -47,9 +47,9 @@ export default function Login() {
         </button>
         <p className="text-sm text-center text-gray-600">
           Don’t have an account?{' '}
-          <a href="/signup" className="text-[#0A2A42] font-medium hover:underline">
+          <Link to="/signup" className="text-[#0A2A42] font-medium hover:underline">
             Sign up
-          </a>
+          </Link>
         </p>
       </form>
     </Layout>
