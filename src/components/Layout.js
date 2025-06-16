@@ -19,20 +19,6 @@ export default function Layout({ children }) {
         </button>
       </div>
 
-      <div className="mb-8">
-        <label className="block mb-2 text-lg font-semibold">Rate an Official</label>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search for Official"
-            className="w-full px-4 py-2 rounded bg-gray-900 text-white placeholder-gray-400"
-          />
-          <svg className="absolute right-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-      </div>
-
       {children}
 
       <footer className="mt-10 text-center text-sm text-gray-500">
