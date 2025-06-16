@@ -27,7 +27,7 @@ export default function EntityRatingPage() {
         else navigate("/ratings");
       })
       .finally(() => setLoading(false));
-  }, [id, navigate]); // ✅ FIXED: added 'navigate' here
+  }, [id, navigate]); // ✅ FIXED: added 'navigate'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,8 +41,7 @@ export default function EntityRatingPage() {
         },
         body: JSON.stringify({
           entity_id: parseInt(id),
-          user_id: 1, // replace with logged-in user id if available
-          ...form,
+          ...form, // ✅ No user_id sent; backend uses token
         }),
       });
 
