@@ -9,10 +9,10 @@ export default function RatingsPage() {
   const [countyFilter, setCountyFilter] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const baseUrl =
-      "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
+  const baseUrl =
+    "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
 
+  useEffect(() => {
     fetch(`${baseUrl}/ratings/entities`)
       .then((res) => res.json())
       .then((data) => setEntities(data))
@@ -21,16 +21,13 @@ export default function RatingsPage() {
       });
   }, []);
 
-  // Apply filters: search, state, county
   const filtered = entities
     .filter((e) =>
       e.name.toLowerCase().includes(search.toLowerCase()) &&
       (!stateFilter || (e.jurisdiction || "").toLowerCase().includes(stateFilter.toLowerCase())) &&
       (!countyFilter || (e.jurisdiction || "").toLowerCase().includes(countyFilter.toLowerCase()))
     )
-    .sort((a, b) =>
-      (a.reputation_score ?? 100) - (b.reputation_score ?? 100)
-    );
+    .sort((a, b) => (a.reputation_score ?? 100) - (b.reputation_score ?? 100));
 
   return (
     <Layout>
@@ -73,7 +70,7 @@ export default function RatingsPage() {
         {/* Add New Official */}
         <div className="text-right">
           <button
-            onClick={() => alert("TODO: Navigate to Add Official Form")}
+            onClick={() => navigate("/ratings/new")}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold"
           >
             + Add New Official
@@ -90,7 +87,9 @@ export default function RatingsPage() {
                 key={entity.id}
                 className="bg-gray-800 rounded-xl p-4 shadow"
               >
-                <h2 className="text-xl font-semibold text-white">{entity.name}</h2>
+                <h2 className="text-xl font-semibold text-white">
+                  {entity.name}
+                </h2>
                 <p className="text-sm text-gray-400 capitalize">
                   {entity.type} • {entity.category}
                 </p>
@@ -98,7 +97,8 @@ export default function RatingsPage() {
                   Jurisdiction: {entity.jurisdiction || "N/A"}
                 </p>
                 <p className="mt-2 text-yellow-400 font-semibold">
-                  Reputation Score: {typeof entity.reputation_score === "number"
+                  Reputation Score:{" "}
+                  {typeof entity.reputation_score === "number"
                     ? entity.reputation_score.toFixed(1)
                     : "N/A"}
                 </p>
