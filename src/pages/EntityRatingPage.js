@@ -27,7 +27,7 @@ export default function EntityRatingPage() {
         else navigate("/ratings");
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, navigate]); // ✅ FIXED: added 'navigate' here
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,7 +55,14 @@ export default function EntityRatingPage() {
     }
   };
 
-  if (loading) return <Layout><p className="text-white p-4">Loading...</p></Layout>;
+  if (loading) {
+    return (
+      <Layout>
+        <p className="text-white p-4">Loading...</p>
+      </Layout>
+    );
+  }
+
   if (!entity) return null;
 
   return (
@@ -79,13 +86,17 @@ export default function EntityRatingPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {["accountability", "respect", "effectiveness", "transparency", "public_impact"].map((key) => (
             <div key={key}>
-              <label className="block capitalize mb-1">{key.replace("_", " ")}</label>
+              <label className="block capitalize mb-1">
+                {key.replace("_", " ")}
+              </label>
               <input
                 type="number"
                 min={1}
                 max={10}
                 value={form[key]}
-                onChange={(e) => setForm({ ...form, [key]: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setForm({ ...form, [key]: parseInt(e.target.value) })
+                }
                 className="w-full px-4 py-2 bg-gray-900 text-white rounded"
               />
             </div>
