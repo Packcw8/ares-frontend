@@ -1,116 +1,118 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import Layout from "../components/Layout";
 
-const EntityRatingPage = () => {
-  const [entities, setEntities] = useState([]);
-  const [selectedEntity, setSelectedEntity] = useState("");
-  const [ratings, setRatings] = useState({
-    accountability: 0,
-    respect: 0,
-    effectiveness: 0,
-    transparency: 0,
-    public_impact: 0,
+export default function EntityRatingPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [entity, setEntity] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({
+    accountability: 5,
+    respect: 5,
+    effectiveness: 5,
+    transparency: 5,
+    public_impact: 5,
+    comment: "",
   });
-  const [comment, setComment] = useState("");
+
+  const baseUrl = "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
 
   useEffect(() => {
-    const fetchEntities = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/ratings/entities`
-        );
-        setEntities(response.data);
-      } catch (error) {
-        console.error("Error fetching entities:", error);
-      }
-    };
+    fetch(`${baseUrl}/ratings/entities`)
+      .then((res) => res.json())
+      .then((data) => {
+        const found = data.find((e) => e.id.toString() === id);
+        if (found) setEntity(found);
+        else navigate("/ratings");
+      })
+      .catch(() => navigate("/ratings"))
+      .finally(() => setLoading(false));
+  }, [id, navigate]);
 
-    fetchEntities();
-  }, []);
-
-  const handleRatingChange = (category, value) => {
-    setRatings((prev) => ({
-      ...prev,
-      [category]: value,
-    }));
-  };
-
-  const handleSubmit = async () => {
-    const token = localStorage.getItem("token"); // ✅ Ensure token is retrieved
-
-    const ratingData = {
-      entity_id: selectedEntity,
-      ratings,
-      comment,
-    };
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/ratings/submit`,
-        ratingData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // ✅ Token added here
-          },
-        }
-      );
-      alert("Rating submitted!");
-    } catch (error) {
-      console.error("Error submitting rating:", error);
-      alert("Failed to submit rating");
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${baseUrl}/ratings/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          entity_id: parseInt(id),
+          ...form,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to submit rating");
+
+      alert("Rating submitted successfully");
+      navigate("/ratings");
+    } catch (err) {
+      alert(err.message || "Submission failed");
     }
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="p-4 text-white">Loading...</div>
+      </Layout>
+    );
+  }
+
+  if (!entity) return null;
+
   return (
-    <div className="p-4 max-w-2xl mx-auto bg-white rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Rate an Official or Agency</h2>
+    <Layout>
+      <div className="p-4 space-y-6 text-white">
+        <button
+          onClick={() => navigate("/ratings")}
+          className="text-blue-400 underline"
+        >
+          ← Back to Ratings
+        </button>
 
-      <select
-        className="mb-4 w-full p-2 border rounded"
-        value={selectedEntity}
-        onChange={(e) => setSelectedEntity(e.target.value)}
-      >
-        <option value="">Select an Entity</option>
-        {entities.map((entity) => (
-          <option key={entity.id} value={entity.id}>
-            {entity.name} ({entity.type})
-          </option>
-        ))}
-      </select>
+        <h1 className="text-2xl font-bold">{entity.name}</h1>
+        <p className="text-gray-400 capitalize">
+          {entity.type} • {entity.category} • {entity.jurisdiction}
+        </p>
+        <p className="text-yellow-400">
+          Current Reputation: {entity.reputation_score?.toFixed(1)}
+        </p>
 
-      {["accountability", "respect", "effectiveness", "transparency", "public_impact"].map(
-        (category) => (
-          <div key={category} className="mb-3">
-            <label className="block capitalize">{category}:</label>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              className="w-full p-2 border rounded"
-              value={ratings[category]}
-              onChange={(e) =>
-                handleRatingChange(category, parseInt(e.target.value, 10))
-              }
-            />
-          </div>
-        )
-      )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {["accountability", "respect", "effectiveness", "transparency", "public_impact"].map((key) => (
+            <div key={key}>
+              <label className="block capitalize mb-1">{key.replace("_", " ")}</label>
+              <input
+                type="number"
+                min={1}
+                max={10}
+                value={form[key]}
+                onChange={(e) => setForm({ ...form, [key]: parseInt(e.target.value) })}
+                className="w-full px-4 py-2 bg-gray-900 text-white rounded"
+              />
+            </div>
+          ))}
 
-      <textarea
-        className="w-full p-2 border rounded mb-4"
-        placeholder="Optional comment"
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-      />
+          <textarea
+            placeholder="Optional comment or complaint"
+            value={form.comment}
+            onChange={(e) => setForm({ ...form, comment: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
+          />
 
-      <button
-        onClick={handleSubmit}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        Submit Rating
-      </button>
-    </div>
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+          >
+            Submit Rating
+          </button>
+        </form>
+      </div>
+    </Layout>
   );
-};
-
-export default EntityRatingPage;
+}
