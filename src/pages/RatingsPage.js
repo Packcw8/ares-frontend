@@ -7,17 +7,18 @@ export default function RatingsPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
+    const baseUrl =
+      "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
 
     fetch(`${baseUrl}/ratings/entities`)
-      .then(res => res.json())
-      .then(data => setEntities(data))
+      .then((res) => res.json())
+      .then((data) => setEntities(data))
       .catch(() => {
         console.error("Failed to load ratings data");
       });
   }, []);
 
-  const filtered = entities.filter(e =>
+  const filtered = entities.filter((e) =>
     e.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -29,12 +30,16 @@ export default function RatingsPage() {
           type="text"
           placeholder="Search officials, agencies, or institutions"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded-xl"
         />
+
         <div className="space-y-4">
-          {filtered.map(entity => (
-            <div key={entity.id} className="bg-gray-800 rounded-xl p-4 shadow">
+          {filtered.map((entity) => (
+            <div
+              key={entity.id}
+              className="bg-gray-800 rounded-xl p-4 shadow"
+            >
               <h2 className="text-xl font-semibold text-white">{entity.name}</h2>
               <p className="text-sm text-gray-400 capitalize">
                 {entity.type} • {entity.category}
@@ -43,7 +48,9 @@ export default function RatingsPage() {
                 Jurisdiction: {entity.jurisdiction || "N/A"}
               </p>
               <p className="mt-2 text-yellow-400 font-semibold">
-                Reputation Score: {entity.reputation_score.toFixed(1)}
+                Reputation Score: {typeof entity.reputation_score === "number"
+                  ? entity.reputation_score.toFixed(1)
+                  : "N/A"}
               </p>
               <Link
                 to={`/ratings/${entity.id}`}
