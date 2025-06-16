@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function Dashboard() {
-  const [verifiedCount, setVerifiedCount] = useState(245);      // Replace with real data later
-  const [unverifiedCount, setUnverifiedCount] = useState(68);   // Replace with real data later
+  const [verifiedCount] = useState(245);      // Replace with real data later
+  const [unverifiedCount] = useState(68);     // Replace with real data later
 
   return (
     <div className="space-y-8">
