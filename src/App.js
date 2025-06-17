@@ -7,6 +7,10 @@ import RatingsPage from "./pages/RatingsPage";
 import EntityRatingPage from "./pages/EntityRatingPage";
 import AddOfficialPage from './pages/AddOfficialPage';
 
+import { setAuthToken } from './services/api'; // ✅ import
+const token = localStorage.getItem('token');   // ✅ read token
+if (token) setAuthToken(token);                // ✅ set global auth header
+
 function App() {
   return (
     <Router>
