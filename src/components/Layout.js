@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import aresLogo from "../assets/areslogo.png";
+import { constitutionalQuotes } from "../data/constitutionalQuotes"; // ✅ Make sure path is correct
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -14,6 +15,9 @@ export default function Layout({ children }) {
     navigate("/login");
   };
 
+  // ✅ Random quote selector
+  const randomQuote = constitutionalQuotes[Math.floor(Math.random() * constitutionalQuotes.length)];
+
   return (
     <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif px-4 py-6 max-w-3xl mx-auto border-y-4 border-[#c2a76d] shadow-inner">
       <header className="flex justify-between items-center mb-8 border-b border-[#c2a76d] pb-4">
@@ -22,7 +26,7 @@ export default function Layout({ children }) {
           <div>
             <h1 className="text-4xl font-extrabold text-[#3a2f1b] tracking-wide">ARES</h1>
             <p className="text-sm italic text-[#5a4635]">
-              “A Republic, if you can keep it.” — Empowering Constitutional Accountability
+              “{randomQuote.quote}” — {randomQuote.author}
             </p>
           </div>
         </div>
@@ -45,7 +49,7 @@ export default function Layout({ children }) {
         </div>
       )}
 
-      {/* Universal styling for inputs, textareas, and submit buttons */}
+      {/* Universal styling for inputs, selects, textareas, and submit buttons */}
       <div className="
         [&_input]:w-full
         [&_input]:bg-[#ede3cb]
@@ -60,6 +64,20 @@ export default function Layout({ children }) {
         [&_input]:focus:ring-2
         [&_input]:focus:ring-[#c2a76d]
         [&_input]:placeholder:text-[#5a4635]
+
+        [&_select]:w-full
+        [&_select]:bg-[#ede3cb]
+        [&_select]:text-[#1e1e1e]
+        [&_select]:border
+        [&_select]:border-[#9b8b6d]
+        [&_select]:rounded-md
+        [&_select]:px-4
+        [&_select]:py-2
+        [&_select]:font-serif
+        [&_select]:focus:outline-none
+        [&_select]:focus:ring-2
+        [&_select]:focus:ring-[#c2a76d]
+        [&_select]:placeholder:text-[#5a4635]
 
         [&_textarea]:w-full
         [&_textarea]:bg-[#ede3cb]

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
-import { stateCountyData } from "../data/stateCountyData"; // ✅ Make sure path is correct
+import { stateCountyData } from "../data/stateCountyData";
 
 export default function AddOfficialPage() {
   const [form, setForm] = useState({
@@ -12,19 +12,32 @@ export default function AddOfficialPage() {
     state: "",
     county: "",
   });
+  const [customCategory, setCustomCategory] = useState(""); // for "Other"
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const baseUrl = "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
 
+  const categoryOptions = {
+    individual: ["Judge", "Prosecutor", "Caseworker", "Attorney", "Guardian ad Litem", "Other"],
+    agency: ["CPS", "Sheriff's Department", "Police", "DHHR", "State Troopers", "Other"],
+    institution: ["Family Court", "Juvenile Center", "Hospital", "Detention Center", "School Board", "Other"]
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+
+    const payload = {
+      ...form,
+      category: form.category === "Other" ? customCategory : form.category
+    };
+
     try {
       const res = await fetch(`${baseUrl}/ratings/entities`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Failed to create official");
@@ -40,6 +53,8 @@ export default function AddOfficialPage() {
 
   const states = Object.keys(stateCountyData);
   const counties = form.state ? stateCountyData[form.state] : [];
+  const typeHasOptions = categoryOptions[form.type];
+  const showCustomCategory = form.category === "Other";
 
   return (
     <Layout>
@@ -57,7 +72,7 @@ export default function AddOfficialPage() {
 
           <select
             value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            onChange={(e) => setForm({ ...form, type: e.target.value, category: "", customCategory: "" })}
             className="w-full px-4 py-2 bg-gray-900 text-white rounded"
           >
             <option value="individual">Individual</option>
@@ -65,14 +80,43 @@ export default function AddOfficialPage() {
             <option value="institution">Institution</option>
           </select>
 
-          <input
-            type="text"
-            placeholder="Category (e.g., Judge, CPS)"
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            required
-            className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
-          />
+          {typeHasOptions ? (
+            <>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                required
+                className="w-full px-4 py-2 bg-gray-900 text-white rounded"
+              >
+                <option value="">Select Category</option>
+                {categoryOptions[form.type].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+
+              {showCustomCategory && (
+                <input
+                  type="text"
+                  placeholder="Enter category"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
+                />
+              )}
+            </>
+          ) : (
+            <input
+              type="text"
+              placeholder="Category"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              required
+              className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
+            />
+          )}
 
           <select
             value={form.state}
