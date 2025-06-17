@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import aresLogo from "../assets/areslogo.png";
-import { constitutionalQuotes } from "../data/constitutionalQuotes"; // ✅ Make sure path is correct
+import { constitutionalQuotes } from "../data/constitutionalQuotes";
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -15,7 +15,6 @@ export default function Layout({ children }) {
     navigate("/login");
   };
 
-  // ✅ Random quote selector
   const randomQuote = constitutionalQuotes[Math.floor(Math.random() * constitutionalQuotes.length)];
 
   return (
@@ -49,7 +48,7 @@ export default function Layout({ children }) {
         </div>
       )}
 
-      {/* Universal styling for inputs, selects, textareas, and submit buttons */}
+      {/* Universal element styling */}
       <div className="
         [&_input]:w-full
         [&_input]:bg-[#ede3cb]
@@ -108,9 +107,41 @@ export default function Layout({ children }) {
         [&_button[type='submit']]:shadow
         [&_button[type='submit']]:transition
         [&_button[type='submit']]:duration-300
+
+        [&_button]:bg-[#283d63]
+        [&_button]:hover:bg-[#1c2b4a]
+        [&_button]:text-white
+        [&_button]:font-bold
+        [&_button]:rounded-md
+        [&_button]:px-4
+        [&_button]:py-2
+        [&_button]:shadow
+        [&_button]:transition
+        [&_button]:duration-300
+
+        [&_a.card]:block
+        [&_a.card]:bg-[#ede3cb]
+        [&_a.card]:border
+        [&_a.card]:border-[#c2a76d]
+        [&_a.card]:rounded-xl
+        [&_a.card]:p-4
+        [&_a.card]:shadow-md
+        [&_a.card]:hover:bg-[#e2d5b7]
+        [&_a.card]:transition
+        [&_a.card]:duration-200
       ">
         {children}
       </div>
+
+      {showLogout && (
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#3a2f1b] text-white border-t border-[#c2a76d] flex justify-around items-center py-2 z-50">
+          <button onClick={() => navigate("/dashboard")} className="text-sm hover:underline">🏠 Dashboard</button>
+          <button onClick={() => navigate("/ratings")} className="text-sm hover:underline">⭐ Ratings</button>
+          <button onClick={() => navigate("/ratings/new")} className="text-sm hover:underline">➕ Add</button>
+          <button onClick={() => navigate("/home")} className="text-sm hover:underline">📄 Report</button>
+          <button onClick={handleLogout} className="text-sm hover:underline">🚪 Logout</button>
+        </nav>
+      )}
 
       <footer className="mt-10 text-center text-xs text-[#5a4635] italic border-t border-[#c2a76d] pt-4">
         © 2025 ARES – Upholding Justice, Defending the Constitution.
