@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import aresLogo from "../assets/areslogo.png";
 import { constitutionalQuotes } from "../data/constitutionalQuotes";
@@ -15,7 +15,9 @@ export default function Layout({ children }) {
     navigate("/login");
   };
 
-  const randomQuote = constitutionalQuotes[Math.floor(Math.random() * constitutionalQuotes.length)];
+  const randomQuote = useMemo(() => {
+    return constitutionalQuotes[Math.floor(Math.random() * constitutionalQuotes.length)];
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif px-4 py-6 pb-36 max-w-5xl mx-auto border-y-4 border-[#c2a76d] shadow-inner">
