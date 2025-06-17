@@ -1,10 +1,18 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
-import aresLogo from "../assets/areslogo.png"; // ✅ import logo
+import { useLocation, useNavigate } from 'react-router-dom';
+import aresLogo from "../assets/areslogo.png";
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
+
   const showReportButton = location.pathname === "/home";
+  const showLogout = location.pathname !== "/login" && location.pathname !== "/signup";
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif px-4 py-6 max-w-3xl mx-auto border-y-4 border-[#c2a76d] shadow-inner">
@@ -18,6 +26,15 @@ export default function Layout({ children }) {
             </p>
           </div>
         </div>
+
+        {showLogout && (
+          <button
+            onClick={handleLogout}
+            className="bg-[#283d63] hover:bg-[#1c2b4a] text-white border border-[#c2a76d] py-2 px-5 rounded-md shadow font-bold text-sm tracking-wider uppercase transition duration-300"
+          >
+            🇺🇸 Logout
+          </button>
+        )}
       </header>
 
       {showReportButton && (
