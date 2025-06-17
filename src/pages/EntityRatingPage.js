@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../components/Layout";
+import api from "../services/api"; // ✅ use your configured Axios instance
 
 export default function EntityRatingPage() {
   const { id } = useParams();
@@ -16,13 +17,10 @@ export default function EntityRatingPage() {
     comment: "",
   });
 
-  const baseUrl = "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
-
   useEffect(() => {
-    fetch(`${baseUrl}/ratings/entities`)
-      .then((res) => res.json())
-      .then((data) => {
-        const found = data.find((e) => e.id.toString() === id);
+    api.get("/ratings/entities")
+      .then((res) => {
+        const found = res.data.find((e) => e.id.toString() === id);
         if (found) setEntity(found);
         else navigate("/ratings");
       })
@@ -33,25 +31,15 @@ export default function EntityRatingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${baseUrl}/ratings/submit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          entity_id: parseInt(id),
-          ...form,
-        }),
+      const res = await api.post("/ratings/submit", {
+        entity_id: parseInt(id),
+        ...form,
       });
-
-      if (!res.ok) throw new Error("Failed to submit rating");
 
       alert("Rating submitted successfully");
       navigate("/ratings");
     } catch (err) {
-      alert(err.message || "Submission failed");
+      alert(err.response?.data?.detail || "Submission failed");
     }
   };
 
