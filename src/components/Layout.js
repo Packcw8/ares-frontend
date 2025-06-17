@@ -18,7 +18,7 @@ export default function Layout({ children }) {
   const randomQuote = constitutionalQuotes[Math.floor(Math.random() * constitutionalQuotes.length)];
 
   return (
-    <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif px-4 py-6 max-w-5xl mx-auto border-y-4 border-[#c2a76d] shadow-inner">
+    <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif px-4 py-6 pb-28 max-w-5xl mx-auto border-y-4 border-[#c2a76d] shadow-inner">
       <header className="flex flex-col sm:flex-row justify-between items-center mb-8 border-b border-[#c2a76d] pb-4 gap-4">
         <div className="flex items-center space-x-4">
           <img src={aresLogo} alt="ARES" className="h-12 w-12 border border-[#3a2f1b] rounded-full shadow-sm" />
@@ -146,12 +146,12 @@ export default function Layout({ children }) {
       </div>
 
       {showLogout && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#3a2f1b] text-white border-t border-[#c2a76d] flex justify-around items-center py-2 z-50">
-          <button onClick={() => navigate("/dashboard")} className="text-sm hover:underline">🏠 Dashboard</button>
-          <button onClick={() => navigate("/ratings")} className="text-sm hover:underline">⭐ Ratings</button>
-          <button onClick={() => navigate("/ratings/new")} className="text-sm hover:underline">➕ Add</button>
-          <button onClick={() => navigate("/home")} className="text-sm hover:underline">📄 Report</button>
-          <button onClick={handleLogout} className="text-sm hover:underline">🚪 Logout</button>
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#3a2f1b] text-white border-t border-[#c2a76d] flex justify-around items-center py-3 z-50 text-sm">
+          <button onClick={() => navigate("/dashboard")} className="hover:underline">🏠 Dashboard</button>
+          <button onClick={() => navigate("/ratings")} className="hover:underline">⭐ Ratings</button>
+          <button onClick={() => navigate("/ratings/new")} className="hover:underline">➕ Add</button>
+          <button onClick={() => navigate("/home")} className="hover:underline">📄 Report</button>
+          <button onClick={handleLogout} className="hover:underline">🚪 Logout</button>
         </nav>
       )}
 
