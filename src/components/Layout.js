@@ -18,8 +18,8 @@ export default function Layout({ children }) {
   const randomQuote = constitutionalQuotes[Math.floor(Math.random() * constitutionalQuotes.length)];
 
   return (
-    <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif px-4 py-6 max-w-3xl mx-auto border-y-4 border-[#c2a76d] shadow-inner">
-      <header className="flex justify-between items-center mb-8 border-b border-[#c2a76d] pb-4">
+    <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif px-4 py-6 max-w-5xl mx-auto border-y-4 border-[#c2a76d] shadow-inner">
+      <header className="flex flex-col sm:flex-row justify-between items-center mb-8 border-b border-[#c2a76d] pb-4 gap-4">
         <div className="flex items-center space-x-4">
           <img src={aresLogo} alt="ARES" className="h-12 w-12 border border-[#3a2f1b] rounded-full shadow-sm" />
           <div>
@@ -48,8 +48,9 @@ export default function Layout({ children }) {
         </div>
       )}
 
-      {/* Universal element styling */}
       <div className="
+        grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-4
+
         [&_input]:w-full
         [&_input]:bg-[#ede3cb]
         [&_input]:text-[#1e1e1e]
@@ -129,6 +130,17 @@ export default function Layout({ children }) {
         [&_a.card]:hover:bg-[#e2d5b7]
         [&_a.card]:transition
         [&_a.card]:duration-200
+
+        [&_.card]:bg-[#ede3cb]
+        [&_.card]:text-[#2c2c2c]
+        [&_.card]:border
+        [&_.card]:border-[#c2a76d]
+        [&_.card]:rounded-xl
+        [&_.card]:p-4
+        [&_.card]:shadow-md
+        [&_.card]:transition
+        [&_.card]:duration-200
+        [&_.card]:hover:bg-[#e6d6b7]
       ">
         {children}
       </div>

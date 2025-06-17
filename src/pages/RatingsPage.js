@@ -34,15 +34,15 @@ export default function RatingsPage() {
 
   return (
     <Layout>
-      <div className="p-4 space-y-6 text-white">
+      <div className="p-4 space-y-6">
         <button
           onClick={() => navigate("/dashboard")}
-          className="text-blue-400 underline mb-2"
+          className="text-blue-600 underline mb-2"
         >
           ← Back to Dashboard
         </button>
 
-        <h1 className="text-2xl font-bold">Public Ratings</h1>
+        <h1 className="text-2xl font-bold text-[#3a2f1b]">Public Ratings</h1>
 
         {/* Filters */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -51,7 +51,6 @@ export default function RatingsPage() {
             placeholder="Search by name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded-xl"
           />
 
           <select
@@ -60,7 +59,6 @@ export default function RatingsPage() {
               setStateFilter(e.target.value);
               setCountyFilter(""); // reset county when state changes
             }}
-            className="w-full px-4 py-2 bg-gray-900 text-white rounded-xl"
           >
             <option value="">All States</option>
             {stateList.map((state) => (
@@ -74,7 +72,6 @@ export default function RatingsPage() {
             value={countyFilter}
             onChange={(e) => setCountyFilter(e.target.value)}
             disabled={!stateFilter}
-            className="w-full px-4 py-2 bg-gray-900 text-white rounded-xl"
           >
             <option value="">All Counties</option>
             {countyList.map((county) => (
@@ -96,25 +93,20 @@ export default function RatingsPage() {
         </div>
 
         {/* Results */}
-        <div className="space-y-4">
-          {filtered.length === 0 ? (
-            <p className="text-gray-400">No matching officials found.</p>
-          ) : (
-            filtered.map((entity) => (
-              <div
-                key={entity.id}
-                className="bg-gray-800 rounded-xl p-4 shadow"
-              >
-                <h2 className="text-xl font-semibold text-white">
-                  {entity.name}
-                </h2>
-                <p className="text-sm text-gray-400 capitalize">
+        {filtered.length === 0 ? (
+          <p className="text-gray-500 italic">No matching officials found.</p>
+        ) : (
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+            {filtered.map((entity) => (
+              <div key={entity.id} className="card">
+                <h2 className="text-lg font-extrabold">{entity.name}</h2>
+                <p className="text-sm capitalize text-[#5a4635]">
                   {entity.type} • {entity.category}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[#5a4635]">
                   {entity.county}, {entity.state}
                 </p>
-                <p className="mt-2 text-yellow-400 font-semibold">
+                <p className="mt-2 font-bold text-[#8b1e3f]">
                   Reputation Score:{" "}
                   {typeof entity.reputation_score === "number"
                     ? entity.reputation_score.toFixed(1)
@@ -122,14 +114,14 @@ export default function RatingsPage() {
                 </p>
                 <Link
                   to={`/ratings/${entity.id}`}
-                  className="text-blue-400 underline mt-2 inline-block"
+                  className="text-[#283d63] underline mt-2 inline-block hover:text-[#1c2b4a]"
                 >
                   View & Rate
                 </Link>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </Layout>
   );
