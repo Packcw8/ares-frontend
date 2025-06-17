@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../components/Layout";
-import api from "../services/api"; // ✅ use your configured Axios instance
+import api from "../services/api"; // ✅ use Axios instance
 
 export default function EntityRatingPage() {
   const { id } = useParams();
@@ -31,7 +31,7 @@ export default function EntityRatingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post("/ratings/submit", {
+      await api.post("/ratings/submit", {
         entity_id: parseInt(id),
         ...form,
       });
