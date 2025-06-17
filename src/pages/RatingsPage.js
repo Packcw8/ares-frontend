@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
+import { stateCountyData } from "../data/stateCountyData";
 
 export default function RatingsPage() {
   const [entities, setEntities] = useState([]);
@@ -9,8 +10,7 @@ export default function RatingsPage() {
   const [countyFilter, setCountyFilter] = useState("");
   const navigate = useNavigate();
 
-  const baseUrl =
-    "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
+  const baseUrl = "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
 
   useEffect(() => {
     fetch(`${baseUrl}/ratings/entities`)
@@ -24,15 +24,17 @@ export default function RatingsPage() {
   const filtered = entities
     .filter((e) =>
       e.name.toLowerCase().includes(search.toLowerCase()) &&
-      (!stateFilter || (e.jurisdiction || "").toLowerCase().includes(stateFilter.toLowerCase())) &&
-      (!countyFilter || (e.jurisdiction || "").toLowerCase().includes(countyFilter.toLowerCase()))
+      (!stateFilter || e.state === stateFilter) &&
+      (!countyFilter || e.county === countyFilter)
     )
     .sort((a, b) => (a.reputation_score ?? 100) - (b.reputation_score ?? 100));
+
+  const stateList = Object.keys(stateCountyData);
+  const countyList = stateFilter ? stateCountyData[stateFilter] : [];
 
   return (
     <Layout>
       <div className="p-4 space-y-6 text-white">
-        {/* Back to Dashboard */}
         <button
           onClick={() => navigate("/dashboard")}
           className="text-blue-400 underline mb-2"
@@ -51,20 +53,36 @@ export default function RatingsPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded-xl"
           />
-          <input
-            type="text"
-            placeholder="Filter by state"
+
+          <select
             value={stateFilter}
-            onChange={(e) => setStateFilter(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded-xl"
-          />
-          <input
-            type="text"
-            placeholder="Filter by county"
+            onChange={(e) => {
+              setStateFilter(e.target.value);
+              setCountyFilter(""); // reset county when state changes
+            }}
+            className="w-full px-4 py-2 bg-gray-900 text-white rounded-xl"
+          >
+            <option value="">All States</option>
+            {stateList.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+
+          <select
             value={countyFilter}
             onChange={(e) => setCountyFilter(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded-xl"
-          />
+            disabled={!stateFilter}
+            className="w-full px-4 py-2 bg-gray-900 text-white rounded-xl"
+          >
+            <option value="">All Counties</option>
+            {countyList.map((county) => (
+              <option key={county} value={county}>
+                {county}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Add New Official */}
@@ -94,7 +112,7 @@ export default function RatingsPage() {
                   {entity.type} • {entity.category}
                 </p>
                 <p className="text-sm text-gray-500">
-                  Jurisdiction: {entity.jurisdiction || "N/A"}
+                  {entity.county}, {entity.state}
                 </p>
                 <p className="mt-2 text-yellow-400 font-semibold">
                   Reputation Score:{" "}

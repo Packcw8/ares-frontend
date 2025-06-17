@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import RatingsPage from "./pages/RatingsPage";
 import EntityRatingPage from "./pages/EntityRatingPage";
 import AddOfficialPage from './pages/AddOfficialPage';
+import EntityDetailPage from "./pages/EntityDetailPage";
+
 
 import { setAuthToken } from './services/api'; // ✅ import
 const token = localStorage.getItem('token');   // ✅ read token
@@ -22,8 +24,9 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/home" element={<Home />} />
           <Route path="/ratings" element={<RatingsPage />} />
-          <Route path="/ratings/:id" element={<EntityRatingPage />} />
+          <Route path="/ratings/:id/rate" element={<EntityRatingPage />} />
           <Route path="/ratings/new" element={<AddOfficialPage />} />
+          <Route path="/ratings/:id" element={<EntityDetailPage />} />
         </Routes>
       </div>
     </Router>
