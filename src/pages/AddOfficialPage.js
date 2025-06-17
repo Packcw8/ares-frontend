@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
+import { stateCountyData } from "../data/stateCountyData"; // ✅ Make sure path is correct
 
 export default function AddOfficialPage() {
   const [form, setForm] = useState({
@@ -8,6 +9,8 @@ export default function AddOfficialPage() {
     type: "individual",
     category: "",
     jurisdiction: "",
+    state: "",
+    county: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -27,8 +30,6 @@ export default function AddOfficialPage() {
       if (!res.ok) throw new Error("Failed to create official");
 
       const data = await res.json();
-
-      // Redirect to the rating page for this new official
       navigate(`/ratings/${data.id}`);
     } catch (err) {
       alert(err.message || "Submission failed");
@@ -36,6 +37,9 @@ export default function AddOfficialPage() {
       setSubmitting(false);
     }
   };
+
+  const states = Object.keys(stateCountyData);
+  const counties = form.state ? stateCountyData[form.state] : [];
 
   return (
     <Layout>
@@ -70,9 +74,38 @@ export default function AddOfficialPage() {
             className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
           />
 
+          <select
+            value={form.state}
+            onChange={(e) => setForm({ ...form, state: e.target.value, county: "" })}
+            required
+            className="w-full px-4 py-2 bg-gray-900 text-white rounded"
+          >
+            <option value="">Select State</option>
+            {states.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={form.county}
+            onChange={(e) => setForm({ ...form, county: e.target.value })}
+            required
+            disabled={!form.state}
+            className="w-full px-4 py-2 bg-gray-900 text-white rounded"
+          >
+            <option value="">Select County</option>
+            {counties.map((county) => (
+              <option key={county} value={county}>
+                {county}
+              </option>
+            ))}
+          </select>
+
           <input
             type="text"
-            placeholder="Jurisdiction (e.g., WV, Boone County)"
+            placeholder="Jurisdiction (optional)"
             value={form.jurisdiction}
             onChange={(e) => setForm({ ...form, jurisdiction: e.target.value })}
             className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
