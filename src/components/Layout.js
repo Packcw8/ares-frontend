@@ -45,7 +45,54 @@ export default function Layout({ children }) {
         </div>
       )}
 
-      {children}
+      {/* Universal styling for inputs, textareas, and submit buttons */}
+      <div className="
+        [&_input]:w-full
+        [&_input]:bg-[#ede3cb]
+        [&_input]:text-[#1e1e1e]
+        [&_input]:border
+        [&_input]:border-[#9b8b6d]
+        [&_input]:rounded-md
+        [&_input]:px-4
+        [&_input]:py-2
+        [&_input]:font-serif
+        [&_input]:focus:outline-none
+        [&_input]:focus:ring-2
+        [&_input]:focus:ring-[#c2a76d]
+        [&_input]:placeholder:text-[#5a4635]
+
+        [&_textarea]:w-full
+        [&_textarea]:bg-[#ede3cb]
+        [&_textarea]:text-[#1e1e1e]
+        [&_textarea]:border
+        [&_textarea]:border-[#9b8b6d]
+        [&_textarea]:rounded-md
+        [&_textarea]:px-4
+        [&_textarea]:py-2
+        [&_textarea]:font-serif
+        [&_textarea]:focus:outline-none
+        [&_textarea]:focus:ring-2
+        [&_textarea]:focus:ring-[#c2a76d]
+        [&_textarea]:placeholder:text-[#5a4635]
+
+        [&_button[type='submit']]:bg-[#8b1e3f]
+        [&_button[type='submit']]:hover:bg-[#72162f]
+        [&_button[type='submit']]:text-white
+        [&_button[type='submit']]:border
+        [&_button[type='submit']]:border-[#c2a76d]
+        [&_button[type='submit']]:font-serif
+        [&_button[type='submit']]:font-bold
+        [&_button[type='submit']]:uppercase
+        [&_button[type='submit']]:tracking-wide
+        [&_button[type='submit']]:py-2
+        [&_button[type='submit']]:px-6
+        [&_button[type='submit']]:rounded-md
+        [&_button[type='submit']]:shadow
+        [&_button[type='submit']]:transition
+        [&_button[type='submit']]:duration-300
+      ">
+        {children}
+      </div>
 
       <footer className="mt-10 text-center text-xs text-[#5a4635] italic border-t border-[#c2a76d] pt-4">
         © 2025 ARES – Upholding Justice, Defending the Constitution.
