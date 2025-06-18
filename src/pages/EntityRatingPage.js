@@ -18,7 +18,8 @@ export default function EntityRatingPage() {
   });
 
   useEffect(() => {
-    api.get("/ratings/entities")
+    api
+      .get("/ratings/entities")
       .then((res) => {
         const found = res.data.find((e) => e.id.toString() === id);
         if (found) setEntity(found);
@@ -71,27 +72,51 @@ export default function EntityRatingPage() {
           Current Reputation: {entity.reputation_score?.toFixed(1)}
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {["accountability", "respect", "effectiveness", "transparency", "public_impact"].map((key) => (
             <div key={key}>
-              <label className="block capitalize mb-1">{key.replace("_", " ")}</label>
-              <input
-                type="number"
-                min={1}
-                max={10}
-                value={form[key]}
-                onChange={(e) => setForm({ ...form, [key]: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 bg-gray-900 text-white rounded"
-              />
+              <label className="block mb-2 text-lg font-semibold text-yellow-300 uppercase tracking-wide">
+                {key.replace("_", " ")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[...Array(10)].map((_, i) => {
+                  const val = i + 1;
+                  return (
+                    <label
+                      key={val}
+                      className={`cursor-pointer px-3 py-1 rounded-full border-2 text-sm font-bold transition ${
+                        form[key] === val
+                          ? "bg-yellow-300 text-black border-yellow-500"
+                          : "bg-gray-800 text-white border-gray-700 hover:bg-yellow-500 hover:text-black"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={key}
+                        value={val}
+                        checked={form[key] === val}
+                        onChange={() => setForm({ ...form, [key]: val })}
+                        className="hidden"
+                      />
+                      {val}
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           ))}
 
-          <textarea
-            placeholder="Optional comment or complaint"
-            value={form.comment}
-            onChange={(e) => setForm({ ...form, comment: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
-          />
+          <div>
+            <label className="block mb-2 text-lg font-semibold text-yellow-300 uppercase tracking-wide">
+              Comment
+            </label>
+            <textarea
+              placeholder="Optional comment or complaint"
+              value={form.comment}
+              onChange={(e) => setForm({ ...form, comment: e.target.value })}
+              className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
+            />
+          </div>
 
           <button
             type="submit"
