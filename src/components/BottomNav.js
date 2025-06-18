@@ -11,7 +11,9 @@ export default function BottomNav() {
     { label: "Terms of Use", icon: "🛡️", path: "/terms" },
     { label: "Forum", icon: "🗣️", path: "/forum" },
     {
-      label: "Logout", icon: "🚪", action: () => {
+      label: "Logout",
+      icon: "🚪",
+      action: () => {
         localStorage.removeItem("token");
         navigate("/login");
       }

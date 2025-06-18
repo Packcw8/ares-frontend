@@ -7,6 +7,9 @@ import RatingsPage from "./pages/RatingsPage";
 import EntityRatingPage from "./pages/EntityRatingPage";
 import AddOfficialPage from './pages/AddOfficialPage';
 import EntityDetailPage from "./pages/EntityDetailPage";
+import KnowYourRights from "./pages/KnowYourRights";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
 
 
 import { setAuthToken } from './services/api'; // ✅ import
@@ -27,6 +30,9 @@ function App() {
           <Route path="/ratings/:id/rate" element={<EntityRatingPage />} />
           <Route path="/ratings/new" element={<AddOfficialPage />} />
           <Route path="/ratings/:id" element={<EntityDetailPage />} />
+          <Route path="/rights" element={<KnowYourRights />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfUse />} />
         </Routes>
       </div>
     </Router>
