@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
@@ -9,7 +9,17 @@ function NewForumPost() {
   const [tags, setTags] = useState("");
   const [isPinned, setIsPinned] = useState(false);
   const [isAMA, setIsAMA] = useState(false);
+  const [entityId, setEntityId] = useState("");
+  const [entities, setEntities] = useState([]);
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch entities for selection
+    api.get("/ratings/entities")
+      .then((res) => setEntities(res.data))
+      .catch((err) => console.error("Error fetching entities:", err));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,11 +30,17 @@ function NewForumPost() {
       return;
     }
 
+    if (!entityId) {
+      alert("Please select an entity.");
+      return;
+    }
+
     try {
       await api.post("/forum/create", {
         title,
-        body: content, // ✅ This is what your backend expects
+        body: content,
         tags,
+        entity_id: parseInt(entityId),
         is_pinned: isPinned,
         is_ama: isAMA,
       });
@@ -43,6 +59,7 @@ function NewForumPost() {
           Start a New Discussion
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
+
           <div>
             <label className="block text-sm font-semibold mb-1">Title</label>
             <input
@@ -64,14 +81,28 @@ function NewForumPost() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-1">
-              Tags (comma-separated)
-            </label>
+            <label className="block text-sm font-semibold mb-1">Tags (comma-separated)</label>
             <input
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-1">Entity</label>
+            <select
+              value={entityId}
+              onChange={(e) => setEntityId(e.target.value)}
+              required
+            >
+              <option value="">Select an entity...</option>
+              {entities.map((entity) => (
+                <option key={entity.id} value={entity.id}>
+                  {entity.name || `Entity #${entity.id}`}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex gap-4">
@@ -93,9 +124,7 @@ function NewForumPost() {
             </label>
           </div>
 
-          <button type="submit">
-            Submit Post
-          </button>
+          <button type="submit">Submit Post</button>
         </form>
       </div>
     </Layout>
