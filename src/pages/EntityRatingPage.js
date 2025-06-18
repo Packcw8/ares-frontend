@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../components/Layout";
-import api from "../services/api"; // ✅ use Axios instance
+import api from "../services/api";
 
 export default function EntityRatingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [entity, setEntity] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const [form, setForm] = useState({
     accountability: 5,
     respect: 5,
@@ -16,6 +17,17 @@ export default function EntityRatingPage() {
     public_impact: 5,
     comment: "",
   });
+
+  const [violatedRights, setViolatedRights] = useState([]);
+
+  const RIGHTS_OPTIONS = [
+    { label: "🗣️ 1st – Freedom of Speech & Petition", value: "1st" },
+    { label: "🔒 4th – Protection from Unreasonable Search", value: "4th" },
+    { label: "⚖️ 14th – Due Process & Equal Protection", value: "14th" },
+    { label: "📜 9th – Rights Not Explicitly Listed", value: "9th" },
+    { label: "🛡️ 10th – Powers Reserved to the People", value: "10th" },
+    { label: "🏛️ 6th – Constitution as Supreme Law", value: "6th" },
+  ];
 
   useEffect(() => {
     api
@@ -35,6 +47,7 @@ export default function EntityRatingPage() {
       await api.post("/ratings/submit", {
         entity_id: parseInt(id),
         ...form,
+        violated_rights: violatedRights,
       });
 
       alert("Rating submitted successfully");
@@ -116,6 +129,36 @@ export default function EntityRatingPage() {
               onChange={(e) => setForm({ ...form, comment: e.target.value })}
               className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
             />
+          </div>
+
+          <div>
+            <label className="block mb-2 text-lg font-bold text-yellow-300 uppercase tracking-wide">
+              🛡️ Bill of Rights Violated? (Optional)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {RIGHTS_OPTIONS.map((r) => (
+                <label
+                  key={r.value}
+                  className="flex items-center text-sm gap-2 bg-gray-800 text-white px-3 py-1 rounded-full cursor-pointer border border-gray-600 hover:bg-yellow-500 hover:text-black"
+                >
+                  <input
+                    type="checkbox"
+                    value={r.value}
+                    checked={violatedRights.includes(r.value)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setViolatedRights((prev) =>
+                        checked
+                          ? [...prev, r.value]
+                          : prev.filter((v) => v !== r.value)
+                      );
+                    }}
+                    className="hidden"
+                  />
+                  {r.label}
+                </label>
+              ))}
+            </div>
           </div>
 
           <button

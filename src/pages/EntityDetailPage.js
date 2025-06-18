@@ -10,6 +10,15 @@ export default function EntityDetailPage() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const RIGHTS_MAP = {
+    "1st": "🗣️ 1st – Free Speech & Petition",
+    "4th": "🔒 4th – No Unreasonable Search",
+    "14th": "⚖️ 14th – Due Process / Equal Protection",
+    "9th": "📜 9th – Unenumerated Rights",
+    "10th": "🛡️ 10th – People's Power",
+    "6th": "🏛️ 6th – Supreme Law of the Land",
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -83,8 +92,24 @@ export default function EntityDetailPage() {
                   <p><strong>Public Impact:</strong> {r.public_impact}</p>
                   <p><strong>Verified:</strong> {r.verified ? "✅" : "❌"}</p>
                 </div>
+
+                {r.violated_rights?.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {r.violated_rights.map((right) => (
+                      <span
+                        key={right}
+                        className="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full border border-red-400"
+                      >
+                        {RIGHTS_MAP[right] || right}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 {r.comment && (
-                  <p className="italic mt-2 border-t pt-2 text-sm">“{r.comment}”</p>
+                  <p className="italic mt-3 pt-2 text-sm border-t border-yellow-400">
+                    “{r.comment}”
+                  </p>
                 )}
                 <p className="text-xs text-right text-gray-500 mt-1">
                   Submitted {new Date(r.created_at).toLocaleString()}
