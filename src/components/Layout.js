@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import aresLogo from "../assets/areslogo.png";
 import { constitutionalQuotes } from "../data/constitutionalQuotes";
+import BottomNav from "./BottomNav"; // ✅ make sure this file exists
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -147,41 +148,7 @@ export default function Layout({ children }) {
         {children}
       </div>
 
-     {showLogout && (
-  <nav className="fixed bottom-0 left-0 right-0 bg-[#2c1b0f] text-white border-t border-[#c2a76d] flex justify-around items-center py-3 px-2 z-50 text-sm shadow-[0_-2px_10px_rgba(0,0,0,0.5)] font-serif tracking-wide">
-    <button
-      onClick={() => navigate("/dashboard")}
-      className="flex-1 py-3 text-center hover:bg-[#3a2718] transition rounded"
-    >
-      🏛️ Home
-    </button>
-    <button
-      onClick={() => navigate("/ratings")}
-      className="flex-1 py-3 text-center hover:bg-[#3a2718] transition rounded"
-    >
-      📜 Ratings
-    </button>
-    <button
-      onClick={() => navigate("/ratings/new")}
-      className="flex-1 py-3 text-center hover:bg-[#3a2718] transition rounded"
-    >
-      ✍️ Rate
-    </button>
-    <button
-      onClick={() => navigate("/home")}
-      className="flex-1 py-3 text-center hover:bg-[#3a2718] transition rounded"
-    >
-      🕵️ Reports
-    </button>
-    <button
-      onClick={handleLogout}
-      className="flex-1 py-3 text-center hover:bg-[#3a2718] transition rounded"
-    >
-      ⚖️ Exit
-    </button>
-  </nav>
-)}
-
+      {showLogout && <BottomNav />}
 
       <footer className="mt-10 text-center text-xs text-[#5a4635] italic border-t border-[#c2a76d] pt-4">
         © 2025 ARES – Upholding Justice, Defending the Constitution.
