@@ -24,7 +24,7 @@ export default function BottomNav() {
     <>
       {/* Dropdown Menu */}
       {showMore && (
-        <div className="fixed bottom-16 left-1/2 -translate-x-1/2 max-w-xs w-[90%] bg-[#f5ecd9] border border-[#c2a76d] shadow-xl rounded-lg p-3 z-50 space-y-2">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 max-w-xs w-[90%] bg-[#f5ecd9] border border-[#c2a76d] shadow-xl rounded-lg p-3 z-50 space-y-2">
           {menuItems.map((item, idx) => (
             <button
               key={idx}
@@ -42,11 +42,11 @@ export default function BottomNav() {
       )}
 
       {/* Fixed Bottom Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-[#2c1b0f] text-white border-t border-[#c2a76d] flex justify-around items-center py-3 px-2 z-40 text-sm font-serif tracking-wide">
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#2c1b0f] text-white border-t border-[#c2a76d] flex justify-around items-center py-5 px-2 z-40 text-base font-serif tracking-wide">
         <button onClick={() => navigate("/dashboard")}>🏛️</button>
         <button onClick={() => navigate("/ratings")}>📜</button>
         <button onClick={() => navigate("/ratings/new")}>✍️</button>
-        <button onClick={() => navigate("/home")}>🕵️</button>
+        <button onClick={() => navigate("/forum")}>🕵️</button>
         <button onClick={() => setShowMore(!showMore)} className="text-xl">☰</button>
       </nav>
     </>

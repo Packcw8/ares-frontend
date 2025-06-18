@@ -10,6 +10,7 @@ import EntityDetailPage from "./pages/EntityDetailPage";
 import KnowYourRights from "./pages/KnowYourRights";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
+import ForumPost from "./pages/ForumPost";
 
 
 import { setAuthToken } from './services/api'; // ✅ import
@@ -33,6 +34,7 @@ function App() {
           <Route path="/rights" element={<KnowYourRights />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfUse />} />
+          <Route path="/forum/:id" element={<ForumPost />} />
         </Routes>
       </div>
     </Router>
