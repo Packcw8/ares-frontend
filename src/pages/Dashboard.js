@@ -1,17 +1,7 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
-import api from "../services/api";
 
 export default function Dashboard() {
-  const [impact, setImpact] = useState(null);
-
-  useEffect(() => {
-    api.get("/ratings/user/impact")
-      .then(res => setImpact(res.data))
-      .catch(() => console.warn("Failed to load user impact"));
-  }, []);
-
   return (
     <Layout>
 
