@@ -12,6 +12,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import ForumPost from "./pages/ForumPost";
 import Forum from "./pages/Forum";
+import NewForumPost from "./pages/NewForumPost";
 
 
 
@@ -38,6 +39,7 @@ function App() {
           <Route path="/terms" element={<TermsOfUse />} />
           <Route path="/forum/:id" element={<ForumPost />} />
           <Route path="/forum" element={<Forum />} />
+          <Route path="/forum/new" element={<NewForumPost />} />
         </Routes>
       </div>
     </Router>
