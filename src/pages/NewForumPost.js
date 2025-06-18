@@ -21,9 +21,9 @@ function NewForumPost() {
     }
 
     try {
-      await api.post("/forum/post", {
+      await api.post("/forum/create", {
         title,
-        content,
+        body: content, // ✅ This is what your backend expects
         tags,
         is_pinned: isPinned,
         is_ama: isAMA,
