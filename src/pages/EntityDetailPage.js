@@ -29,7 +29,12 @@ export default function EntityDetailPage() {
         setEntity(found);
 
         const reviewsRes = await api.get(`/ratings/entity/${id}/reviews`);
-        setReviews(reviewsRes.data);
+        setReviews(
+          reviewsRes.data.map((r) => ({
+            ...r,
+            _flag_reason: "",
+          }))
+        );
       } catch (err) {
         console.error("Error loading entity or reviews", err);
         navigate("/ratings");
@@ -138,8 +143,8 @@ export default function EntityDetailPage() {
                               return;
                             }
                             try {
-                              await api.post(`/ratings/flag-rating/${r.id}`, null, {
-                                params: { reason: r._flag_reason },
+                              await api.post(`/ratings/flag-rating/${r.id}`, {
+                                reason: r._flag_reason,  // ✅ FIXED: send JSON body
                               });
                               alert("Thank you. This review has been submitted for constitutional review.");
                               setReviews((prev) =>
