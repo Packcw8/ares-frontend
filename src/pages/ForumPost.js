@@ -18,7 +18,7 @@ export default function ForumPost() {
   const handleSubmit = async () => {
     if (!commentText.trim()) return;
     try {
-      const res = await api.post("/comments", {
+      const res = await api.post("/comments/", {
         post_id: parseInt(id),
         content: commentText
       });
