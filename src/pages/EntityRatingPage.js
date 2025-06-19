@@ -139,7 +139,11 @@ export default function EntityRatingPage() {
               {RIGHTS_OPTIONS.map((r) => (
                 <label
                   key={r.value}
-                  className="flex items-center text-sm gap-2 bg-gray-800 text-white px-3 py-1 rounded-full cursor-pointer border border-gray-600 hover:bg-yellow-500 hover:text-black"
+                  className={`flex items-center text-sm gap-2 px-3 py-1 rounded-full cursor-pointer border transition font-semibold ${
+                    violatedRights.includes(r.value)
+                      ? "bg-yellow-300 text-black border-yellow-500"
+                      : "bg-gray-800 text-white border-gray-600 hover:bg-yellow-500 hover:text-black"
+                  }`}
                 >
                   <input
                     type="checkbox"
