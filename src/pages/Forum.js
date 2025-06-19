@@ -11,7 +11,7 @@ function Forum() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await api.get("/forum");
+        const response = await api.get("/forum/");
         setPosts(response.data);
       } catch (error) {
         console.error("Error fetching forum posts:", error);
