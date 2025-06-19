@@ -19,7 +19,7 @@ export default function AdminDashboard() {
     } else {
       fetchUsers();
     }
-  }, []);
+  }, [navigate]); // ✅ ESLint-safe
 
   const fetchUsers = async () => {
     try {
