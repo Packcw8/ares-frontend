@@ -8,8 +8,9 @@ export default function Signup() {
     username: '',
     email: '',
     password: '',
-    role: 'official', // must match backend schema
+    role: 'citizen',
   });
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -25,7 +26,9 @@ export default function Signup() {
 
   return (
     <Layout>
-      <h2 className="text-xl font-bold mb-4">Create Your Account</h2>
+      <h2 className="text-2xl font-extrabold text-[#0A2A42] mb-6 uppercase tracking-wider">
+        Sign Up as a Citizen or Official
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
@@ -51,6 +54,14 @@ export default function Signup() {
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
+        <select
+          value={form.role}
+          onChange={(e) => setForm({ ...form, role: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800"
+        >
+          <option value="citizen">🗳️ Citizen</option>
+          <option value="official">🏛️ Official</option>
+        </select>
         <button
           type="submit"
           className="w-full bg-[#0A2A42] text-white py-2 rounded-lg font-semibold"
