@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api, { setAuthToken } from '../services/api';
 import Layout from '../components/Layout';
+import { parseJwt } from '../utils/auth';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -11,9 +12,18 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await api.post('/auth/login', form);
-      localStorage.setItem('token', res.data.access_token);
-      setAuthToken(res.data.access_token);
-      navigate('/dashboard');
+      const token = res.data.access_token;
+
+      localStorage.setItem('token', token);
+      setAuthToken(token);
+
+      const decoded = parseJwt(token);
+
+      if (decoded?.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       alert(err.response?.data?.detail || 'Login failed');
     }
