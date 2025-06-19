@@ -7,7 +7,7 @@ export default function VerifyOfficialsPage() {
 
   useEffect(() => {
     api
-      .get("/users/unverified-officials", {
+      .get("/admin/unverified-officials", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

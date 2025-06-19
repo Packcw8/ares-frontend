@@ -7,7 +7,7 @@ export default function FlaggedRatingsPage() {
 
   useEffect(() => {
     api
-      .get("/ratings/flagged", {
+      .get("/ratings/admin/flagged-ratings", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
