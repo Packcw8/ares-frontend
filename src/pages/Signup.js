@@ -4,7 +4,12 @@ import api from '../services/api';
 import Layout from '../components/Layout';
 
 export default function Signup() {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({
+    username: '',
+    email: '',
+    password: '',
+    role: 'official', // must match backend schema
+  });
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -24,9 +29,9 @@ export default function Signup() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          placeholder="Username"
+          value={form.username}
+          onChange={(e) => setForm({ ...form, username: e.target.value })}
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
