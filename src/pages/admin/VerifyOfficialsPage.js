@@ -18,7 +18,7 @@ export default function VerifyOfficialsPage() {
 
   const handleVerify = async (id) => {
     try {
-      await api.post(`/users/verify/${id}`, {}, {
+      await api.patch(`/admin/verify-user/${id}`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -44,7 +44,10 @@ export default function VerifyOfficialsPage() {
               <p><strong>Requested Role:</strong> Official</p>
 
               <div className="flex justify-end mt-4">
-                <button onClick={() => handleVerify(user.id)} className="constitution-btn">
+                <button
+                  onClick={() => handleVerify(user.id)}
+                  className="constitution-btn"
+                >
                   ✅ Verify Official
                 </button>
               </div>
