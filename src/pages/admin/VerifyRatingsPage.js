@@ -55,7 +55,7 @@ export default function VerifyRatingsPage() {
           pending.map((rating) => (
             <div key={rating.id} className="constitution-card">
               <h3 className="text-lg font-bold mb-2">📜 Rating #{rating.id}</h3>
-              <p><strong>Entity:</strong> {rating.entity_name || "Unknown"}</p>
+              <p><strong>Entity:</strong> {rating.entity?.name || "Unknown"}</p>
               <p><strong>Submitted By:</strong> {rating.user_id ? `User #${rating.user_id}` : "Anonymous"}</p>
               <p><strong>Comment:</strong> {rating.comment || "No comment provided."}</p>
 

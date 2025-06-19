@@ -55,7 +55,7 @@ export default function FlaggedRatingsPage() {
           flagged.map((rating) => (
             <div key={rating.id} className="constitution-card">
               <h3 className="text-lg font-bold mb-2">🚩 Flagged Rating #{rating.id}</h3>
-              <p><strong>Entity:</strong> {rating.entity_name || "Unknown"}</p>
+              <p><strong>Entity:</strong> {rating.entity?.name || "Unknown"}</p>
               <p><strong>Reason:</strong> {rating.flag_reason || "N/A"}</p>
               <p><strong>Flagged By:</strong> {rating.flagged_by || "Anonymous"}</p>
               <p><strong>Comment:</strong> {rating.comment || "(No comment provided)"}</p>
