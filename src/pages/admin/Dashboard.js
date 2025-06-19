@@ -40,12 +40,13 @@ export default function AdminDashboard() {
   };
 
   const deleteUser = async (id) => {
-    if (confirm("Are you sure you want to delete this user?")) {
-      await axios.delete(`${API}/admin/delete-user/${id}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
-      fetchUsers();
-    }
+    const confirmDelete = window.confirm("Are you sure you want to delete this user?");
+    if (!confirmDelete) return;
+
+    await axios.delete(`${API}/admin/delete-user/${id}`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
+    fetchUsers();
   };
 
   return (
