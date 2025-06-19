@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
-import axios from "axios";
-import { getApiUrl } from "../../utils/auth";
-
+import api from "../../services/api";
 
 export default function VerifyRatingsPage() {
   const [pending, setPending] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`${getApiUrl()}/ratings/unverified`, {
+    api
+      .get("/ratings/unverified", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -20,15 +18,11 @@ export default function VerifyRatingsPage() {
 
   const handleVerify = async (id) => {
     try {
-      await axios.post(
-        `${getApiUrl()}/ratings/verify/${id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      await api.post(`/ratings/verify/${id}`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setPending((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       console.error("Verification failed:", err);
@@ -39,7 +33,7 @@ export default function VerifyRatingsPage() {
     if (!window.confirm("Are you sure you want to remove this rating?")) return;
 
     try {
-      await axios.delete(`${getApiUrl()}/ratings/${id}`, {
+      await api.delete(`/ratings/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -54,7 +48,9 @@ export default function VerifyRatingsPage() {
     <AdminLayout>
       <div className="space-y-6">
         {pending.length === 0 ? (
-          <p className="italic text-center text-[#5a4635]">No unverified ratings pending approval.</p>
+          <p className="italic text-center text-[#5a4635]">
+            No unverified ratings pending approval.
+          </p>
         ) : (
           pending.map((rating) => (
             <div key={rating.id} className="constitution-card">
@@ -64,8 +60,15 @@ export default function VerifyRatingsPage() {
               <p><strong>Comment:</strong> {rating.comment || "No comment provided."}</p>
 
               <div className="flex justify-end gap-3 mt-4">
-                <button onClick={() => handleVerify(rating.id)} className="constitution-btn">✅ Approve</button>
-                <button onClick={() => handleRemove(rating.id)} className="constitution-btn bg-red-600 hover:bg-red-700">❌ Remove</button>
+                <button onClick={() => handleVerify(rating.id)} className="constitution-btn">
+                  ✅ Approve
+                </button>
+                <button
+                  onClick={() => handleRemove(rating.id)}
+                  className="constitution-btn bg-red-600 hover:bg-red-700"
+                >
+                  ❌ Remove
+                </button>
               </div>
             </div>
           ))

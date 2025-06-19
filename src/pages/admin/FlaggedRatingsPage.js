@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
-import axios from "axios";
-import { getApiUrl } from "../../utils/auth";
-
+import api from "../../services/api";
 
 export default function FlaggedRatingsPage() {
   const [flagged, setFlagged] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`${getApiUrl()}/ratings/flagged`, {
+    api
+      .get("/ratings/flagged", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -22,7 +20,7 @@ export default function FlaggedRatingsPage() {
     if (!window.confirm("Are you sure you want to delete this rating?")) return;
 
     try {
-      await axios.delete(`${getApiUrl()}/ratings/${id}`, {
+      await api.delete(`/ratings/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -35,7 +33,7 @@ export default function FlaggedRatingsPage() {
 
   const handleVerify = async (id) => {
     try {
-      await axios.post(`${getApiUrl()}/ratings/verify/${id}`, {}, {
+      await api.post(`/ratings/verify/${id}`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -50,7 +48,9 @@ export default function FlaggedRatingsPage() {
     <AdminLayout>
       <div className="space-y-6">
         {flagged.length === 0 ? (
-          <p className="italic text-center text-[#5a4635]">No flagged ratings at this time.</p>
+          <p className="italic text-center text-[#5a4635]">
+            No flagged ratings at this time.
+          </p>
         ) : (
           flagged.map((rating) => (
             <div key={rating.id} className="constitution-card">

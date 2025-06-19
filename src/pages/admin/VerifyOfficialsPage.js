@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
-import axios from "axios";
-import { getApiUrl } from "../../utils/auth";
-
+import api from "../../services/api";
 
 export default function VerifyOfficialsPage() {
   const [pending, setPending] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`${getApiUrl()}/users/unverified-officials`, {
+    api
+      .get("/users/unverified-officials", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -20,15 +18,11 @@ export default function VerifyOfficialsPage() {
 
   const handleVerify = async (id) => {
     try {
-      await axios.post(
-        `${getApiUrl()}/users/verify/${id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      await api.post(`/users/verify/${id}`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setPending((prev) => prev.filter((u) => u.id !== id));
     } catch (err) {
       console.error("Verification failed:", err);
@@ -39,7 +33,9 @@ export default function VerifyOfficialsPage() {
     <AdminLayout>
       <div className="space-y-6">
         {pending.length === 0 ? (
-          <p className="italic text-center text-[#5a4635]">No pending officials to verify.</p>
+          <p className="italic text-center text-[#5a4635]">
+            No pending officials to verify.
+          </p>
         ) : (
           pending.map((user) => (
             <div key={user.id} className="constitution-card">
