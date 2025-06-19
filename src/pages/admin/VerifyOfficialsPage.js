@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "axios";
+import { getApiUrl } from "../../auth";
 
 export default function VerifyOfficialsPage() {
   const [pending, setPending] = useState([]);
 
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/users/unverified-officials`, {
+      .get(`${getApiUrl()}/users/unverified-officials`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -19,7 +20,7 @@ export default function VerifyOfficialsPage() {
   const handleVerify = async (id) => {
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/users/verify/${id}`,
+        `${getApiUrl()}/users/verify/${id}`,
         {},
         {
           headers: {

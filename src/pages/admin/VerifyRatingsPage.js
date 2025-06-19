@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "axios";
+import { getApiUrl } from "../../auth";
 
 export default function VerifyRatingsPage() {
   const [pending, setPending] = useState([]);
 
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/ratings/unverified`, {
+      .get(`${getApiUrl()}/ratings/unverified`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -19,7 +20,7 @@ export default function VerifyRatingsPage() {
   const handleVerify = async (id) => {
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/ratings/verify/${id}`,
+        `${getApiUrl()}/ratings/verify/${id}`,
         {},
         {
           headers: {
@@ -37,7 +38,7 @@ export default function VerifyRatingsPage() {
     if (!window.confirm("Are you sure you want to remove this rating?")) return;
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/ratings/${id}`, {
+      await axios.delete(`${getApiUrl()}/ratings/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

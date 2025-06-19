@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "axios";
+import { getApiUrl } from "../../auth";
 
 export default function FlaggedRatingsPage() {
   const [flagged, setFlagged] = useState([]);
 
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/ratings/flagged`, {
+      .get(`${getApiUrl()}/ratings/flagged`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -20,7 +21,7 @@ export default function FlaggedRatingsPage() {
     if (!window.confirm("Are you sure you want to delete this rating?")) return;
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/ratings/${id}`, {
+      await axios.delete(`${getApiUrl()}/ratings/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -33,7 +34,7 @@ export default function FlaggedRatingsPage() {
 
   const handleVerify = async (id) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/ratings/verify/${id}`, {}, {
+      await axios.post(`${getApiUrl()}/ratings/verify/${id}`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -59,8 +60,13 @@ export default function FlaggedRatingsPage() {
               <p><strong>Comment:</strong> {rating.comment || "(No comment provided)"}</p>
 
               <div className="flex justify-end gap-3 mt-4">
-                <button onClick={() => handleVerify(rating.id)} className="constitution-btn">✅ Verify</button>
-                <button onClick={() => handleRemove(rating.id)} className="constitution-btn bg-red-600 hover:bg-red-700">
+                <button onClick={() => handleVerify(rating.id)} className="constitution-btn">
+                  ✅ Verify
+                </button>
+                <button
+                  onClick={() => handleRemove(rating.id)}
+                  className="constitution-btn bg-red-600 hover:bg-red-700"
+                >
                   ❌ Remove
                 </button>
               </div>
