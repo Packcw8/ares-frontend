@@ -35,7 +35,7 @@ function Forum() {
   return (
     <Layout>
       <div className="p-4 pb-24">
-        <h1 className="text-2xl font-bold mb-4 text-[#283d63]">Public Forum</h1>
+        <h1 className="text-2xl font-bold mb-4 text-[#283d63]">Hear From Officials. Join the Conversation.</h1>
 
         {(userRole === "official" || userRole === "admin") && isVerified && (
           <div className="mb-4 text-right">
