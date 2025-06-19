@@ -13,6 +13,7 @@ import TermsOfUse from "./pages/TermsOfUse";
 import ForumPost from "./pages/ForumPost";
 import Forum from "./pages/Forum";
 import NewForumPost from "./pages/NewForumPost";
+import AdminDashboard from "./pages/admin/Dashboard";
 
 
 
@@ -40,6 +41,7 @@ function App() {
           <Route path="/forum/:id" element={<ForumPost />} />
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum/new" element={<NewForumPost />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>
