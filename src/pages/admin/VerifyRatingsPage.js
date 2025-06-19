@@ -18,7 +18,7 @@ export default function VerifyRatingsPage() {
 
   const handleVerify = async (id) => {
     try {
-      await api.post(`/ratings/verify/${id}`, {}, {
+      await api.post(`/ratings/verify-rating/${id}`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -33,7 +33,7 @@ export default function VerifyRatingsPage() {
     if (!window.confirm("Are you sure you want to remove this rating?")) return;
 
     try {
-      await api.delete(`/ratings/${id}`, {
+      await api.delete(`/ratings/delete-rating/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
