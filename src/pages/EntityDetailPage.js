@@ -111,9 +111,57 @@ export default function EntityDetailPage() {
                     “{r.comment}”
                   </p>
                 )}
+
                 <p className="text-xs text-right text-gray-500 mt-1">
                   Submitted {new Date(r.created_at).toLocaleString()}
                 </p>
+
+                {/* ⚠️ Flagging UI */}
+                {!r.flagged ? (
+                  <div className="mt-2">
+                    <details className="text-sm">
+                      <summary className="text-red-600 cursor-pointer hover:underline font-semibold">
+                        ⚠️ Flag This Review
+                      </summary>
+                      <div className="mt-2">
+                        <textarea
+                          placeholder="Describe the issue (e.g. false claim, hate speech, spam)..."
+                          className="w-full p-2 rounded bg-white text-black border border-yellow-400 mb-2"
+                          rows={2}
+                          onChange={(e) => (r._flag_reason = e.target.value)}
+                        />
+                        <button
+                          className="bg-red-700 text-white px-4 py-1 rounded hover:bg-red-800 font-semibold text-sm"
+                          onClick={async () => {
+                            if (!r._flag_reason || r._flag_reason.trim().length < 5) {
+                              alert("Please enter a reason at least 5 characters long.");
+                              return;
+                            }
+                            try {
+                              await api.post(`/ratings/flag-rating/${r.id}`, null, {
+                                params: { reason: r._flag_reason },
+                              });
+                              alert("Thank you. This review has been submitted for constitutional review.");
+                              setReviews((prev) =>
+                                prev.map((rev) =>
+                                  rev.id === r.id ? { ...rev, flagged: true } : rev
+                                )
+                              );
+                            } catch (err) {
+                              alert(err.response?.data?.detail || "Failed to flag this review.");
+                            }
+                          }}
+                        >
+                          Submit Flag
+                        </button>
+                      </div>
+                    </details>
+                  </div>
+                ) : (
+                  <p className="text-xs text-yellow-600 italic mt-2">
+                    ⚖️ This review has been flagged for constitutional review.
+                  </p>
+                )}
               </div>
             ))}
           </div>
