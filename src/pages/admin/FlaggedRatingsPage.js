@@ -20,7 +20,7 @@ export default function FlaggedRatingsPage() {
     if (!window.confirm("Are you sure you want to delete this rating?")) return;
 
     try {
-      await api.delete(`/ratings/${id}`, {
+      await api.delete(`/ratings/delete-rating/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -33,7 +33,7 @@ export default function FlaggedRatingsPage() {
 
   const handleVerify = async (id) => {
     try {
-      await api.post(`/ratings/verify/${id}`, {}, {
+      await api.post(`/ratings/verify-rating/${id}`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -68,7 +68,7 @@ export default function FlaggedRatingsPage() {
                   onClick={() => handleRemove(rating.id)}
                   className="constitution-btn bg-red-600 hover:bg-red-700"
                 >
-                  ❌ Remove
+                  ❌ Delete
                 </button>
               </div>
             </div>
