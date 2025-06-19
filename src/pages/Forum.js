@@ -5,6 +5,8 @@ import Layout from "../components/Layout";
 
 function Forum() {
   const [posts, setPosts] = useState([]);
+  const [userRole, setUserRole] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -16,7 +18,18 @@ function Forum() {
       }
     };
 
+    const fetchUser = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        setUserRole(res.data.role);
+        setIsVerified(res.data.is_verified);
+      } catch (error) {
+        console.warn("Not logged in or error fetching user:", error);
+      }
+    };
+
     fetchPosts();
+    fetchUser();
   }, []);
 
   return (
@@ -24,14 +37,16 @@ function Forum() {
       <div className="p-4 pb-24">
         <h1 className="text-2xl font-bold mb-4 text-[#283d63]">Public Forum</h1>
 
-        <div className="mb-4 text-right">
-          <Link
-            to="/forum/new"
-            className="bg-[#c2a76d] text-white px-4 py-2 rounded-xl font-bold hover:bg-[#b08d5d] transition"
-          >
-            + Start a New Discussion
-          </Link>
-        </div>
+        {(userRole === "official" || userRole === "admin") && isVerified && (
+          <div className="mb-4 text-right">
+            <Link
+              to="/forum/new"
+              className="bg-[#c2a76d] text-white px-4 py-2 rounded-xl font-bold hover:bg-[#b08d5d] transition"
+            >
+              + Start a New Discussion
+            </Link>
+          </div>
+        )}
 
         {posts.length === 0 ? (
           <p className="text-center text-gray-500">No posts yet.</p>

@@ -15,8 +15,8 @@ function NewForumPost() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch entities for selection
-    api.get("/ratings/entities")
+    api
+      .get("/ratings/entities")
       .then((res) => setEntities(res.data))
       .catch((err) => console.error("Error fetching entities:", err));
   }, []);
@@ -36,19 +36,27 @@ function NewForumPost() {
     }
 
     try {
-      await api.post("/forum/create", {
-        title,
-        body: content,
-        tags,
-        entity_id: parseInt(entityId),
-        is_pinned: isPinned,
-        is_ama: isAMA,
-      });
+      await api.post(
+        "/forum/create",
+        {
+          title,
+          body: content,
+          tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+          entity_id: parseInt(entityId),
+          is_pinned: isPinned,
+          is_ama: isAMA,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       navigate("/forum");
     } catch (err) {
       console.error(err);
-      alert("Error creating post.");
+      alert(err.response?.data?.detail || "Error creating post.");
     }
   };
 
@@ -67,6 +75,7 @@ function NewForumPost() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              className="w-full border border-gray-300 rounded-md p-2"
             />
           </div>
 
@@ -77,6 +86,7 @@ function NewForumPost() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               required
+              className="w-full border border-gray-300 rounded-md p-2"
             />
           </div>
 
@@ -86,6 +96,7 @@ function NewForumPost() {
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2"
             />
           </div>
 
@@ -95,6 +106,7 @@ function NewForumPost() {
               value={entityId}
               onChange={(e) => setEntityId(e.target.value)}
               required
+              className="w-full border border-gray-300 rounded-md p-2"
             >
               <option value="">Select an entity...</option>
               {entities.map((entity) => (
@@ -124,7 +136,12 @@ function NewForumPost() {
             </label>
           </div>
 
-          <button type="submit">Submit Post</button>
+          <button
+            type="submit"
+            className="bg-[#283d63] text-white font-bold px-4 py-2 rounded hover:bg-[#1d2c49] transition"
+          >
+            Submit Post
+          </button>
         </form>
       </div>
     </Layout>
