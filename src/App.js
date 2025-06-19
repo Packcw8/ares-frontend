@@ -14,6 +14,9 @@ import ForumPost from "./pages/ForumPost";
 import Forum from "./pages/Forum";
 import NewForumPost from "./pages/NewForumPost";
 import AdminDashboard from "./pages/admin/Dashboard";
+import FlaggedRatingsPage from "./pages/admin/FlaggedRatingsPage";
+import VerifyOfficialsPage from "./pages/admin/VerifyOfficialsPage";
+import VerifyRatingsPage from "./pages/admin/VerifyRatingsPage";
 
 
 
@@ -42,6 +45,9 @@ function App() {
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum/new" element={<NewForumPost />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/flagged" element={<FlaggedRatingsPage />} />
+        <Route path="/admin/verify-officials" element={<VerifyOfficialsPage />} />
+        <Route path="/admin/verify-ratings" element={<VerifyRatingsPage />} />
         </Routes>
       </div>
     </Router>

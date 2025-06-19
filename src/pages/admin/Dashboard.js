@@ -1,97 +1,72 @@
 import { useEffect, useState } from "react";
+import AdminLayout from "../../components/AdminLayout";
 import { useNavigate } from "react-router-dom";
-import Layout from "../../components/Layout";
-import { getToken, parseJwt } from "../../utils/auth";
-import api from "../../services/api"; // ✅ Use shared axios instance
 
-export default function AdminDashboard() {
-  const [users, setUsers] = useState([]);
+export default function Dashboard() {
+  const [stats, setStats] = useState({
+    totalRatings: 0,
+    flagged: 0,
+    pendingOfficials: 0,
+    pendingRatings: 0,
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = getToken();
-    const decoded = parseJwt(token);
-
-    if (!token || decoded?.role !== "admin") {
-      navigate("/login");
-    } else {
-      fetchUsers();
-    }
-  }, [navigate]);
-
-  const fetchUsers = async () => {
-    try {
-      const res = await api.get("/admin/users");
-      setUsers(res.data);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-    }
-  };
-
-  const verifyUser = async (id) => {
-    try {
-      await api.patch(`/admin/verify-user/${id}`);
-      fetchUsers();
-    } catch (err) {
-      console.error("Error verifying user:", err);
-    }
-  };
-
-  const deleteUser = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this user?");
-    if (!confirmDelete) return;
-
-    try {
-      await api.delete(`/admin/delete-user/${id}`);
-      fetchUsers();
-    } catch (err) {
-      console.error("Error deleting user:", err);
-    }
-  };
+    // Placeholder — replace with real API data later
+    setStats({
+      totalRatings: 124,
+      flagged: 3,
+      pendingOfficials: 2,
+      pendingRatings: 5,
+    });
+  }, []);
 
   return (
-    <Layout>
-      <h1 className="text-3xl font-extrabold text-[#3a2f1b] mb-6 uppercase tracking-wider">
-        Admin Dashboard
-      </h1>
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Stats Card */}
+        <div className="constitution-card">
+          <h2 className="text-xl font-bold mb-3">📊 System Overview</h2>
+          <ul className="space-y-2 text-[15px] leading-relaxed">
+            <li><strong>Total Ratings:</strong> {stats.totalRatings}</li>
+            <li><strong>Flagged Ratings:</strong> {stats.flagged}</li>
+            <li><strong>Pending Officials:</strong> {stats.pendingOfficials}</li>
+            <li><strong>Pending Ratings:</strong> {stats.pendingRatings}</li>
+          </ul>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {users.map((user) => (
-          <div key={user.id} className="card">
-            <p>
-              <strong>Username:</strong> {user.username}
-            </p>
-            <p>
-              <strong>Email:</strong> {user.email}
-            </p>
-            <p>
-              <strong>Role:</strong> {user.role}
-            </p>
-            <p>
-              <strong>Status:</strong>{" "}
-              {user.role === "official" && user.is_verified ? (
-                <span className="text-green-700 font-semibold">Verified</span>
-              ) : (
-                <span className="text-red-600 font-semibold">Not Verified</span>
-              )}
-            </p>
-
-            <div className="flex gap-3 mt-4">
-              {user.role === "official" && !user.is_verified && (
-                <button onClick={() => verifyUser(user.id)}>✅ Verify</button>
-              )}
-              {user.role !== "admin" && (
-                <button
-                  onClick={() => deleteUser(user.id)}
-                  className="bg-red-700 hover:bg-red-800"
-                >
-                  🗑️ Delete
-                </button>
-              )}
-            </div>
+        {/* Quick Action Buttons */}
+        <div className="constitution-card">
+          <h2 className="text-xl font-bold mb-3">🧭 Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              onClick={() => navigate("/admin/flagged")}
+              className="constitution-btn"
+            >
+              ⚠️ Review Flagged Ratings
+            </button>
+            <button
+              onClick={() => navigate("/admin/verify-officials")}
+              className="constitution-btn"
+            >
+              🗳️ Verify New Officials
+            </button>
+            <button
+              onClick={() => navigate("/admin/verify-ratings")}
+              className="constitution-btn"
+            >
+              ✅ Approve New Ratings
+            </button>
+            <button
+              onClick={() => navigate("/admin/logs")}
+              className="constitution-btn"
+            >
+              📜 System Logs
+            </button>
           </div>
-        ))}
+        </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 }
