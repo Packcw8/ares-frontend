@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import Layout from "../../components/Layout";
 import { getToken, parseJwt } from "../../utils/auth";
-
-const API = import.meta.env.VITE_API_BASE_URL;
+import api from "../../services/api"; // ✅ Use shared axios instance
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
@@ -19,13 +17,11 @@ export default function AdminDashboard() {
     } else {
       fetchUsers();
     }
-  }, [navigate]); // ✅ ESLint-safe
+  }, [navigate]);
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${API}/admin/users`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await api.get("/admin/users");
       setUsers(res.data);
     } catch (err) {
       console.error("Error fetching users:", err);
@@ -33,20 +29,24 @@ export default function AdminDashboard() {
   };
 
   const verifyUser = async (id) => {
-    await axios.patch(`${API}/admin/verify-user/${id}`, null, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    });
-    fetchUsers();
+    try {
+      await api.patch(`/admin/verify-user/${id}`);
+      fetchUsers();
+    } catch (err) {
+      console.error("Error verifying user:", err);
+    }
   };
 
   const deleteUser = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this user?");
     if (!confirmDelete) return;
 
-    await axios.delete(`${API}/admin/delete-user/${id}`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    });
-    fetchUsers();
+    try {
+      await api.delete(`/admin/delete-user/${id}`);
+      fetchUsers();
+    } catch (err) {
+      console.error("Error deleting user:", err);
+    }
   };
 
   return (
