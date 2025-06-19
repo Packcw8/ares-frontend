@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "axios";
-import { getApiUrl } from "../../auth";
+import { getApiUrl } from "../../utils/auth";
+
 
 export default function VerifyOfficialsPage() {
   const [pending, setPending] = useState([]);
