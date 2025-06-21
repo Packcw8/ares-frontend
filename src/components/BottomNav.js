@@ -45,8 +45,9 @@ export default function BottomNav() {
       <nav className="fixed bottom-0 left-0 right-0 bg-[#2c1b0f] text-white border-t border-[#c2a76d] flex justify-around items-center py-5 px-2 z-40 text-base font-serif tracking-wide">
         <button onClick={() => navigate("/dashboard")}>🏛️</button>
         <button onClick={() => navigate("/ratings")}>📜</button>
-        <button onClick={() => navigate("/ratings/new")}>✍️</button>
-        <button onClick={() => navigate("/forum")}>🕵️</button>
+        <button onClick={() => navigate("/vault/public")}>📍</button> {/* Center Vault */}
+        <button onClick={() => navigate("/vault/upload")}>📤</button>
+        <button onClick={() => navigate("/official")}>🧑‍⚖️</button>
         <button onClick={() => setShowMore(!showMore)} className="text-xl">☰</button>
       </nav>
     </>

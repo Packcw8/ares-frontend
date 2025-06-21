@@ -17,6 +17,8 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import FlaggedRatingsPage from "./pages/admin/FlaggedRatingsPage";
 import VerifyOfficialsPage from "./pages/admin/VerifyOfficialsPage";
 import VerifyRatingsPage from "./pages/admin/VerifyRatingsPage";
+import VaultUpload from "./vault/VaultUpload";
+import VaultPublic from "./vault/VaultPublic";
 
 
 
@@ -48,6 +50,8 @@ function App() {
           <Route path="/admin/flagged" element={<FlaggedRatingsPage />} />
         <Route path="/admin/verify-officials" element={<VerifyOfficialsPage />} />
         <Route path="/admin/verify-ratings" element={<VerifyRatingsPage />} />
+        <Route path="/vault/upload" element={<VaultUpload />} />
+        <Route path="/vault/public" element={<VaultPublic />} />
         </Routes>
       </div>
     </Router>
