@@ -47,7 +47,7 @@ export default function BottomNav() {
         <button onClick={() => navigate("/ratings")}>📜</button>
         <button onClick={() => navigate("/vault/public")}>📍</button> {/* Center Vault */}
         <button onClick={() => navigate("/vault/upload")}>📤</button>
-        <button onClick={() => navigate("/official")}>🧑‍⚖️</button>
+        <button onClick={() => navigate("/ratings/new")}>🧑‍⚖️</button>
         <button onClick={() => setShowMore(!showMore)} className="text-xl">☰</button>
       </nav>
     </>
