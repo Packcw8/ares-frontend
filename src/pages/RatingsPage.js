@@ -1,32 +1,46 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
-import { stateCountyData } from "../data/stateCountyData";
+import Layout from "./components/Layout";
+import { stateCountyData } from "./data/stateCountyData";
+import api from "./services/api";
 
 export default function RatingsPage() {
   const [entities, setEntities] = useState([]);
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [countyFilter, setCountyFilter] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const baseUrl = "https://ares-api-dev-avetckd5ecdgbred.canadacentral-01.azurewebsites.net";
-
   useEffect(() => {
-    fetch(`${baseUrl}/ratings/entities`)
-      .then((res) => res.json())
-      .then((data) => setEntities(data))
-      .catch(() => {
-        console.error("Failed to load ratings data");
-      });
+    let mounted = true;
+
+    async function load() {
+      try {
+        const res = await api.get("/ratings/entities");
+        if (mounted) setEntities(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error("Failed to load ratings data", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filtered = entities
-    .filter((e) =>
-      e.name.toLowerCase().includes(search.toLowerCase()) &&
-      (!stateFilter || e.state === stateFilter) &&
-      (!countyFilter || e.county === countyFilter)
-    )
+    .filter((e) => {
+      const name = (e?.name || "").toLowerCase();
+      return (
+        name.includes(search.toLowerCase()) &&
+        (!stateFilter || e.state === stateFilter) &&
+        (!countyFilter || e.county === countyFilter)
+      );
+    })
     .sort((a, b) => (a.reputation_score ?? 100) - (b.reputation_score ?? 100));
 
   const stateList = Object.keys(stateCountyData);
@@ -57,7 +71,7 @@ export default function RatingsPage() {
             value={stateFilter}
             onChange={(e) => {
               setStateFilter(e.target.value);
-              setCountyFilter(""); // reset county when state changes
+              setCountyFilter("");
             }}
           >
             <option value="">All States</option>
@@ -93,7 +107,9 @@ export default function RatingsPage() {
         </div>
 
         {/* Results */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <p className="text-gray-500 italic">Loading...</p>
+        ) : filtered.length === 0 ? (
           <p className="text-gray-500 italic">No matching officials found.</p>
         ) : (
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
@@ -116,7 +132,7 @@ export default function RatingsPage() {
                   to={`/ratings/${entity.id}`}
                   className="text-[#283d63] underline mt-2 inline-block hover:text-[#1c2b4a]"
                 >
-                  View & Rate
+                  View &amp; Rate
                 </Link>
               </div>
             ))}
