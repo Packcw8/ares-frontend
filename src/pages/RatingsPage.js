@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
-import { stateCountyData } from "./data/stateCountyData";
-import api from "./services/api";
+import { stateCountyData } from "../data/stateCountyData";
+import api from "../services/api";
 
 export default function RatingsPage() {
   const [entities, setEntities] = useState([]);
