@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Layout from "./components/Layout";
+import Layout from "../components/Layout";
 import { stateCountyData } from "./data/stateCountyData";
 import api from "./services/api";
 
