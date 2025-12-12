@@ -1,6 +1,3 @@
-// Editable VaultUpload.js
-// We will refine this file together step by step
-
 import { useState, useEffect, useMemo } from "react";
 import Layout from "../components/Layout";
 import api from "../services/api";
@@ -17,21 +14,28 @@ export default function VaultUpload() {
   const [entities, setEntities] = useState([]);
   const [uploading, setUploading] = useState(false);
 
+  // Optional state/county (used to auto-compose the optional "location" string)
   const [state, setState] = useState("");
   const [county, setCounty] = useState("");
+
+  // Entity search
   const [entitySearch, setEntitySearch] = useState("");
 
   useEffect(() => {
-    api.get("/ratings/entities").then((res) => setEntities(res.data));
+    api
+      .get("/ratings/entities")
+      .then((res) => setEntities(res.data))
+      .catch((err) => console.error("Failed to load entities", err));
   }, []);
 
+  // Auto-compose location from state/county (still editable by the user)
   useEffect(() => {
     if (state && county) setLocation(`${county}, ${state}`);
     else if (state) setLocation(state);
   }, [state, county]);
 
   const filteredEntities = useMemo(() => {
-    const q = entitySearch.toLowerCase();
+    const q = entitySearch.trim().toLowerCase();
     if (!q) return entities;
     return entities.filter((e) =>
       `${e.name} ${e.state ?? ""} ${e.county ?? ""}`.toLowerCase().includes(q)
@@ -40,11 +44,16 @@ export default function VaultUpload() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file || !entityId) return alert("File and entity are required");
+
+    if (!file || !entityId) {
+      alert("File and entity are required");
+      return;
+    }
 
     try {
       setUploading(true);
 
+      // 1) Get presigned upload URL
       const uploadRes = await api.post("/vault/upload-url", {
         filename: file.name,
         content_type: file.type || "application/octet-stream",
@@ -52,14 +61,16 @@ export default function VaultUpload() {
 
       const { upload_url, file_url } = uploadRes.data;
 
+      // 2) Upload file directly to Backblaze
       const put = await fetch(upload_url, {
         method: "PUT",
         headers: { "Content-Type": file.type || "application/octet-stream" },
         body: file,
       });
 
-      if (!put.ok) throw new Error("Upload failed");
+      if (!put.ok) throw new Error("Direct upload to storage failed.");
 
+      // 3) Save metadata
       await api.post("/vault", {
         blob_url: file_url,
         description,
@@ -71,6 +82,8 @@ export default function VaultUpload() {
       });
 
       alert("Added to Vault");
+
+      // Reset
       setFile(null);
       setDescription("");
       setTags("");
@@ -80,6 +93,7 @@ export default function VaultUpload() {
       setCounty("");
       setIsAnonymous(false);
       setIsPublic(true);
+      setEntitySearch("");
     } catch (err) {
       console.error(err);
       alert("Upload failed");
@@ -107,7 +121,11 @@ export default function VaultUpload() {
               <div className="text-5xl mb-3">📎</div>
               <p className="font-medium">Drop evidence here or click to select</p>
               <p className="text-xs text-gray-400 mt-1">Video, audio, image, or document</p>
-              <input type="file" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files[0])}
+              />
             </label>
             {file && (
               <p className="mt-4 text-sm text-gray-300">
@@ -155,7 +173,9 @@ export default function VaultUpload() {
               >
                 <option value="">State (optional)</option>
                 {Object.keys(stateCountyData).map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
 
@@ -165,12 +185,25 @@ export default function VaultUpload() {
                 onChange={(e) => setCounty(e.target.value)}
                 className="bg-gray-900 p-3 rounded-xl"
               >
-                <option value="">County (optional)</option>
-                {state && stateCountyData[state].map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
+                <option value="">
+                  {state ? "County (optional)" : "Select state first"}
+                </option>
+                {state &&
+                  stateCountyData[state].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
               </select>
             </div>
+
+            {/* Location is optional and editable */}
+            <input
+              placeholder="Location (optional)"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full bg-gray-900 p-3 rounded-xl"
+            />
 
             <textarea
               placeholder="Context (optional) — what does this show?"
@@ -186,67 +219,31 @@ export default function VaultUpload() {
               onChange={(e) => setTags(e.target.value)}
               className="w-full bg-gray-900 p-3 rounded-xl"
             />
+
+            {/* Visibility / identity (kept, but subdued) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <label className="flex items-center gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={() => setIsPublic((v) => !v)}
+                />
+                Public
+              </label>
+
+              <label className="flex items-center gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={() => setIsAnonymous((v) => !v)}
+                />
+                Anonymous
+              </label>
+            </div>
           </div>
 
           {/* Primary action */}
           <div className="flex justify-center pt-4">
-            <button
-              type="submit"
-              disabled={uploading}
-              aria-label="Add to Vault"
-              className="w-16 h-16 rounded-full flex items-center justify-center
-                         text-3xl font-bold
-                         bg-yellow-300 text-gray-900
-                         hover:bg-yellow-200
-                         shadow-lg shadow-yellow-300/20
-                         transition-all duration-200
-                         disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {uploading ? "…" : "+"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </Layout>
-  );
-                setCounty("");
-              }}
-              className="bg-gray-900 p-2 rounded"
-            >
-              <option value="">State (optional)</option>
-              {Object.keys(stateCountyData).map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-
-            <select
-              value={county}
-              disabled={!state}
-              onChange={(e) => setCounty(e.target.value)}
-              className="bg-gray-900 p-2 rounded"
-            >
-              <option value="">County (optional)</option>
-              {state && stateCountyData[state].map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-gray-900 p-2 rounded"
-          />
-
-          <input
-            placeholder="Tags"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            className="w-full bg-gray-900 p-2 rounded"
-          />
-
-          <div className="flex justify-center pt-8">
             <button
               type="submit"
               disabled={uploading}
