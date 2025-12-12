@@ -14,20 +14,13 @@ function NewForumPost() {
   const [entityId, setEntityId] = useState(null);
   const [entities, setEntities] = useState([]);
 
-  const [role, setRole] = useState("");
-  const [isVerified, setIsVerified] = useState(false);
-
   const navigate = useNavigate();
 
   useEffect(() => {
     api.get("/auth/me").then((res) => {
-      setRole(res.data.role);
-      setIsVerified(res.data.is_verified);
-
-      // ✅ Correct authorization logic
+      // ✅ Match backend + DB roles exactly
       const canPost =
-        res.data.role === "admin" ||
-        (res.data.role === "official" && res.data.is_verified);
+        res.data.role === "official_verified" || res.data.role === "admin";
 
       if (!canPost) {
         navigate("/forum");

@@ -32,10 +32,9 @@ function Forum() {
     fetchUser();
   }, []);
 
-  // ✅ Correct official posting rule
+  // ✅ Match backend + DB roles exactly
   const canPostAsOfficial =
-    userRole === "admin" ||
-    (userRole === "official" && isVerified);
+    userRole === "official_verified" || userRole === "admin";
 
   return (
     <Layout>
@@ -45,7 +44,7 @@ function Forum() {
         </h1>
 
         {/* 🟡 Pending officials */}
-        {userRole === "official" && !isVerified && (
+        {userRole === "official_pending" && (
           <div className="mb-4 p-3 rounded bg-yellow-100 text-yellow-800">
             Your official account is under review. You may read and comment,
             but cannot start discussions yet.
