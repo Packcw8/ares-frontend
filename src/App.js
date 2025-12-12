@@ -21,6 +21,8 @@ import VaultUpload from "./vault/VaultUpload";
 import VaultPublic from "./vault/VaultPublic";
 import CheckEmailPage from "./pages/CheckEmailPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import RulesPage from "./pages/RulesPage";
+
 
 
 
@@ -56,6 +58,8 @@ function App() {
         <Route path="/vault/public" element={<VaultPublic />} />
         <Route path="/check-email" element={<CheckEmailPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/rules" element={<RulesPage />} />
+
 
         </Routes>
       </div>

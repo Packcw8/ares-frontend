@@ -11,11 +11,18 @@ export default function Signup() {
     role: "citizen",
   });
 
+  const [acceptedRules, setAcceptedRules] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!acceptedRules) {
+      alert("You must agree to the ARES Community Rules to continue.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -33,7 +40,7 @@ export default function Signup() {
   return (
     <Layout>
       <h2 className="text-2xl font-extrabold text-[#0A2A42] mb-6 uppercase tracking-wider">
-        Sign Up as a Citizen or Official
+        Sign Up
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -73,6 +80,30 @@ export default function Signup() {
           <option value="official">🏛️ Official</option>
         </select>
 
+        {/* Community Rules Agreement */}
+        <label className="flex items-start gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={acceptedRules}
+            onChange={(e) => setAcceptedRules(e.target.checked)}
+            required
+            className="mt-1"
+          />
+          <span>
+            I agree to the{" "}
+            <Link
+              to="/rules"
+              target="_blank"
+              className="text-[#0A2A42] font-medium underline"
+            >
+              ARES Community Rules
+            </Link>
+            <span className="block text-xs text-gray-500 mt-1">
+              (No threats, doxing, harassment, or incitement)
+            </span>
+          </span>
+        </label>
+
         <button
           type="submit"
           disabled={loading}
@@ -83,7 +114,10 @@ export default function Signup() {
 
         <p className="text-sm text-center text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="text-[#0A2A42] font-medium hover:underline">
+          <Link
+            to="/login"
+            className="text-[#0A2A42] font-medium hover:underline"
+          >
             Log in
           </Link>
         </p>
@@ -91,4 +125,3 @@ export default function Signup() {
     </Layout>
   );
 }
-//new deploy

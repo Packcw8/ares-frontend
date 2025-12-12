@@ -15,6 +15,10 @@ export default function BottomNav() {
   const menuItems = [
     { label: "Know Your Rights", icon: "⚖️", path: "/rights" },
     { label: "Forum", icon: "🗣️", path: "/forum" },
+
+    // ✅ NEW: Community Rules
+    { label: "Community Rules", icon: "📜", path: "/rules" },
+
     { label: "Privacy Policy", icon: "📄", path: "/privacy" },
     { label: "Terms of Use", icon: "🛡️", path: "/terms" },
     {
