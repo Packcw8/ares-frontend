@@ -24,6 +24,9 @@ function formatDateGroup(dateStr) {
 export default function VaultPublic() {
   const [evidenceList, setEvidenceList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");() {
+  const [evidenceList, setEvidenceList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api
@@ -37,14 +40,45 @@ export default function VaultPublic() {
       .finally(() => setLoading(false));
   }, []);
 
+    // Smart text-based location/entity search
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const filteredEvidence = evidenceList.filter((ev) => {
+    if (!normalizedSearch) return true;
+
+    const entityName = ev.entity?.name?.toLowerCase() || "";
+    const state = ev.entity?.state?.toLowerCase() || "";
+    const county = ev.entity?.county?.toLowerCase() || "";
+
+    // If user typed full state name, require exact state match
+    if (normalizedSearch.includes("west virginia")) {
+      return state === "west virginia";
+    }
+
+    // Otherwise allow partial matching across fields
+    return (
+      entityName.includes(normalizedSearch) ||
+      state.includes(normalizedSearch) ||
+      county.includes(normalizedSearch)
+    );
+  });
+
   let lastDateLabel = null;
 
   return (
     <Layout>
       <div className="max-w-3xl mx-auto px-4 py-6">
-        <h1 className="text-3xl font-semibold text-gray-900 mb-6">
+        <h1 className="text-3xl font-semibold text-gray-900 mb-2">
           Evidence Vault
         </h1>
+
+        <input
+          type="text"
+          placeholder="Search state, county, or official…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full mb-6 px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+        />
 
         {loading && <p className="text-gray-500">Loading evidence…</p>}
 
@@ -53,7 +87,7 @@ export default function VaultPublic() {
         )}
 
         <div className="space-y-10">
-          {evidenceList.map((ev) => {
+          {filteredEvidence.map((ev) => {
             const dateLabel = formatDateGroup(ev.created_at);
             const showDate = dateLabel && dateLabel !== lastDateLabel;
             if (showDate) lastDateLabel = dateLabel;
