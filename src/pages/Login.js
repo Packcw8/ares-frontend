@@ -5,7 +5,11 @@ import Layout from '../components/Layout';
 import { parseJwt } from '../utils/auth';
 
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({
+    identifier: '',
+    password: '',
+  });
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -15,18 +19,14 @@ export default function Login() {
       const res = await api.post('/auth/login', form);
       const token = res.data.access_token;
 
-      // 🔐 Store token
       localStorage.setItem('token', token);
       setAuthToken(token);
 
-      // 🔍 Decode role
       const decoded = parseJwt(token);
 
-      // 🧭 ROUTING LOGIC
       if (decoded?.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
-        // ✅ VAULT IS NOW THE HOME PAGE
         navigate('/vault/public');
       }
     } catch (err) {
@@ -40,10 +40,12 @@ export default function Login() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          type="text"
+          placeholder="Email or Username"
+          value={form.identifier}
+          onChange={(e) =>
+            setForm({ ...form, identifier: e.target.value })
+          }
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
@@ -52,7 +54,9 @@ export default function Login() {
           type="password"
           placeholder="Password"
           value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, password: e.target.value })
+          }
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
