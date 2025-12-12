@@ -90,37 +90,125 @@ export default function VaultUpload() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto p-6 text-white space-y-6">
-        <h1 className="text-3xl font-extrabold">Add Evidence to the Vault</h1>
+      <div className="max-w-4xl mx-auto p-6 text-white">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold tracking-wide">Record Evidence</h1>
+          <p className="text-sm text-gray-400 mt-1">
+            Add a piece of evidence to the Vault. Start with the file — details are optional.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+        {/* Evidence + Entity */}
+        <form onSubmit={handleSubmit} className="space-y-10">
+          {/* Evidence drop zone */}
+          <div className="rounded-2xl border border-dashed border-gray-700 bg-gray-950 p-10 text-center">
+            <label className="cursor-pointer block">
+              <div className="text-5xl mb-3">📎</div>
+              <p className="font-medium">Drop evidence here or click to select</p>
+              <p className="text-xs text-gray-400 mt-1">Video, audio, image, or document</p>
+              <input type="file" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+            </label>
+            {file && (
+              <p className="mt-4 text-sm text-gray-300">
+                Selected: <span className="font-semibold">{file.name}</span>
+              </p>
+            )}
+          </div>
 
-          <input
-            placeholder="Search entity"
-            value={entitySearch}
-            onChange={(e) => setEntitySearch(e.target.value)}
-            className="w-full bg-gray-900 p-2 rounded"
-          />
+          {/* Entity section */}
+          <div className="space-y-3">
+            <p className="text-sm text-gray-400">Who is this evidence about?</p>
+            <input
+              placeholder="Search entity"
+              value={entitySearch}
+              onChange={(e) => setEntitySearch(e.target.value)}
+              className="w-full bg-gray-900 p-3 rounded-xl"
+            />
 
-          <select
-            value={entityId}
-            onChange={(e) => setEntityId(e.target.value)}
-            className="w-full bg-gray-900 p-2 rounded"
-          >
-            <option value="">Select entity *</option>
-            {filteredEntities.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name} {e.state ? `(${e.state})` : ""}
-              </option>
-            ))}
-          </select>
-
-          <div className="grid grid-cols-2 gap-3">
             <select
-              value={state}
-              onChange={(e) => {
-                setState(e.target.value);
+              value={entityId}
+              onChange={(e) => setEntityId(e.target.value)}
+              className="w-full bg-gray-900 p-3 rounded-xl"
+            >
+              <option value="">Select entity *</option>
+              {filteredEntities.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name} {e.state ? `(${e.state})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Optional details */}
+          <div className="rounded-2xl border border-gray-800 bg-gray-950 p-6 space-y-5">
+            <p className="text-sm text-gray-400">Optional details</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <select
+                value={state}
+                onChange={(e) => {
+                  setState(e.target.value);
+                  setCounty("");
+                }}
+                className="bg-gray-900 p-3 rounded-xl"
+              >
+                <option value="">State (optional)</option>
+                {Object.keys(stateCountyData).map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+
+              <select
+                value={county}
+                disabled={!state}
+                onChange={(e) => setCounty(e.target.value)}
+                className="bg-gray-900 p-3 rounded-xl"
+              >
+                <option value="">County (optional)</option>
+                {state && stateCountyData[state].map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <textarea
+              placeholder="Context (optional) — what does this show?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-gray-900 p-3 rounded-xl"
+              rows={3}
+            />
+
+            <input
+              placeholder="Tags (optional)"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              className="w-full bg-gray-900 p-3 rounded-xl"
+            />
+          </div>
+
+          {/* Primary action */}
+          <div className="flex justify-center pt-4">
+            <button
+              type="submit"
+              disabled={uploading}
+              aria-label="Add to Vault"
+              className="w-16 h-16 rounded-full flex items-center justify-center
+                         text-3xl font-bold
+                         bg-yellow-300 text-gray-900
+                         hover:bg-yellow-200
+                         shadow-lg shadow-yellow-300/20
+                         transition-all duration-200
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {uploading ? "…" : "+"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </Layout>
+  );
                 setCounty("");
               }}
               className="bg-gray-900 p-2 rounded"
