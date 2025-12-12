@@ -5,15 +5,27 @@ import Layout from "../components/Layout";
 
 export default function Signup() {
   const [form, setForm] = useState({
+    role: "citizen",
+
+    // common
     username: "",
     email: "",
     password: "",
-    role: "citizen",
+
+    // official-only
+    full_name: "",
+    title: "",
+    agency: "",
+    official_email: "",
+    state: "",
+    jurisdiction: "",
   });
 
   const [acceptedRules, setAcceptedRules] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const isOfficial = form.role === "official";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +39,6 @@ export default function Signup() {
 
     try {
       await api.post("/auth/signup", form);
-
-      // Redirect to check-email screen instead of login
       navigate("/check-email", { state: { email: form.email } });
     } catch (err) {
       alert(err.response?.data?.detail || "Signup failed");
@@ -40,17 +50,28 @@ export default function Signup() {
   return (
     <Layout>
       <h2 className="text-2xl font-extrabold text-[#0A2A42] mb-6 uppercase tracking-wider">
-        Sign Up
+        {isOfficial ? "Apply as an Official" : "Sign Up"}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Role selector */}
+        <select
+          value={form.role}
+          onChange={(e) => setForm({ ...form, role: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white"
+        >
+          <option value="citizen">🗳️ Citizen</option>
+          <option value="official">🏛️ Official</option>
+        </select>
+
+        {/* Common fields */}
         <input
           type="text"
           placeholder="Username"
           value={form.username}
           onChange={(e) => setForm({ ...form, username: e.target.value })}
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className="w-full px-4 py-2 border rounded-lg"
         />
 
         <input
@@ -59,7 +80,7 @@ export default function Signup() {
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className="w-full px-4 py-2 border rounded-lg"
         />
 
         <input
@@ -68,19 +89,80 @@ export default function Signup() {
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          className="w-full px-4 py-2 border rounded-lg"
         />
 
-        <select
-          value={form.role}
-          onChange={(e) => setForm({ ...form, role: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800"
-        >
-          <option value="citizen">🗳️ Citizen</option>
-          <option value="official">🏛️ Official</option>
-        </select>
+        {/* Official-only fields */}
+        {isOfficial && (
+          <div className="space-y-3 border-t pt-4">
+            <p className="text-sm text-gray-600">
+              Official accounts require manual verification before posting in an
+              official capacity.
+            </p>
 
-        {/* Community Rules Agreement */}
+            <input
+              type="text"
+              placeholder="Full Legal Name"
+              value={form.full_name}
+              onChange={(e) =>
+                setForm({ ...form, full_name: e.target.value })
+              }
+              required
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+
+            <input
+              type="text"
+              placeholder="Title / Role"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              required
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+
+            <input
+              type="text"
+              placeholder="Agency / Department"
+              value={form.agency}
+              onChange={(e) => setForm({ ...form, agency: e.target.value })}
+              required
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+
+            <input
+              type="email"
+              placeholder="Official Work Email"
+              value={form.official_email}
+              onChange={(e) =>
+                setForm({ ...form, official_email: e.target.value })
+              }
+              required
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+
+            <input
+              type="text"
+              placeholder="State"
+              value={form.state}
+              onChange={(e) => setForm({ ...form, state: e.target.value })}
+              required
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+
+            <input
+              type="text"
+              placeholder="Jurisdiction (City / County / District)"
+              value={form.jurisdiction}
+              onChange={(e) =>
+                setForm({ ...form, jurisdiction: e.target.value })
+              }
+              required
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+        )}
+
+        {/* Rules agreement */}
         <label className="flex items-start gap-2 text-sm text-gray-700">
           <input
             type="checkbox"
@@ -98,9 +180,6 @@ export default function Signup() {
             >
               ARES Community Rules
             </Link>
-            <span className="block text-xs text-gray-500 mt-1">
-              (No threats, doxing, harassment, or incitement)
-            </span>
           </span>
         </label>
 
@@ -109,15 +188,16 @@ export default function Signup() {
           disabled={loading}
           className="w-full bg-[#0A2A42] text-white py-2 rounded-lg font-semibold disabled:opacity-60"
         >
-          {loading ? "Creating account…" : "Sign Up"}
+          {loading
+            ? "Submitting…"
+            : isOfficial
+            ? "Apply as Official"
+            : "Sign Up"}
         </button>
 
         <p className="text-sm text-center text-gray-600">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-[#0A2A42] font-medium hover:underline"
-          >
+          <Link to="/login" className="underline text-[#0A2A42]">
             Log in
           </Link>
         </p>
