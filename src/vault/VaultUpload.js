@@ -106,21 +106,21 @@ export default function VaultUpload() {
     <Layout>
       <div className="max-w-4xl mx-auto p-6 text-white">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-wide">Record Evidence</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Add a piece of evidence to the Vault. Start with the file — details are optional.
+        <div className="mb-10 text-center">
+          <h1 className="text-3xl font-semibold tracking-wide text-gray-900">Record Evidence</h1>
+          <p className="text-sm text-gray-600 mt-2 max-w-xl mx-auto">
+            Contribute a piece of evidence to the Vault. Start with the file — everything else is optional and can be added later.
           </p>
         </div>
 
         {/* Evidence + Entity */}
         <form onSubmit={handleSubmit} className="space-y-10">
           {/* Evidence drop zone */}
-          <div className="rounded-2xl border border-dashed border-gray-700 bg-gray-950 p-10 text-center">
+          <div className="rounded-3xl border border-amber-200/40 bg-gradient-to-b from-[#f7f1e1] to-[#efe6cf] p-12 text-center shadow-md transition">
             <label className="cursor-pointer block">
               <div className="text-5xl mb-3">📎</div>
               <p className="font-medium">Drop evidence here or click to select</p>
-              <p className="text-xs text-gray-400 mt-1">Video, audio, image, or document</p>
+              <p className="text-xs text-gray-600 mt-1">Video, audio, image, or document</p>
               <input
                 type="file"
                 className="hidden"
@@ -128,26 +128,26 @@ export default function VaultUpload() {
               />
             </label>
             {file && (
-              <p className="mt-4 text-sm text-gray-300">
+              <p className="mt-4 text-sm text-gray-700">
                 Selected: <span className="font-semibold">{file.name}</span>
               </p>
             )}
           </div>
 
           {/* Entity section */}
-          <div className="space-y-3">
-            <p className="text-sm text-gray-400">Who is this evidence about?</p>
+          <div className="space-y-4">
+            <p className="text-sm font-medium text-gray-700">Who is this evidence about?</p>
             <input
               placeholder="Search entity"
               value={entitySearch}
               onChange={(e) => setEntitySearch(e.target.value)}
-              className="w-full bg-gray-900 p-3 rounded-xl"
+              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
             />
 
             <select
               value={entityId}
               onChange={(e) => setEntityId(e.target.value)}
-              className="w-full bg-gray-900 p-3 rounded-xl"
+              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
             >
               <option value="">Select entity *</option>
               {filteredEntities.map((e) => (
@@ -159,8 +159,8 @@ export default function VaultUpload() {
           </div>
 
           {/* Optional details */}
-          <div className="rounded-2xl border border-gray-800 bg-gray-950 p-6 space-y-5">
-            <p className="text-sm text-gray-400">Optional details</p>
+          <div className="rounded-3xl border border-amber-200/40 bg-gradient-to-b from-[#f7f1e1] to-[#efe6cf] p-8 space-y-6 shadow-sm">
+            <p className="text-sm font-medium text-gray-700">Additional context (optional)</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <select
@@ -169,7 +169,7 @@ export default function VaultUpload() {
                   setState(e.target.value);
                   setCounty("");
                 }}
-                className="bg-gray-900 p-3 rounded-xl"
+                className="bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
               >
                 <option value="">State (optional)</option>
                 {Object.keys(stateCountyData).map((s) => (
@@ -183,7 +183,7 @@ export default function VaultUpload() {
                 value={county}
                 disabled={!state}
                 onChange={(e) => setCounty(e.target.value)}
-                className="bg-gray-900 p-3 rounded-xl"
+                className="bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
               >
                 <option value="">
                   {state ? "County (optional)" : "Select state first"}
@@ -202,14 +202,14 @@ export default function VaultUpload() {
               placeholder="Location (optional)"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full bg-gray-900 p-3 rounded-xl"
+              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
             />
 
             <textarea
               placeholder="Context (optional) — what does this show?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-gray-900 p-3 rounded-xl"
+              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
               rows={3}
             />
 
@@ -217,12 +217,12 @@ export default function VaultUpload() {
               placeholder="Tags (optional)"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="w-full bg-gray-900 p-3 rounded-xl"
+              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
             />
 
             {/* Visibility / identity (kept, but subdued) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <label className="flex items-center gap-2 text-sm text-gray-300">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
                   checked={isPublic}
@@ -231,7 +231,7 @@ export default function VaultUpload() {
                 Public
               </label>
 
-              <label className="flex items-center gap-2 text-sm text-gray-300">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
                   checked={isAnonymous}
@@ -250,8 +250,8 @@ export default function VaultUpload() {
               aria-label="Add to Vault"
               className="w-16 h-16 rounded-full flex items-center justify-center
                          text-3xl font-bold
-                         bg-yellow-300 text-gray-900
-                         hover:bg-yellow-200
+                         bg-[#cfa64a] text-gray-900
+                         hover:bg-[#b8943f]
                          shadow-lg shadow-yellow-300/20
                          transition-all duration-200
                          disabled:opacity-50 disabled:cursor-not-allowed"
