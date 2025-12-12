@@ -14,11 +14,8 @@ export default function VaultUpload() {
   const [entities, setEntities] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // Optional state/county (used to auto-compose the optional "location" string)
   const [state, setState] = useState("");
   const [county, setCounty] = useState("");
-
-  // Entity search
   const [entitySearch, setEntitySearch] = useState("");
 
   useEffect(() => {
@@ -28,7 +25,6 @@ export default function VaultUpload() {
       .catch((err) => console.error("Failed to load entities", err));
   }, []);
 
-  // Auto-compose location from state/county (still editable by the user)
   useEffect(() => {
     if (state && county) setLocation(`${county}, ${state}`);
     else if (state) setLocation(state);
@@ -53,32 +49,19 @@ export default function VaultUpload() {
     try {
       setUploading(true);
 
-      // 1) Get presigned upload URL
-      const uploadRes = await api.post("/vault/upload-url", {
-        filename: file.name,
-        content_type: file.type || "application/octet-stream",
-      });
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("entity_id", entityId);
+      formData.append("description", description);
+      formData.append("tags", tags);
+      formData.append("location", location);
+      formData.append("is_public", isPublic);
+      formData.append("is_anonymous", isAnonymous);
 
-      const { upload_url, file_url } = uploadRes.data;
-
-      // 2) Upload file directly to Backblaze
-      const put = await fetch(upload_url, {
-        method: "PUT",
-        headers: { "Content-Type": file.type || "application/octet-stream" },
-        body: file,
-      });
-
-      if (!put.ok) throw new Error("Direct upload to storage failed.");
-
-      // 3) Save metadata
-      await api.post("/vault", {
-        blob_url: file_url,
-        description,
-        tags,
-        location,
-        is_public: isPublic,
-        is_anonymous: isAnonymous,
-        entity_id: Number(entityId),
+      await api.post("/vault/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       alert("Added to Vault");
@@ -94,6 +77,7 @@ export default function VaultUpload() {
       setIsAnonymous(false);
       setIsPublic(true);
       setEntitySearch("");
+
     } catch (err) {
       console.error(err);
       alert("Upload failed");
@@ -105,22 +89,25 @@ export default function VaultUpload() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto p-6 text-white">
-        {/* Header */}
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-semibold tracking-wide text-gray-900">Record Evidence</h1>
+          <h1 className="text-3xl font-semibold tracking-wide text-gray-900">
+            Record Evidence
+          </h1>
           <p className="text-sm text-gray-600 mt-2 max-w-xl mx-auto">
-            Contribute a piece of evidence to the Vault. Start with the file — everything else is optional and can be added later.
+            Contribute a piece of evidence to the Vault. Start with the file —
+            everything else is optional and can be added later.
           </p>
         </div>
 
-        {/* Evidence + Entity */}
         <form onSubmit={handleSubmit} className="space-y-10">
           {/* Evidence drop zone */}
-          <div className="rounded-3xl border border-amber-200/40 bg-gradient-to-b from-[#f7f1e1] to-[#efe6cf] p-12 text-center shadow-md transition">
+          <div className="rounded-3xl border border-amber-200/40 bg-gradient-to-b from-[#f7f1e1] to-[#efe6cf] p-12 text-center shadow-md">
             <label className="cursor-pointer block">
               <div className="text-5xl mb-3">📎</div>
               <p className="font-medium">Drop evidence here or click to select</p>
-              <p className="text-xs text-gray-600 mt-1">Video, audio, image, or document</p>
+              <p className="text-xs text-gray-600 mt-1">
+                Video, audio, image, or document
+              </p>
               <input
                 type="file"
                 className="hidden"
@@ -134,9 +121,12 @@ export default function VaultUpload() {
             )}
           </div>
 
-          {/* Entity section */}
+          {/* Entity */}
           <div className="space-y-4">
-            <p className="text-sm font-medium text-gray-700">Who is this evidence about?</p>
+            <p className="text-sm font-medium text-gray-700">
+              Who is this evidence about?
+            </p>
+
             <input
               placeholder="Search entity"
               value={entitySearch}
@@ -159,8 +149,10 @@ export default function VaultUpload() {
           </div>
 
           {/* Optional details */}
-          <div className="rounded-3xl border border-amber-200/40 bg-gradient-to-b from-[#f7f1e1] to-[#efe6cf] p-8 space-y-6 shadow-sm">
-            <p className="text-sm font-medium text-gray-700">Additional context (optional)</p>
+          <div className="rounded-3xl border border-amber-200/40 bg-gradient-to-b from-[#f7f1e1] to-[#efe6cf] p-8 space-y-6">
+            <p className="text-sm font-medium text-gray-700">
+              Additional context (optional)
+            </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <select
@@ -197,7 +189,6 @@ export default function VaultUpload() {
               </select>
             </div>
 
-            {/* Location is optional and editable */}
             <input
               placeholder="Location (optional)"
               value={location}
@@ -220,7 +211,6 @@ export default function VaultUpload() {
               className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
             />
 
-            {/* Visibility / identity (kept, but subdued) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
@@ -242,7 +232,6 @@ export default function VaultUpload() {
             </div>
           </div>
 
-          {/* Primary action */}
           <div className="flex justify-center pt-4">
             <button
               type="submit"
@@ -252,9 +241,9 @@ export default function VaultUpload() {
                          text-3xl font-bold
                          bg-[#cfa64a] text-gray-900
                          hover:bg-[#b8943f]
-                         shadow-lg shadow-yellow-300/20
-                         transition-all duration-200
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+                         shadow-lg
+                         transition-all
+                         disabled:opacity-50"
             >
               {uploading ? "…" : "+"}
             </button>
