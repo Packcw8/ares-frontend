@@ -10,10 +10,16 @@ export default function Login() {
     password: '',
   });
 
+  const [error, setError] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setResendSent(false);
 
     try {
       const res = await api.post('/auth/login', form);
@@ -30,9 +36,30 @@ export default function Login() {
         navigate('/vault/public');
       }
     } catch (err) {
-      alert(err.response?.data?.detail || 'Login failed');
+      setError(err.response?.data?.detail || 'Login failed');
     }
   };
+
+  const handleResend = async () => {
+    setResending(true);
+    setError('');
+
+    try {
+      await api.post('/auth/resend-verification', {
+        email: form.identifier,
+      });
+
+      setResendSent(true);
+    } catch {
+      // Still show success to avoid account enumeration
+      setResendSent(true);
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const showResend =
+    error.toLowerCase().includes('verify your email');
 
   return (
     <Layout>
@@ -67,6 +94,31 @@ export default function Login() {
         >
           Login
         </button>
+
+        {error && (
+          <div className="text-sm text-red-600 text-center">
+            {error}
+          </div>
+        )}
+
+        {showResend && !resendSent && (
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resending}
+            className="w-full text-sm text-[#0A2A42] underline"
+          >
+            {resending
+              ? 'Sending verification email…'
+              : 'Resend verification email'}
+          </button>
+        )}
+
+        {resendSent && (
+          <div className="text-sm text-green-600 text-center">
+            If the email exists, a verification link has been sent.
+          </div>
+        )}
 
         <p className="text-sm text-center text-gray-600">
           Don’t have an account?{' '}

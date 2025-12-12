@@ -28,7 +28,7 @@ export default function CheckEmailPage() {
         </p>
 
         <Link
-          to="/resend-verification"
+          to="/login"
           className="text-[#0A2A42] font-medium underline"
         >
           Didn’t get the email? Resend verification
