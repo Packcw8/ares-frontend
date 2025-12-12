@@ -1,26 +1,32 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import api from '../services/api';
-import Layout from '../components/Layout';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../services/api";
+import Layout from "../components/Layout";
 
 export default function Signup() {
   const [form, setForm] = useState({
-    username: '',
-    email: '',
-    password: '',
-    role: 'citizen',
+    username: "",
+    email: "",
+    password: "",
+    role: "citizen",
   });
 
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      await api.post('/auth/signup', form);
-      alert('Signup successful!');
-      navigate('/login');
+      await api.post("/auth/signup", form);
+
+      // Redirect to check-email screen instead of login
+      navigate("/check-email", { state: { email: form.email } });
     } catch (err) {
-      alert(err.response?.data?.detail || 'Signup failed');
+      alert(err.response?.data?.detail || "Signup failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,6 +35,7 @@ export default function Signup() {
       <h2 className="text-2xl font-extrabold text-[#0A2A42] mb-6 uppercase tracking-wider">
         Sign Up as a Citizen or Official
       </h2>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
@@ -38,6 +45,7 @@ export default function Signup() {
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
+
         <input
           type="email"
           placeholder="Email"
@@ -46,6 +54,7 @@ export default function Signup() {
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
+
         <input
           type="password"
           placeholder="Password"
@@ -54,6 +63,7 @@ export default function Signup() {
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
+
         <select
           value={form.role}
           onChange={(e) => setForm({ ...form, role: e.target.value })}
@@ -62,14 +72,17 @@ export default function Signup() {
           <option value="citizen">🗳️ Citizen</option>
           <option value="official">🏛️ Official</option>
         </select>
+
         <button
           type="submit"
-          className="w-full bg-[#0A2A42] text-white py-2 rounded-lg font-semibold"
+          disabled={loading}
+          className="w-full bg-[#0A2A42] text-white py-2 rounded-lg font-semibold disabled:opacity-60"
         >
-          Sign Up
+          {loading ? "Creating account…" : "Sign Up"}
         </button>
+
         <p className="text-sm text-center text-gray-600">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <Link to="/login" className="text-[#0A2A42] font-medium hover:underline">
             Log in
           </Link>
