@@ -20,6 +20,7 @@ import VerifyRatingsPage from "./pages/admin/VerifyRatingsPage";
 import VaultUpload from "./vault/VaultUpload";
 import VaultPublic from "./vault/VaultPublic";
 import CheckEmailPage from "./pages/CheckEmailPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 
 
@@ -54,6 +55,7 @@ function App() {
         <Route path="/vault/upload" element={<VaultUpload />} />
         <Route path="/vault/public" element={<VaultPublic />} />
         <Route path="/check-email" element={<CheckEmailPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         </Routes>
       </div>
