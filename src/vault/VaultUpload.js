@@ -19,7 +19,6 @@ export default function VaultUpload() {
   const [entities, setEntities] = useState([]);
   const [entitySearch, setEntitySearch] = useState("");
 
-  // 🔥 Dynamic state / county typing
   const [stateQuery, setStateQuery] = useState("");
   const [countyQuery, setCountyQuery] = useState("");
   const [state, setState] = useState("");
@@ -32,7 +31,7 @@ export default function VaultUpload() {
     api
       .get("/ratings/entities")
       .then((res) => setEntities(res.data || []))
-      .catch(() => console.error("Failed to load entities"));
+      .catch(() => {});
   }, []);
 
   /* =========================
@@ -73,8 +72,9 @@ export default function VaultUpload() {
      ========================= */
   const countyOptions = useMemo(() => {
     if (!state || !countyQuery) return [];
-    return Array.isArray(stateCountyData[state]?.counties)
-      ? stateCountyData[state].counties.filter((c) =>
+    const counties = stateCountyData[state]?.counties;
+    return Array.isArray(counties)
+      ? counties.filter((c) =>
           c.toLowerCase().includes(countyQuery.toLowerCase())
         )
       : [];
@@ -109,8 +109,7 @@ export default function VaultUpload() {
 
       alert("Added to Vault");
       navigate("/vault");
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Upload failed");
     } finally {
       setUploading(false);
@@ -158,7 +157,7 @@ export default function VaultUpload() {
             </p>
 
             <input
-              placeholder="Search entity (name, state, county…)”
+              placeholder="Search entity (name, state, county...)"
               value={entitySearch}
               onChange={(e) => {
                 setEntitySearch(e.target.value);
@@ -176,13 +175,15 @@ export default function VaultUpload() {
                       type="button"
                       onClick={() => {
                         setEntityId(e.id);
-                        setEntitySearch(`${e.name}${e.state ? ` (${e.state})` : ""}`);
+                        setEntitySearch(
+                          `${e.name}${e.state ? ` (${e.state})` : ""}`
+                        );
                       }}
                       className="w-full text-left px-4 py-3 hover:bg-[#efe6cf]"
                     >
                       <div className="font-medium">{e.name}</div>
                       <div className="text-xs opacity-60">
-                        {e.type} • {e.county || "—"}, {e.state || ""}
+                        {e.type} • {e.county || "-"}, {e.state || ""}
                       </div>
                     </button>
                   ))
@@ -198,14 +199,14 @@ export default function VaultUpload() {
                     onClick={() => navigate("/ratings/new")}
                     className="text-sm font-medium text-[#8b1e3f] hover:underline"
                   >
-                    Don’t see your entity? Add them →
+                    Do not see your entity? Add them
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* STATE + COUNTY (DYNAMIC) */}
+          {/* STATE + COUNTY */}
           <div className="rounded-3xl border bg-[#f7f1e1] p-8 space-y-6">
 
             {/* STATE */}
@@ -294,9 +295,10 @@ export default function VaultUpload() {
               disabled={uploading}
               className="w-16 h-16 rounded-full bg-[#cfa64a] hover:bg-[#b8943f] text-3xl font-bold shadow-lg"
             >
-              {uploading ? "…" : "+"}
+              {uploading ? "..." : "+"}
             </button>
           </div>
+
         </form>
       </div>
     </Layout>
