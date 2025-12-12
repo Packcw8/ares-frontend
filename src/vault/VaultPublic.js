@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "../components/Layout";
 import api from "../services/api";
 
@@ -24,69 +24,81 @@ function formatDateGroup(dateStr) {
 export default function VaultPublic() {
   const [evidenceList, setEvidenceList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");() {
-  const [evidenceList, setEvidenceList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     api
       .get("/vault/feed")
-      .then((res) => {
-        setEvidenceList(res.data || []);
-      })
-      .catch((err) => {
-        console.error("Failed to load vault feed", err);
-      })
+      .then((res) => setEvidenceList(res.data || []))
+      .catch((err) => console.error("Failed to load vault feed", err))
       .finally(() => setLoading(false));
   }, []);
 
-    // Smart text-based location/entity search
-  const normalizedSearch = search.trim().toLowerCase();
+  // 🔍 Live smart search (no button)
+  const filteredEvidence = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return evidenceList;
 
-  const filteredEvidence = evidenceList.filter((ev) => {
-    if (!normalizedSearch) return true;
+    return evidenceList.filter((ev) => {
+      const entity = ev.entity || {};
+      const name = entity.name?.toLowerCase() || "";
+      const state = entity.state?.toLowerCase() || "";
+      const county = entity.county?.toLowerCase() || "";
 
-    const entityName = ev.entity?.name?.toLowerCase() || "";
-    const state = ev.entity?.state?.toLowerCase() || "";
-    const county = ev.entity?.county?.toLowerCase() || "";
+      // typing "w" → west virginia, washington, wisconsin, etc
+      if (q.length <= 2) {
+        return (
+          state.startsWith(q) ||
+          county.startsWith(q) ||
+          name.startsWith(q)
+        );
+      }
 
-    // If user typed full state name, require exact state match
-    if (normalizedSearch.includes("west virginia")) {
-      return state === "west virginia";
-    }
+      // typing "west" → west virginia content
+      if (q.startsWith("west")) {
+        return state.startsWith(q);
+      }
 
-    // Otherwise allow partial matching across fields
-    return (
-      entityName.includes(normalizedSearch) ||
-      state.includes(normalizedSearch) ||
-      county.includes(normalizedSearch)
-    );
-  });
+      // general partial match
+      return (
+        name.includes(q) || state.includes(q) || county.includes(q)
+      );
+    });
+  }, [search, evidenceList]);
 
   let lastDateLabel = null;
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto px-4 py-6">
-        <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-          Evidence Vault
-        </h1>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            Evidence Vault
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Public accountability records — searchable by state, county, or entity
+          </p>
+        </div>
 
-        <input
-          type="text"
-          placeholder="Search state, county, or official…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full mb-6 px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-        />
+        {/* Search */}
+        <div className="mb-8">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Type: w → west virginia → county → official"
+            className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-5 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
 
-        {loading && <p className="text-gray-500">Loading evidence…</p>}
+        {loading && <p className="text-slate-500">Loading evidence…</p>}
 
-        {!loading && evidenceList.length === 0 && (
-          <p className="italic text-gray-500">No public evidence yet.</p>
+        {!loading && filteredEvidence.length === 0 && (
+          <p className="italic text-slate-500">No matching evidence found.</p>
         )}
 
-        <div className="space-y-10">
+        <div className="space-y-12">
           {filteredEvidence.map((ev) => {
             const dateLabel = formatDateGroup(ev.created_at);
             const showDate = dateLabel && dateLabel !== lastDateLabel;
@@ -95,21 +107,22 @@ export default function VaultPublic() {
             return (
               <div key={ev.id}>
                 {showDate && (
-                  <div className="sticky top-0 z-10 bg-white/90 backdrop-blur py-2 mb-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <div className="sticky top-0 z-10 bg-white/80 backdrop-blur py-2 mb-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       {dateLabel}
                     </p>
                   </div>
                 )}
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                  {/* Header */}
-                  <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-                    <p className="text-sm font-medium text-gray-800">
+                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  {/* Entity header */}
+                  <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                    <p className="text-sm font-semibold text-slate-900">
                       {ev.entity?.name || "Unknown Entity"}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {ev.entity?.county || ""}{ev.entity?.state ? `, ${ev.entity.state}` : ""}
+                    <p className="text-xs text-slate-500">
+                      {ev.entity?.county || ""}
+                      {ev.entity?.state ? `, ${ev.entity.state}` : ""}
                     </p>
                   </div>
 
@@ -120,7 +133,7 @@ export default function VaultPublic() {
                         controls
                         preload="metadata"
                         src={ev.media_url}
-                        className="w-full max-h-[70vh] object-contain"
+                        className="w-full max-h-[75vh] object-contain"
                       />
                     )}
 
@@ -128,7 +141,7 @@ export default function VaultPublic() {
                       <img
                         src={ev.media_url}
                         alt="Evidence"
-                        className="w-full max-h-[70vh] object-contain"
+                        className="w-full max-h-[75vh] object-contain"
                       />
                     )}
 
@@ -137,12 +150,12 @@ export default function VaultPublic() {
                     )}
 
                     {ev.media_url && !ev.media_url.match(/\.(mp4|webm|jpe?g|png|gif|mp3|wav)$/i) && (
-                      <div className="p-4 bg-gray-100">
+                      <div className="p-4 bg-slate-100">
                         <a
                           href={ev.media_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-blue-600 underline text-sm"
+                          className="text-indigo-600 underline text-sm"
                         >
                           View evidence file
                         </a>
@@ -152,8 +165,8 @@ export default function VaultPublic() {
 
                   {/* Description */}
                   {ev.description && (
-                    <div className="px-5 py-4">
-                      <p className="text-sm text-gray-800 leading-relaxed">
+                    <div className="px-6 py-5">
+                      <p className="text-sm text-slate-800 leading-relaxed">
                         {ev.description}
                       </p>
                     </div>
