@@ -13,26 +13,25 @@ function NewForumPost() {
   const [entityQuery, setEntityQuery] = useState("");
   const [entityId, setEntityId] = useState(null);
   const [entities, setEntities] = useState([]);
+  const [userRole, setUserRole] = useState(null);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // 🔹 Fetch user & entities
+  // 🔹 Fetch user role (DO NOT redirect)
   useEffect(() => {
-    api.get("/auth/me").then((res) => {
-      const canPost =
-        res.data.role === "official_verified" || res.data.role === "admin";
+    api.get("/auth/me")
+      .then((res) => setUserRole(res.data.role))
+      .catch(() => setUserRole("citizen"));
+  }, []);
 
-      if (!canPost) {
-        navigate("/forum");
-      }
-    });
-
+  // 🔹 Fetch entities
+  useEffect(() => {
     api
       .get("/ratings/entities")
       .then((res) => setEntities(res.data))
       .catch(console.error);
-  }, [navigate]);
+  }, []);
 
   // 🔹 Auto-select entity after returning from AddOfficialPage
   useEffect(() => {
@@ -62,8 +61,16 @@ function NewForumPost() {
     setEntityQuery(entity.name);
   };
 
+  const canPublish =
+    userRole === "official_verified" || userRole === "admin";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!canPublish) {
+      alert("Only verified officials can publish discussions.");
+      return;
+    }
 
     if (!entityId) {
       alert("Please select an entity or add it first.");
@@ -93,9 +100,16 @@ function NewForumPost() {
           Start a New Discussion
         </h1>
 
+        {!canPublish && (
+          <div className="mb-6 p-4 rounded-xl bg-yellow-100 text-yellow-800">
+            You may create or link entities, but only verified officials can
+            publish forum discussions.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-8">
 
-          {/* 🔗 ENTITY SELECTION */}
+          {/* ENTITY SELECTION */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
             <h2 className="text-sm font-semibold text-gray-700 mb-2">
               Entity this discussion is about
@@ -120,27 +134,15 @@ function NewForumPost() {
                       key={e.id}
                       type="button"
                       onClick={() => handleSelectEntity(e)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-100 flex justify-between"
+                      className="w-full text-left px-4 py-3 hover:bg-gray-100"
                     >
-                      <span className="font-medium">{e.name}</span>
-                      {e.is_verified && (
-                        <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">
-                          Verified
-                        </span>
-                      )}
+                      {e.name}
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {entityId && (
-              <div className="mt-2 text-sm text-green-700 font-medium">
-                ✔ Entity selected
-              </div>
-            )}
-
-            {/* ➕ ADD ENTITY LINK */}
             {entityQuery && filteredEntities.length === 0 && !entityId && (
               <div className="mt-2 text-sm text-gray-600">
                 Don’t see this entity?{" "}
@@ -161,15 +163,16 @@ function NewForumPost() {
             )}
           </div>
 
-          {/* 🧵 CONTENT */}
+          {/* CONTENT */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
             <input
               type="text"
               placeholder="Discussion title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300"
+              disabled={!canPublish}
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
             />
 
             <textarea
@@ -177,43 +180,17 @@ function NewForumPost() {
               placeholder="Write the discussion content…"
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300"
+              disabled={!canPublish}
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
-            />
-
-            <input
-              type="text"
-              placeholder="Tags (comma-separated, optional)"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl border border-gray-300"
             />
           </div>
 
-          {/* ⚙️ OPTIONS */}
-          <div className="flex gap-8 text-sm text-gray-700">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={isPinned}
-                onChange={(e) => setIsPinned(e.target.checked)}
-              />
-              Pin discussion
-            </label>
-
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={isAMA}
-                onChange={(e) => setIsAMA(e.target.checked)}
-              />
-              AMA format
-            </label>
-          </div>
-
-          {/* 🚀 SUBMIT */}
           <div className="text-right">
-            <button className="bg-[#283d63] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#1d2c49] transition">
+            <button
+              disabled={!canPublish}
+              className="bg-[#283d63] text-white px-6 py-3 rounded-xl font-semibold disabled:opacity-50"
+            >
               Publish Discussion
             </button>
           </div>

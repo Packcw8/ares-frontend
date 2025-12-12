@@ -32,7 +32,7 @@ function Forum() {
   const canPostAsOfficial =
     userRole === "official_verified" || userRole === "admin";
 
-  // 🔍 Unified search
+  // 🔍 Unified search across entity + location + title + body
   const filteredPosts = useMemo(() => {
     if (!query) return posts;
     const q = query.toLowerCase();
@@ -41,6 +41,7 @@ function Forum() {
       const entity = post.entity || {};
       return (
         post.title?.toLowerCase().includes(q) ||
+        post.body?.toLowerCase().includes(q) ||
         entity.name?.toLowerCase().includes(q) ||
         entity.state?.toLowerCase().includes(q) ||
         entity.county?.toLowerCase().includes(q)
@@ -87,64 +88,73 @@ function Forum() {
           </div>
         )}
 
-        {/* 🧱 PINTEREST-STYLE GRID */}
+        {/* 🧱 PINTEREST / MASONRY GRID */}
         {filteredPosts.length === 0 ? (
           <p className="text-center text-gray-500 italic">
             No discussions match your search.
           </p>
         ) : (
-          <div
-            className="
-              columns-1
-              sm:columns-2
-              lg:columns-3
-              xl:columns-4
-              gap-6
-            "
-          >
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
             {filteredPosts.map((post) => (
-              <div
-                key={post.id}
-                className="mb-6 break-inside-avoid"
-              >
+              <div key={post.id} className="mb-6 break-inside-avoid">
                 <Link
                   to={`/forum/${post.id}`}
                   className="
                     block bg-white
                     rounded-2xl
                     border border-gray-200
-                    p-5
+                    p-4
                     shadow-sm
-                    hover:shadow-md
+                    hover:shadow-lg
+                    hover:border-[#c2a76d]
                     transition
                   "
                 >
-                  {/* ENTITY HEADER */}
+                  {/* ENTITY + CONTEXT */}
                   {post.entity && (
-                    <div className="mb-3">
-                      <Link
-                        to={`/ratings/${post.entity.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-sm font-semibold text-blue-700 hover:underline"
-                      >
-                        {post.entity.name}
-                      </Link>
-                      <div className="text-xs text-gray-500">
-                        {post.entity.state}
-                        {post.entity.county &&
-                          ` • ${post.entity.county} County`}
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <div>
+                        <Link
+                          to={`/ratings/${post.entity.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-xs font-semibold uppercase tracking-wide text-blue-700 hover:underline"
+                        >
+                          {post.entity.name}
+                        </Link>
+                        <div className="text-[11px] text-gray-500">
+                          {post.entity.state}
+                          {post.entity.county &&
+                            ` • ${post.entity.county} County`}
+                        </div>
                       </div>
+
+                      {/* TYPE CHIP */}
+                      <span className="text-[10px] px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-semibold">
+                        Forum
+                      </span>
                     </div>
                   )}
 
                   {/* TITLE */}
-                  <h2 className="text-lg font-semibold text-[#c2a76d] mb-2 leading-snug">
+                  <h2 className="text-base font-semibold text-[#c2a76d] leading-snug mb-1 line-clamp-2">
                     {post.title}
                   </h2>
 
-                  {/* TIMESTAMP */}
-                  <div className="text-xs text-gray-400">
-                    {new Date(post.created_at).toLocaleDateString()}
+                  {/* BODY PREVIEW */}
+                  {post.body && (
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {post.body}
+                    </p>
+                  )}
+
+                  {/* META */}
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span>
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </span>
+                    <span>
+                      💬 {post.comment_count ?? 0} comments
+                    </span>
                   </div>
                 </Link>
               </div>
