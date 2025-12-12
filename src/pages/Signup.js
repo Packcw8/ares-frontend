@@ -38,7 +38,19 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      await api.post("/auth/signup", form);
+      // ✅ FIX: only send official fields if role === "official"
+      const payload =
+        form.role === "official"
+          ? form
+          : {
+              role: form.role,
+              username: form.username,
+              email: form.email,
+              password: form.password,
+            };
+
+      await api.post("/auth/signup", payload);
+
       navigate("/check-email", { state: { email: form.email } });
     } catch (err) {
       alert(err.response?.data?.detail || "Signup failed");
