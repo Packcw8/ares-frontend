@@ -58,7 +58,8 @@ export default function VaultUpload() {
       formData.append("is_public", isPublic);
       formData.append("is_anonymous", isAnonymous);
 
-      await api.post("/vault/upload", formData, {
+      // ✅ IMPORTANT: backend route is POST /vault (not /vault/upload)
+      await api.post("/vault", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -77,7 +78,6 @@ export default function VaultUpload() {
       setIsAnonymous(false);
       setIsPublic(true);
       setEntitySearch("");
-
     } catch (err) {
       console.error(err);
       alert("Upload failed");
