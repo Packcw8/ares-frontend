@@ -11,32 +11,52 @@ export default function VaultUpload() {
   const [isPublic, setIsPublic] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [entities, setEntities] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    api.get("/ratings/entities")
-      .then((res) => setEntities(res.data))
-      .catch((err) => console.error("Error fetching entities", err));
+    api.get("/ratings/entities").then((res) => setEntities(res.data));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) return alert("Please upload a file.");
-    if (!entityId) return alert("Please select an entity.");
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("description", description);
-    formData.append("tags", tags);
-    formData.append("location", location);
-    formData.append("is_public", isPublic);
-    formData.append("is_anonymous", isAnonymous);
-    formData.append("entity_id", entityId);
+    if (!file || !entityId) {
+      alert("File and entity are required.");
+      return;
+    }
 
     try {
-      await api.post("/vault/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+      setUploading(true);
+
+      // 1️⃣ Get presigned upload URL
+      const uploadRes = await api.post("/vault/upload-url", {
+        filename: file.name,
+        content_type: file.type,
       });
+
+      const { upload_url, file_url } = uploadRes.data;
+
+      // 2️⃣ Upload file directly to Backblaze
+      await fetch(upload_url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+
+      // 3️⃣ Save metadata
+      await api.post("/vault", {
+        blob_url: file_url,
+        description,
+        tags,
+        location,
+        is_public: isPublic,
+        is_anonymous: isAnonymous,
+        entity_id: Number(entityId),
+      });
+
       alert("Evidence uploaded successfully.");
+
       setFile(null);
       setDescription("");
       setTags("");
@@ -44,67 +64,85 @@ export default function VaultUpload() {
       setEntityId("");
       setIsAnonymous(false);
     } catch (err) {
-      console.error("Upload failed", err);
-      alert("Upload failed: " + (err.response?.data?.detail || "Unknown error"));
+      console.error(err);
+      alert("Upload failed.");
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
     <Layout>
-      <h2 className="text-2xl font-bold mb-4">📤 Upload Evidence</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="file" onChange={(e) => setFile(e.target.files[0])} required />
+      <div className="p-4 space-y-4 text-white">
+        <h1 className="text-2xl font-bold">📤 Upload Evidence</h1>
 
-        <input
-          type="text"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
 
-        <input
-          type="text"
-          placeholder="Tags (comma-separated)"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-        />
-
-        <input
-          type="text"
-          placeholder="Location (City, State)"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
-
-        <select value={entityId} onChange={(e) => setEntityId(e.target.value)} required>
-          <option value="">Select Entity</option>
-          {entities.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.name} ({e.state})
-            </option>
-          ))}
-        </select>
-
-        <label className="block">
           <input
-            type="checkbox"
-            checked={isPublic}
-            onChange={() => setIsPublic(!isPublic)}
-          />{" "}
-          Make Public
-        </label>
+            type="text"
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full bg-gray-900 p-2 rounded"
+          />
 
-        <label className="block">
           <input
-            type="checkbox"
-            checked={isAnonymous}
-            onChange={() => setIsAnonymous(!isAnonymous)}
-          />{" "}
-          Submit Anonymously
-        </label>
+            type="text"
+            placeholder="Tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="w-full bg-gray-900 p-2 rounded"
+          />
 
-        <button type="submit">Submit</button>
-      </form>
+          <input
+            type="text"
+            placeholder="Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full bg-gray-900 p-2 rounded"
+          />
+
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="w-full bg-gray-900 p-2 rounded"
+          >
+            <option value="">Select Entity</option>
+            {entities.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.name} ({e.state})
+              </option>
+            ))}
+          </select>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={() => setIsPublic(!isPublic)}
+            />{" "}
+            Make Public
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={isAnonymous}
+              onChange={() => setIsAnonymous(!isAnonymous)}
+            />{" "}
+            Submit Anonymously
+          </label>
+
+          <button
+            type="submit"
+            disabled={uploading}
+            className="bg-blue-600 px-4 py-2 rounded"
+          >
+            {uploading ? "Uploading…" : "Submit"}
+          </button>
+        </form>
+      </div>
     </Layout>
   );
 }
