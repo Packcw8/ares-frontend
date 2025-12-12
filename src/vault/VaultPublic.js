@@ -45,23 +45,20 @@ export default function VaultPublic() {
       const state = entity.state?.toLowerCase() || "";
       const county = entity.county?.toLowerCase() || "";
 
-      // typing "w" → west virginia, washington, wisconsin, etc
+      // Short input = prefix match ("w" → all W states/entities)
       if (q.length <= 2) {
         return (
+          name.startsWith(q) ||
           state.startsWith(q) ||
-          county.startsWith(q) ||
-          name.startsWith(q)
+          county.startsWith(q)
         );
       }
 
-      // typing "west" → west virginia content
-      if (q.startsWith("west")) {
-        return state.startsWith(q);
-      }
-
-      // general partial match
+      // Longer input = smart partial match
       return (
-        name.includes(q) || state.includes(q) || county.includes(q)
+        name.includes(q) ||
+        state.includes(q) ||
+        county.includes(q)
       );
     });
   }, [search, evidenceList]);
@@ -87,7 +84,7 @@ export default function VaultPublic() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Type: w → west virginia → county → official"
+            placeholder="Search by state, county, or entity…"
             className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-5 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
