@@ -3,14 +3,15 @@ import Layout from "../components/Layout";
 import api from "../services/api";
 
 function formatDateGroup(dateStr) {
+  if (!dateStr) return "";
   const d = new Date(dateStr);
-  const today = new Date();
+  if (isNaN(d.getTime())) return "";
 
-  const isSameDay = d.toDateString() === today.toDateString();
+  const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
 
-  if (isSameDay) return "Today";
+  if (d.toDateString() === today.toDateString()) return "Today";
   if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
 
   return d.toLocaleDateString(undefined, {
@@ -27,7 +28,9 @@ export default function VaultPublic() {
   useEffect(() => {
     api
       .get("/vault/feed")
-      .then((res) => setEvidenceList(res.data))
+      .then((res) => {
+        setEvidenceList(res.data || []);
+      })
       .catch((err) => {
         console.error("Failed to load vault feed", err);
       })
@@ -52,8 +55,8 @@ export default function VaultPublic() {
         <div className="space-y-10">
           {evidenceList.map((ev) => {
             const dateLabel = formatDateGroup(ev.created_at);
-            const showDate = dateLabel !== lastDateLabel;
-            lastDateLabel = dateLabel;
+            const showDate = dateLabel && dateLabel !== lastDateLabel;
+            if (showDate) lastDateLabel = dateLabel;
 
             return (
               <div key={ev.id}>
@@ -65,31 +68,29 @@ export default function VaultPublic() {
                   </div>
                 )}
 
-                <div
-                  className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden
-                             opacity-0 translate-y-4 animate-fadeIn"
-                >
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                   {/* Header */}
                   <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
                     <p className="text-sm font-medium text-gray-800">
-                      {ev.entity.name}
+                      {ev.entity?.name || "Unknown Entity"}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {ev.entity.county}, {ev.entity.state}
+                      {ev.entity?.county || ""}{ev.entity?.state ? `, ${ev.entity.state}` : ""}
                     </p>
                   </div>
 
                   {/* Media */}
                   <div className="bg-black">
-                    {ev.media_url.match(/\.(mp4|webm)$/i) && (
+                    {ev.media_url && ev.media_url.match(/\.(mp4|webm)$/i) && (
                       <video
                         controls
+                        preload="metadata"
                         src={ev.media_url}
                         className="w-full max-h-[70vh] object-contain"
                       />
                     )}
 
-                    {ev.media_url.match(/\.(jpe?g|png|gif)$/i) && (
+                    {ev.media_url && ev.media_url.match(/\.(jpe?g|png|gif)$/i) && (
                       <img
                         src={ev.media_url}
                         alt="Evidence"
@@ -97,11 +98,11 @@ export default function VaultPublic() {
                       />
                     )}
 
-                    {ev.media_url.match(/\.(mp3|wav)$/i) && (
+                    {ev.media_url && ev.media_url.match(/\.(mp3|wav)$/i) && (
                       <audio controls src={ev.media_url} className="w-full" />
                     )}
 
-                    {!ev.media_url.match(/\.(mp4|webm|jpe?g|png|gif|mp3|wav)$/i) && (
+                    {ev.media_url && !ev.media_url.match(/\.(mp4|webm|jpe?g|png|gif|mp3|wav)$/i) && (
                       <div className="p-4 bg-gray-100">
                         <a
                           href={ev.media_url}
