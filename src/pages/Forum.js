@@ -6,7 +6,6 @@ import Layout from "../components/Layout";
 function Forum() {
   const [posts, setPosts] = useState([]);
   const [userRole, setUserRole] = useState("");
-  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -22,7 +21,6 @@ function Forum() {
       try {
         const res = await api.get("/auth/me");
         setUserRole(res.data.role);
-        setIsVerified(res.data.is_verified);
       } catch {
         // not logged in
       }
@@ -38,7 +36,7 @@ function Forum() {
 
   return (
     <Layout>
-      <div className="p-4 pb-24">
+      <div className="p-4 pb-24 max-w-5xl mx-auto">
         <h1 className="text-2xl font-bold mb-4 text-[#283d63]">
           Hear From Officials. Join the Conversation.
         </h1>
@@ -70,15 +68,33 @@ function Forum() {
             <Link
               key={post.id}
               to={`/forum/${post.id}`}
-              className="block border border-gray-200 p-4 rounded-xl shadow-md mb-4 bg-white hover:shadow-lg transition"
+              className="block border border-gray-200 p-5 rounded-2xl shadow-md mb-4 bg-white hover:shadow-lg transition"
             >
+              {/* 🔗 ENTITY HEADER */}
+              {post.entity && (
+                <div className="mb-2">
+                  <Link
+                    to={`/ratings/${post.entity.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-sm font-semibold text-blue-700 hover:underline"
+                  >
+                    {post.entity.name}
+                  </Link>
+                  <div className="text-xs text-gray-500">
+                    {post.entity.county && `${post.entity.county} County, `}
+                    {post.entity.state}
+                  </div>
+                </div>
+              )}
+
+              {/* 🧵 POST TITLE */}
               <h2 className="text-xl font-semibold text-[#c2a76d]">
                 {post.title}
               </h2>
-              <p className="text-sm text-gray-500">
-                By Official #{post.author_id} •{" "}
+
+              <div className="text-xs text-gray-400 mt-1">
                 {new Date(post.created_at).toLocaleString()}
-              </p>
+              </div>
             </Link>
           ))
         )}

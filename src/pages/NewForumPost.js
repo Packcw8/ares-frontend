@@ -18,7 +18,6 @@ function NewForumPost() {
 
   useEffect(() => {
     api.get("/auth/me").then((res) => {
-      // ✅ Match backend + DB roles exactly
       const canPost =
         res.data.role === "official_verified" || res.data.role === "admin";
 
@@ -51,7 +50,7 @@ function NewForumPost() {
     e.preventDefault();
 
     if (!entityId) {
-      alert("Please select an entity.");
+      alert("Please select an entity or add it first.");
       return;
     }
 
@@ -105,7 +104,7 @@ function NewForumPost() {
             className="w-full border rounded p-2"
           />
 
-          {/* Entity Search */}
+          {/* ENTITY SEARCH */}
           <div className="relative">
             <input
               type="text"
@@ -125,7 +124,7 @@ function NewForumPost() {
                     key={e.id}
                     type="button"
                     onClick={() => handleSelectEntity(e)}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 hover:bg-gray-100 flex justify-between"
                   >
                     <span>{e.name}</span>
                     {e.is_verified && (
@@ -138,6 +137,24 @@ function NewForumPost() {
               </div>
             )}
           </div>
+
+          {/* ➕ ADD ENTITY CTA */}
+          {entityQuery && filteredEntities.length === 0 && !entityId && (
+            <div className="text-sm text-gray-600">
+              Don’t see this entity?{" "}
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(
+                    `/add-official?name=${encodeURIComponent(entityQuery)}`
+                  )
+                }
+                className="text-blue-600 hover:underline font-semibold"
+              >
+                Add it here
+              </button>
+            </div>
+          )}
 
           <div className="flex gap-6">
             <label className="flex items-center gap-2">
