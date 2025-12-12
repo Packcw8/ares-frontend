@@ -38,7 +38,7 @@ export default function VaultUpload() {
     const q = entitySearch.trim().toLowerCase();
     if (!q) return entities;
     return entities.filter((e) =>
-      `${e.name} ${e.state ?? ""} ${e.county ?? ""}`.toLowerCase().includes(q)
+      `${e.name} ${e.state || ""} ${e.county || ""}`.toLowerCase().includes(q)
     );
   }, [entitySearch, entities]);
 
