@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 import { stateCountyData } from "../data/stateCountyData";
 
 export default function VaultUpload() {
+  const navigate = useNavigate();
+
   const [file, setFile] = useState(null);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
@@ -11,33 +14,48 @@ export default function VaultUpload() {
   const [entityId, setEntityId] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [entities, setEntities] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  const [entities, setEntities] = useState([]);
+  const [entitySearch, setEntitySearch] = useState("");
 
   const [state, setState] = useState("");
   const [county, setCounty] = useState("");
-  const [entitySearch, setEntitySearch] = useState("");
 
+  /* =========================
+     LOAD ENTITIES
+     ========================= */
   useEffect(() => {
     api
       .get("/ratings/entities")
-      .then((res) => setEntities(res.data))
-      .catch((err) => console.error("Failed to load entities", err));
+      .then((res) => setEntities(res.data || []))
+      .catch(() => console.error("Failed to load entities"));
   }, []);
 
+  /* =========================
+     AUTO LOCATION
+     ========================= */
   useEffect(() => {
     if (state && county) setLocation(`${county}, ${state}`);
     else if (state) setLocation(state);
   }, [state, county]);
 
+  /* =========================
+     ENTITY SEARCH FILTER
+     ========================= */
   const filteredEntities = useMemo(() => {
     const q = entitySearch.trim().toLowerCase();
-    if (!q) return entities;
+    if (!q) return [];
     return entities.filter((e) =>
-      `${e.name} ${e.state || ""} ${e.county || ""}`.toLowerCase().includes(q)
+      `${e.name} ${e.state || ""} ${e.county || ""} ${e.type || ""}`
+        .toLowerCase()
+        .includes(q)
     );
   }, [entitySearch, entities]);
 
+  /* =========================
+     SUBMIT
+     ========================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -58,11 +76,8 @@ export default function VaultUpload() {
       formData.append("is_public", isPublic);
       formData.append("is_anonymous", isAnonymous);
 
-      // ✅ IMPORTANT: backend route is POST /vault (not /vault/upload)
       await api.post("/vault", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       alert("Added to Vault");
@@ -73,11 +88,11 @@ export default function VaultUpload() {
       setTags("");
       setLocation("");
       setEntityId("");
+      setEntitySearch("");
       setState("");
       setCounty("");
       setIsAnonymous(false);
       setIsPublic(true);
-      setEntitySearch("");
     } catch (err) {
       console.error(err);
       alert("Upload failed");
@@ -88,24 +103,26 @@ export default function VaultUpload() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto p-6 text-white">
+      <div className="max-w-4xl mx-auto p-6">
+
+        {/* HEADER */}
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-semibold tracking-wide text-gray-900">
+          <h1 className="text-3xl font-semibold tracking-wide">
             Record Evidence
           </h1>
-          <p className="text-sm text-gray-600 mt-2 max-w-xl mx-auto">
-            Contribute a piece of evidence to the Vault. Start with the file —
-            everything else is optional and can be added later.
+          <p className="text-sm opacity-70 mt-2 max-w-xl mx-auto">
+            Upload evidence tied to an official, agency, or institution.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
-          {/* Evidence drop zone */}
-          <div className="rounded-3xl border border-amber-200/40 bg-gradient-to-b from-[#f7f1e1] to-[#efe6cf] p-12 text-center shadow-md">
+
+          {/* FILE */}
+          <div className="rounded-3xl border bg-[#f7f1e1] p-12 text-center shadow-md">
             <label className="cursor-pointer block">
               <div className="text-5xl mb-3">📎</div>
               <p className="font-medium">Drop evidence here or click to select</p>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs opacity-60 mt-1">
                 Video, audio, image, or document
               </p>
               <input
@@ -114,45 +131,80 @@ export default function VaultUpload() {
                 onChange={(e) => setFile(e.target.files[0])}
               />
             </label>
+
             {file && (
-              <p className="mt-4 text-sm text-gray-700">
-                Selected: <span className="font-semibold">{file.name}</span>
+              <p className="mt-4 text-sm opacity-80">
+                Selected: <strong>{file.name}</strong>
               </p>
             )}
           </div>
 
-          {/* Entity */}
-          <div className="space-y-4">
-            <p className="text-sm font-medium text-gray-700">
-              Who is this evidence about?
+          {/* ENTITY SEARCH */}
+          <div className="space-y-3 relative">
+            <p className="text-sm font-medium">
+              Who is this evidence about? <span className="text-red-600">*</span>
             </p>
 
             <input
-              placeholder="Search entity"
+              placeholder="Search entity (name, state, county…)"
               value={entitySearch}
-              onChange={(e) => setEntitySearch(e.target.value)}
-              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
+              onChange={(e) => {
+                setEntitySearch(e.target.value);
+                setEntityId("");
+              }}
+              className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
             />
 
-            <select
-              value={entityId}
-              onChange={(e) => setEntityId(e.target.value)}
-              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
-            >
-              <option value="">Select entity *</option>
-              {filteredEntities.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name} {e.state ? `(${e.state})` : ""}
-                </option>
-              ))}
-            </select>
+            {entitySearch && (
+              <div className="absolute z-30 w-full bg-[#fdf9ef] border rounded-xl shadow-lg max-h-64 overflow-y-auto">
+                {filteredEntities.length > 0 ? (
+                  filteredEntities.slice(0, 8).map((e) => (
+                    <button
+                      key={e.id}
+                      type="button"
+                      onClick={() => {
+                        setEntityId(e.id);
+                        setEntitySearch(
+                          `${e.name}${e.state ? ` (${e.state})` : ""}`
+                        );
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-[#efe6cf]"
+                    >
+                      <div className="font-medium">{e.name}</div>
+                      <div className="text-xs opacity-60">
+                        {e.type} • {e.county || "—"}, {e.state || ""}
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-sm opacity-70">
+                    No matching entity found.
+                  </div>
+                )}
+
+                {/* ADD ENTITY CTA */}
+                <div className="border-t px-4 py-3 bg-[#f7f1e1]">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/ratings/new")}
+                    className="text-sm font-medium text-[#8b1e3f] hover:underline"
+                  >
+                    Don’t see your entity? Add them →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {entityId && (
+              <p className="text-xs text-green-700 font-medium">
+                ✓ Entity selected
+              </p>
+            )}
           </div>
 
-          {/* Optional details */}
-          <div className="rounded-3xl border border-amber-200/40 bg-gradient-to-b from-[#f7f1e1] to-[#efe6cf] p-8 space-y-6">
-            <p className="text-sm font-medium text-gray-700">
-              Additional context (optional)
-            </p>
+          {/* OPTIONAL DETAILS */}
+          <div className="rounded-3xl border bg-[#f7f1e1] p-8 space-y-6">
+            <p className="text-sm font-medium">Additional context (optional)</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <select
@@ -161,13 +213,11 @@ export default function VaultUpload() {
                   setState(e.target.value);
                   setCounty("");
                 }}
-                className="bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
+                className="p-3 rounded-xl border bg-[#fdf9ef]"
               >
-                <option value="">State (optional)</option>
+                <option value="">State</option>
                 {Object.keys(stateCountyData).map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
 
@@ -175,44 +225,42 @@ export default function VaultUpload() {
                 value={county}
                 disabled={!state}
                 onChange={(e) => setCounty(e.target.value)}
-                className="bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
+                className="p-3 rounded-xl border bg-[#fdf9ef]"
               >
                 <option value="">
-                  {state ? "County (optional)" : "Select state first"}
+                  {state ? "County" : "Select state first"}
                 </option>
                 {state &&
                   stateCountyData[state].map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                    <option key={c} value={c}>{c}</option>
                   ))}
               </select>
             </div>
 
             <input
-              placeholder="Location (optional)"
+              placeholder="Location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
+              className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
             />
 
             <textarea
-              placeholder="Context (optional) — what does this show?"
+              placeholder="What does this evidence show?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
               rows={3}
+              className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
             />
 
             <input
-              placeholder="Tags (optional)"
+              placeholder="Tags (comma separated)"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="w-full bg-[#fdf9ef] text-gray-900 p-3 rounded-xl border border-amber-200/40"
+              className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={isPublic}
@@ -221,7 +269,7 @@ export default function VaultUpload() {
                 Public
               </label>
 
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={isAnonymous}
@@ -232,18 +280,12 @@ export default function VaultUpload() {
             </div>
           </div>
 
-          <div className="flex justify-center pt-4">
+          {/* SUBMIT */}
+          <div className="flex justify-center">
             <button
               type="submit"
               disabled={uploading}
-              aria-label="Add to Vault"
-              className="w-16 h-16 rounded-full flex items-center justify-center
-                         text-3xl font-bold
-                         bg-[#cfa64a] text-gray-900
-                         hover:bg-[#b8943f]
-                         shadow-lg
-                         transition-all
-                         disabled:opacity-50"
+              className="w-16 h-16 rounded-full bg-[#cfa64a] hover:bg-[#b8943f] text-3xl font-bold shadow-lg"
             >
               {uploading ? "…" : "+"}
             </button>
