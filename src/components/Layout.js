@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import aresLogo from "../assets/areslogo.png";
 import { constitutionalQuotes } from "../data/constitutionalQuotes";
 import BottomNav from "./BottomNav";
@@ -7,6 +7,9 @@ import BottomNav from "./BottomNav";
 export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const token = localStorage.getItem("token");
+  const isAuthenticated = !!token;
 
   const showLogout = !["/login", "/signup"].includes(location.pathname);
   const showReportButton = location.pathname === "/home";
@@ -17,7 +20,10 @@ export default function Layout({ children }) {
   };
 
   const randomQuote = useMemo(
-    () => constitutionalQuotes[Math.floor(Math.random() * constitutionalQuotes.length)],
+    () =>
+      constitutionalQuotes[
+        Math.floor(Math.random() * constitutionalQuotes.length)
+      ],
     []
   );
 
@@ -34,6 +40,24 @@ export default function Layout({ children }) {
           pb-28 md:pb-10
         "
       >
+        {/* 🔔 GUEST MODE CTA */}
+        {!isAuthenticated && showLogout && (
+          <div className="mb-4 rounded border border-[#c2a76d] bg-[#fffaf0] px-4 py-3 text-center text-sm text-[#3a2f1b]">
+            <span className="mr-2 font-semibold">
+              You’re viewing as a guest.
+            </span>
+            <Link
+              to={`/signup?returnTo=${location.pathname}`}
+              className="underline font-bold"
+            >
+              Create a free account
+            </Link>
+            <span className="ml-1">
+              to rate officials, comment, or upload evidence.
+            </span>
+          </div>
+        )}
+
         {/* HEADER */}
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 border-b border-[#c2a76d] pb-4">
           <div className="flex items-center gap-4">
@@ -53,7 +77,7 @@ export default function Layout({ children }) {
           </div>
 
           {/* DESKTOP LOGOUT */}
-          {showLogout && (
+          {showLogout && isAuthenticated && (
             <button
               onClick={handleLogout}
               className="
@@ -78,7 +102,7 @@ export default function Layout({ children }) {
         </header>
 
         {/* REPORT CTA */}
-        {showReportButton && (
+        {showReportButton && isAuthenticated && (
           <div className="mb-6">
             <button className="w-full md:w-auto bg-[#8b1e3f] hover:bg-[#72162f] text-white py-3 px-6 rounded text-lg font-bold shadow uppercase tracking-wider">
               Submit a Report
