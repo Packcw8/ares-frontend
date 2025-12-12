@@ -158,13 +158,20 @@ export default function VaultUpload() {
             className="w-full bg-gray-900 p-2 rounded"
           />
 
-          <div className="flex justify-center pt-6">
+          <div className="flex justify-center pt-8">
             <button
               type="submit"
               disabled={uploading}
-              className="px-8 py-3 rounded-2xl font-extrabold bg-yellow-300 text-gray-900 hover:bg-yellow-200 disabled:opacity-50"
+              aria-label="Add to Vault"
+              className="w-16 h-16 rounded-full flex items-center justify-center
+                         text-3xl font-bold
+                         bg-yellow-300 text-gray-900
+                         hover:bg-yellow-200
+                         shadow-lg shadow-yellow-300/20
+                         transition-all duration-200
+                         disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {uploading ? "Adding…" : "Add to Vault"}
+              {uploading ? "…" : "+"}
             </button>
           </div>
         </form>
