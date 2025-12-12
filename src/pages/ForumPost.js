@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
 
@@ -41,66 +41,92 @@ export default function ForumPost() {
 
   return (
     <Layout>
-      <div className="px-4 py-6 max-w-3xl mx-auto text-[#2c2c2c] font-serif">
-        <h1 className="text-2xl font-extrabold text-[#283d63] mb-2">
-          {post.title}
-        </h1>
+      <div className="px-4 py-8 max-w-3xl mx-auto text-[#1f1f1f]">
 
-        <p className="text-sm italic text-[#5a4635] mb-4">
-          Posted on {new Date(post.created_at).toLocaleDateString()}
-        </p>
-
-        <div className="bg-[#f5ecd9] p-4 rounded-xl shadow text-[#3a2f1b] whitespace-pre-wrap">
-          {post.body}
+        {/* 🔙 NAV */}
+        <div className="mb-4 text-sm">
+          <Link
+            to="/forum"
+            className="text-blue-700 hover:underline font-medium"
+          >
+            ← Back to Forum
+          </Link>
         </div>
 
-        <h2 className="mt-8 mb-2 text-lg font-bold text-[#283d63]">
-          💬 Public Comments
-        </h2>
+        {/* 📄 POST CARD */}
+        <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+          <h1 className="text-2xl font-bold text-[#283d63] mb-2">
+            {post.title}
+          </h1>
 
-        {comments.length === 0 ? (
-          <p className="italic text-[#5a4635]">No comments yet.</p>
-        ) : (
-          <div className="space-y-2 mb-4">
-            {comments.map((c) => {
-              const displayName =
-                c.user?.username ||
-                c.username ||
-                "Anonymous";
+          <p className="text-xs text-gray-500 mb-4">
+            Posted on {new Date(post.created_at).toLocaleDateString()}
+          </p>
 
-              return (
-                <div
-                  key={c.id}
-                  className="border-l-4 border-[#c2a76d] bg-[#fdf7ea] px-4 py-2 rounded"
-                >
-                  <p className="text-sm text-[#3a2f1b]">{c.content}</p>
-                  <p className="text-xs text-[#7c6a4d] mt-1">
-                    {displayName} •{" "}
-                    {new Date(c.created_at).toLocaleString()}
-                  </p>
-                </div>
-              );
-            })}
+          <div className="prose max-w-none text-gray-800 whitespace-pre-wrap">
+            {post.body}
           </div>
-        )}
+        </div>
 
-        <div className="mt-6">
+        {/* 💬 COMMENTS */}
+        <div className="mt-10">
+          <h2 className="text-lg font-semibold text-[#283d63] mb-4">
+            Discussion
+          </h2>
+
+          {comments.length === 0 ? (
+            <p className="italic text-gray-500">
+              No comments yet. Be the first to respond.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {comments.map((c) => {
+                const displayName =
+                  c.user?.username ||
+                  c.username ||
+                  "Anonymous";
+
+                return (
+                  <div
+                    key={c.id}
+                    className="bg-[#faf8f2] border border-[#e5dcc3] rounded-xl p-4"
+                  >
+                    <p className="text-sm text-gray-800">
+                      {c.content}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {displayName} •{" "}
+                      {new Date(c.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ✍️ COMMENT INPUT */}
+        <div className="mt-8 bg-[#f5f3ee] border border-[#e0d8c4] rounded-2xl p-4">
           <textarea
             rows="4"
-            className="w-full border border-[#c2a76d] p-2 rounded-md text-sm font-serif"
-            placeholder="Write your comment here..."
+            className="w-full border border-[#c2a76d] p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
+            placeholder="Write a thoughtful response…"
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
           />
 
-          {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+          {error && (
+            <p className="text-red-600 text-sm mt-1">{error}</p>
+          )}
 
-          <button
-            onClick={handleSubmit}
-            className="mt-2 bg-[#283d63] text-white px-4 py-2 rounded hover:bg-[#1d2c49] transition"
-          >
-            Submit Comment
-          </button>
+          <div className="text-right mt-2">
+            <button
+              onClick={handleSubmit}
+              className="bg-[#283d63] text-white px-5 py-2 rounded-xl hover:bg-[#1d2c49] transition font-semibold"
+            >
+              Post Comment
+            </button>
+          </div>
         </div>
       </div>
     </Layout>

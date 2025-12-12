@@ -72,98 +72,110 @@ function NewForumPost() {
 
   return (
     <Layout>
-      <div className="p-4 pb-24 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4 text-[#c2a76d]">
+      <div className="px-4 py-8 max-w-3xl mx-auto">
+
+        {/* HEADER */}
+        <h1 className="text-2xl font-bold text-[#283d63] mb-6">
           Start a New Discussion
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            className="w-full border rounded p-2"
-          />
+        <form onSubmit={handleSubmit} className="space-y-8">
 
-          <textarea
-            rows="6"
-            placeholder="Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-            className="w-full border rounded p-2"
-          />
+          {/* 🔗 ENTITY SELECTION (PRIMARY) */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-gray-700 mb-2">
+              Entity this discussion is about
+            </h2>
 
-          <input
-            type="text"
-            placeholder="Tags (comma-separated)"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            className="w-full border rounded p-2"
-          />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search for an official or agency…"
+                value={entityQuery}
+                onChange={(e) => {
+                  setEntityQuery(e.target.value);
+                  setEntityId(null);
+                }}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
+              />
 
-          {/* ENTITY SEARCH */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search for an official or entity..."
-              value={entityQuery}
-              onChange={(e) => {
-                setEntityQuery(e.target.value);
-                setEntityId(null);
-              }}
-              className="w-full border rounded p-2"
-            />
+              {filteredEntities.length > 0 && !entityId && (
+                <div className="absolute z-10 w-full bg-white border rounded-xl shadow max-h-64 overflow-y-auto mt-1">
+                  {filteredEntities.map((e) => (
+                    <button
+                      key={e.id}
+                      type="button"
+                      onClick={() => handleSelectEntity(e)}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-100 flex justify-between"
+                    >
+                      <span className="font-medium">{e.name}</span>
+                      {e.is_verified && (
+                        <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                          Verified
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            {filteredEntities.length > 0 && !entityId && (
-              <div className="absolute z-10 w-full bg-white border rounded shadow max-h-64 overflow-y-auto">
-                {filteredEntities.map((e) => (
-                  <button
-                    key={e.id}
-                    type="button"
-                    onClick={() => handleSelectEntity(e)}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-100 flex justify-between"
-                  >
-                    <span>{e.name}</span>
-                    {e.is_verified && (
-                      <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
-                        Verified
-                      </span>
-                    )}
-                  </button>
-                ))}
+            {entityQuery && filteredEntities.length === 0 && !entityId && (
+              <div className="mt-2 text-sm text-gray-600">
+                Don’t see this entity?{" "}
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `/add-official?name=${encodeURIComponent(entityQuery)}`
+                    )
+                  }
+                  className="text-blue-600 hover:underline font-semibold"
+                >
+                  Add it here
+                </button>
               </div>
             )}
           </div>
 
-          {/* ➕ ADD ENTITY CTA */}
-          {entityQuery && filteredEntities.length === 0 && !entityId && (
-            <div className="text-sm text-gray-600">
-              Don’t see this entity?{" "}
-              <button
-                type="button"
-                onClick={() =>
-                  navigate(
-                    `/add-official?name=${encodeURIComponent(entityQuery)}`
-                  )
-                }
-                className="text-blue-600 hover:underline font-semibold"
-              >
-                Add it here
-              </button>
-            </div>
-          )}
+          {/* 🧵 DISCUSSION CONTENT */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+            <input
+              type="text"
+              placeholder="Discussion title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
+            />
 
-          <div className="flex gap-6">
+            <textarea
+              rows="7"
+              placeholder="Write the discussion content…"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
+            />
+
+            <input
+              type="text"
+              placeholder="Tags (comma-separated, optional)"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              className="w-full px-4 py-2 rounded-xl border border-gray-300"
+            />
+          </div>
+
+          {/* ⚙️ OPTIONS */}
+          <div className="flex gap-8 text-sm text-gray-700">
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={isPinned}
                 onChange={(e) => setIsPinned(e.target.checked)}
               />
-              Pin
+              Pin discussion
             </label>
 
             <label className="flex items-center gap-2">
@@ -172,13 +184,16 @@ function NewForumPost() {
                 checked={isAMA}
                 onChange={(e) => setIsAMA(e.target.checked)}
               />
-              AMA
+              AMA format
             </label>
           </div>
 
-          <button className="bg-[#283d63] text-white px-4 py-2 rounded w-full">
-            Submit Post
-          </button>
+          {/* 🚀 SUBMIT */}
+          <div className="text-right">
+            <button className="bg-[#283d63] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#1d2c49] transition">
+              Publish Discussion
+            </button>
+          </div>
         </form>
       </div>
     </Layout>
