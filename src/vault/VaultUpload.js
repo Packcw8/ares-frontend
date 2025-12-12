@@ -73,7 +73,9 @@ export default function VaultUpload() {
     if (!state || !countyQuery) return [];
     const counties = stateCountyData[state]?.counties;
     return Array.isArray(counties)
-      ? counties.filter((c) => c.toLowerCase().includes(countyQuery.toLowerCase()))
+      ? counties.filter((c) =>
+          c.toLowerCase().includes(countyQuery.toLowerCase())
+        )
       : [];
   }, [state, countyQuery]);
 
@@ -105,7 +107,7 @@ export default function VaultUpload() {
       });
 
       alert("Added to Vault");
-      navigate("/vault");
+      navigate("/vault/public"); // ✅ FIXED ROUTE
     } catch {
       alert("Upload failed");
     } finally {
@@ -169,7 +171,9 @@ export default function VaultUpload() {
                       type="button"
                       onClick={() => {
                         setEntityId(e.id);
-                        setEntitySearch(`${e.name}${e.state ? ` (${e.state})` : ""}`);
+                        setEntitySearch(
+                          `${e.name}${e.state ? ` (${e.state})` : ""}`
+                        );
                         setEntitySelected(true);
                       }}
                       className="w-full text-left px-4 py-3 hover:bg-[#efe6cf]"
@@ -215,7 +219,6 @@ export default function VaultUpload() {
                 className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
               />
 
-              {/* ✅ FIX: dropdown only while picking, not after selected */}
               {stateQuery && !state && (
                 <div className="absolute z-20 w-full bg-[#fdf9ef] border rounded-xl shadow-lg max-h-56 overflow-y-auto">
                   {stateOptions.map((s) => (
@@ -250,7 +253,6 @@ export default function VaultUpload() {
                   className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
                 />
 
-                {/* ✅ FIX: dropdown only while picking, not after selected */}
                 {countyQuery && !county && (
                   <div className="absolute z-20 w-full bg-[#fdf9ef] border rounded-xl shadow-lg max-h-56 overflow-y-auto">
                     {countyOptions.map((c) => (
