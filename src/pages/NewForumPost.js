@@ -3,6 +3,17 @@ import api from "../services/api";
 import Layout from "../components/Layout";
 import { stateCountyData } from "../data/stateCountyData";
 
+const ROLE_OPTIONS = [
+  "Police Department",
+  "Sheriff’s Office",
+  "Court",
+  "Judge",
+  "Prosecutor",
+  "CPS / Child Services",
+  "Government Agency",
+  "Individual Official",
+];
+
 function NewForumPost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -15,7 +26,7 @@ function NewForumPost() {
   const [entityForm, setEntityForm] = useState({
     name: "",
     type: "agency",
-    category: "",
+    role: "",
     state: "",
     county: "",
   });
@@ -35,6 +46,7 @@ function NewForumPost() {
   }, [entityQuery, entities]);
 
   const stateOptions = useMemo(() => {
+    if (!stateQuery) return [];
     return Object.entries(stateCountyData)
       .map(([abbr, data]) => ({ abbr, name: data.name }))
       .filter((s) =>
@@ -43,7 +55,7 @@ function NewForumPost() {
   }, [stateQuery]);
 
   const countyOptions = useMemo(() => {
-    if (!entityForm.state) return [];
+    if (!entityForm.state || !countyQuery) return [];
     return stateCountyData[entityForm.state].counties.filter((c) =>
       c.toLowerCase().includes(countyQuery.toLowerCase())
     );
@@ -56,6 +68,8 @@ function NewForumPost() {
       setEntityId(res.data.id);
       setEntityQuery(res.data.name);
       setCreatingEntity(false);
+      setStateQuery("");
+      setCountyQuery("");
     } catch (err) {
       alert("Failed to create entity");
     }
@@ -103,6 +117,7 @@ function NewForumPost() {
               {filteredEntities.map((e) => (
                 <button
                   key={e.id}
+                  type="button"
                   onClick={() => {
                     setEntityId(e.id);
                     setEntityQuery(e.name);
@@ -117,6 +132,7 @@ function NewForumPost() {
 
           {entityQuery && filteredEntities.length === 0 && !entityId && (
             <button
+              type="button"
               onClick={() => {
                 setCreatingEntity(true);
                 setEntityForm((f) => ({ ...f, name: entityQuery }));
@@ -133,27 +149,23 @@ function NewForumPost() {
           <div className="bg-gray-50 p-4 rounded-xl border space-y-3">
             <h2 className="font-semibold">Create Entity</h2>
 
+            {/* ROLE (NOT FREE TEXT) */}
             <select
-              value={entityForm.type}
+              value={entityForm.role}
               onChange={(e) =>
-                setEntityForm({ ...entityForm, type: e.target.value })
+                setEntityForm({ ...entityForm, role: e.target.value })
               }
               className="w-full p-2 border rounded"
             >
-              <option value="agency">Agency</option>
-              <option value="individual">Individual</option>
-              <option value="institution">Institution</option>
+              <option value="">Select role</option>
+              {ROLE_OPTIONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
             </select>
 
-            <input
-              placeholder="Category"
-              value={entityForm.category}
-              onChange={(e) =>
-                setEntityForm({ ...entityForm, category: e.target.value })
-              }
-              className="w-full p-2 border rounded"
-            />
-
+            {/* STATE TYPEAHEAD */}
             <input
               placeholder="State"
               value={stateQuery}
@@ -161,19 +173,25 @@ function NewForumPost() {
               className="w-full p-2 border rounded"
             />
 
-            {stateOptions.map((s) => (
-              <button
-                key={s.abbr}
-                onClick={() => {
-                  setEntityForm({ ...entityForm, state: s.abbr });
-                  setStateQuery(s.name);
-                }}
-                className="block w-full text-left px-2 py-1"
-              >
-                {s.name}
-              </button>
-            ))}
+            {stateQuery && (
+              <div className="border rounded bg-white max-h-48 overflow-y-auto">
+                {stateOptions.map((s) => (
+                  <button
+                    key={s.abbr}
+                    type="button"
+                    onClick={() => {
+                      setEntityForm({ ...entityForm, state: s.abbr });
+                      setStateQuery(s.name);
+                    }}
+                    className="block w-full text-left px-3 py-2 hover:bg-gray-100"
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            )}
 
+            {/* COUNTY TYPEAHEAD */}
             {entityForm.state && (
               <>
                 <input
@@ -183,24 +201,30 @@ function NewForumPost() {
                   className="w-full p-2 border rounded"
                 />
 
-                {countyOptions.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => {
-                      setEntityForm({ ...entityForm, county: c });
-                      setCountyQuery(c);
-                    }}
-                    className="block w-full text-left px-2 py-1"
-                  >
-                    {c}
-                  </button>
-                ))}
+                {countyQuery && (
+                  <div className="border rounded bg-white max-h-48 overflow-y-auto">
+                    {countyOptions.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setEntityForm({ ...entityForm, county: c });
+                          setCountyQuery(c);
+                        }}
+                        className="block w-full text-left px-3 py-2 hover:bg-gray-100"
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </>
             )}
 
             <button
+              type="button"
               onClick={handleCreateEntity}
-              className="bg-[#283d63] text-white px-4 py-2 rounded"
+              className="bg-[#283d63] text-white px-4 py-2 rounded font-semibold"
             >
               Create Entity
             </button>
