@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
@@ -9,8 +9,11 @@ function NewForumPost() {
   const [tags, setTags] = useState("");
   const [isPinned, setIsPinned] = useState(false);
   const [isAMA, setIsAMA] = useState(false);
-  const [entityId, setEntityId] = useState("");
+
+  const [entityQuery, setEntityQuery] = useState("");
+  const [entityId, setEntityId] = useState(null);
   const [entities, setEntities] = useState([]);
+
   const [role, setRole] = useState("");
   const [isVerified, setIsVerified] = useState(false);
 
@@ -21,12 +24,12 @@ function NewForumPost() {
       setRole(res.data.role);
       setIsVerified(res.data.is_verified);
 
-      if (
-        !(
-          res.data.role === "official_verified" ||
-          res.data.role === "admin"
-        )
-      ) {
+      // ✅ Correct authorization logic
+      const canPost =
+        res.data.role === "admin" ||
+        (res.data.role === "official" && res.data.is_verified);
+
+      if (!canPost) {
         navigate("/forum");
       }
     });
@@ -37,15 +40,34 @@ function NewForumPost() {
       .catch(console.error);
   }, [navigate]);
 
+  const filteredEntities = useMemo(() => {
+    if (!entityQuery) return [];
+    return entities
+      .filter((e) =>
+        e.name.toLowerCase().includes(entityQuery.toLowerCase())
+      )
+      .slice(0, 8);
+  }, [entityQuery, entities]);
+
+  const handleSelectEntity = (entity) => {
+    setEntityId(entity.id);
+    setEntityQuery(entity.name);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!entityId) {
+      alert("Please select an entity.");
+      return;
+    }
 
     try {
       await api.post("/forum/create", {
         title,
         body: content,
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-        entity_id: parseInt(entityId),
+        entity_id: entityId,
         is_pinned: isPinned,
         is_ama: isAMA,
       });
@@ -90,40 +112,61 @@ function NewForumPost() {
             className="w-full border rounded p-2"
           />
 
-          <select
-            value={entityId}
-            onChange={(e) => setEntityId(e.target.value)}
-            required
-            className="w-full border rounded p-2"
-          >
-            <option value="">Select an entity</option>
-            {entities.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </select>
+          {/* Entity Search */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search for an official or entity..."
+              value={entityQuery}
+              onChange={(e) => {
+                setEntityQuery(e.target.value);
+                setEntityId(null);
+              }}
+              className="w-full border rounded p-2"
+            />
 
-          <div className="flex gap-4">
-            <label>
+            {filteredEntities.length > 0 && !entityId && (
+              <div className="absolute z-10 w-full bg-white border rounded shadow max-h-64 overflow-y-auto">
+                {filteredEntities.map((e) => (
+                  <button
+                    key={e.id}
+                    type="button"
+                    onClick={() => handleSelectEntity(e)}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center justify-between"
+                  >
+                    <span>{e.name}</span>
+                    {e.is_verified && (
+                      <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
+                        Verified
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={isPinned}
                 onChange={(e) => setIsPinned(e.target.checked)}
-              />{" "}
+              />
               Pin
             </label>
-            <label>
+
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={isAMA}
                 onChange={(e) => setIsAMA(e.target.checked)}
-              />{" "}
+              />
               AMA
             </label>
           </div>
 
-          <button className="bg-[#283d63] text-white px-4 py-2 rounded">
+          <button className="bg-[#283d63] text-white px-4 py-2 rounded w-full">
             Submit Post
           </button>
         </form>

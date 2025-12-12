@@ -24,7 +24,7 @@ function Forum() {
         setUserRole(res.data.role);
         setIsVerified(res.data.is_verified);
       } catch {
-        // Not logged in
+        // not logged in
       }
     };
 
@@ -32,8 +32,10 @@ function Forum() {
     fetchUser();
   }, []);
 
+  // ✅ Correct official posting rule
   const canPostAsOfficial =
-    userRole === "official_verified" || userRole === "admin";
+    userRole === "admin" ||
+    (userRole === "official" && isVerified);
 
   return (
     <Layout>
@@ -42,16 +44,16 @@ function Forum() {
           Hear From Officials. Join the Conversation.
         </h1>
 
-        {/* 🟡 Pending official banner */}
-        {userRole === "official_pending" && (
+        {/* 🟡 Pending officials */}
+        {userRole === "official" && !isVerified && (
           <div className="mb-4 p-3 rounded bg-yellow-100 text-yellow-800">
-            Your official account is under review. You can read and comment,
-            but cannot start official discussions yet.
+            Your official account is under review. You may read and comment,
+            but cannot start discussions yet.
           </div>
         )}
 
-        {/* ✅ Only verified officials / admins can post */}
-        {canPostAsOfficial && isVerified && (
+        {/* ✅ Verified officials + admins */}
+        {canPostAsOfficial && (
           <div className="mb-4 text-right">
             <Link
               to="/forum/new"
