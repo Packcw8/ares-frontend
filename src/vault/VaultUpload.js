@@ -63,9 +63,7 @@ export default function VaultUpload() {
     if (!stateQuery) return [];
     return Object.entries(stateCountyData)
       .map(([abbr, data]) => ({ abbr, name: data.name }))
-      .filter((s) =>
-        s.name.toLowerCase().includes(stateQuery.toLowerCase())
-      );
+      .filter((s) => s.name.toLowerCase().includes(stateQuery.toLowerCase()));
   }, [stateQuery]);
 
   /* =========================
@@ -75,9 +73,7 @@ export default function VaultUpload() {
     if (!state || !countyQuery) return [];
     const counties = stateCountyData[state]?.counties;
     return Array.isArray(counties)
-      ? counties.filter((c) =>
-          c.toLowerCase().includes(countyQuery.toLowerCase())
-        )
+      ? counties.filter((c) => c.toLowerCase().includes(countyQuery.toLowerCase()))
       : [];
   }, [state, countyQuery]);
 
@@ -120,7 +116,6 @@ export default function VaultUpload() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto p-6">
-
         {/* HEADER */}
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-semibold">Record Evidence</h1>
@@ -130,7 +125,6 @@ export default function VaultUpload() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
-
           {/* FILE */}
           <div className="rounded-3xl border bg-[#f7f1e1] p-12 text-center shadow-md">
             <label className="cursor-pointer block">
@@ -175,9 +169,7 @@ export default function VaultUpload() {
                       type="button"
                       onClick={() => {
                         setEntityId(e.id);
-                        setEntitySearch(
-                          `${e.name}${e.state ? ` (${e.state})` : ""}`
-                        );
+                        setEntitySearch(`${e.name}${e.state ? ` (${e.state})` : ""}`);
                         setEntitySelected(true);
                       }}
                       className="w-full text-left px-4 py-3 hover:bg-[#efe6cf]"
@@ -209,7 +201,6 @@ export default function VaultUpload() {
 
           {/* STATE + COUNTY */}
           <div className="rounded-3xl border bg-[#f7f1e1] p-8 space-y-6">
-
             {/* STATE */}
             <div className="relative">
               <input
@@ -224,7 +215,8 @@ export default function VaultUpload() {
                 className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
               />
 
-              {stateQuery && (
+              {/* ✅ FIX: dropdown only while picking, not after selected */}
+              {stateQuery && !state && (
                 <div className="absolute z-20 w-full bg-[#fdf9ef] border rounded-xl shadow-lg max-h-56 overflow-y-auto">
                   {stateOptions.map((s) => (
                     <button
@@ -233,6 +225,8 @@ export default function VaultUpload() {
                       onClick={() => {
                         setState(s.abbr);
                         setStateQuery(s.name);
+                        setCounty("");
+                        setCountyQuery("");
                       }}
                       className="w-full text-left px-4 py-2 hover:bg-[#efe6cf]"
                     >
@@ -249,11 +243,15 @@ export default function VaultUpload() {
                 <input
                   placeholder="County"
                   value={countyQuery}
-                  onChange={(e) => setCountyQuery(e.target.value)}
+                  onChange={(e) => {
+                    setCountyQuery(e.target.value);
+                    setCounty("");
+                  }}
                   className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
                 />
 
-                {countyQuery && (
+                {/* ✅ FIX: dropdown only while picking, not after selected */}
+                {countyQuery && !county && (
                   <div className="absolute z-20 w-full bg-[#fdf9ef] border rounded-xl shadow-lg max-h-56 overflow-y-auto">
                     {countyOptions.map((c) => (
                       <button
@@ -299,7 +297,6 @@ export default function VaultUpload() {
               {uploading ? "..." : "+"}
             </button>
           </div>
-
         </form>
       </div>
     </Layout>
