@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
 
@@ -15,7 +15,9 @@ function NewForumPost() {
   const [entities, setEntities] = useState([]);
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
+  // 🔹 Fetch user & entities
   useEffect(() => {
     api.get("/auth/me").then((res) => {
       const canPost =
@@ -32,14 +34,28 @@ function NewForumPost() {
       .catch(console.error);
   }, [navigate]);
 
+  // 🔹 Auto-select entity after returning from AddOfficialPage
+  useEffect(() => {
+    const returnedEntityId = searchParams.get("entityId");
+    if (returnedEntityId && entities.length > 0) {
+      const found = entities.find(
+        (e) => e.id === Number(returnedEntityId)
+      );
+      if (found) {
+        setEntityId(found.id);
+        setEntityQuery(found.name);
+      }
+    }
+  }, [searchParams, entities]);
+
   const filteredEntities = useMemo(() => {
-    if (!entityQuery) return [];
+    if (!entityQuery || entityId) return [];
     return entities
       .filter((e) =>
         e.name.toLowerCase().includes(entityQuery.toLowerCase())
       )
       .slice(0, 8);
-  }, [entityQuery, entities]);
+  }, [entityQuery, entities, entityId]);
 
   const handleSelectEntity = (entity) => {
     setEntityId(entity.id);
@@ -73,15 +89,13 @@ function NewForumPost() {
   return (
     <Layout>
       <div className="px-4 py-8 max-w-3xl mx-auto">
-
-        {/* HEADER */}
         <h1 className="text-2xl font-bold text-[#283d63] mb-6">
           Start a New Discussion
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
 
-          {/* 🔗 ENTITY SELECTION (PRIMARY) */}
+          {/* 🔗 ENTITY SELECTION */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
             <h2 className="text-sm font-semibold text-gray-700 mb-2">
               Entity this discussion is about
@@ -99,7 +113,7 @@ function NewForumPost() {
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
               />
 
-              {filteredEntities.length > 0 && !entityId && (
+              {filteredEntities.length > 0 && (
                 <div className="absolute z-10 w-full bg-white border rounded-xl shadow max-h-64 overflow-y-auto mt-1">
                   {filteredEntities.map((e) => (
                     <button
@@ -120,6 +134,13 @@ function NewForumPost() {
               )}
             </div>
 
+            {entityId && (
+              <div className="mt-2 text-sm text-green-700 font-medium">
+                ✔ Entity selected
+              </div>
+            )}
+
+            {/* ➕ ADD ENTITY LINK */}
             {entityQuery && filteredEntities.length === 0 && !entityId && (
               <div className="mt-2 text-sm text-gray-600">
                 Don’t see this entity?{" "}
@@ -127,7 +148,9 @@ function NewForumPost() {
                   type="button"
                   onClick={() =>
                     navigate(
-                      `/add-official?name=${encodeURIComponent(entityQuery)}`
+                      `/add-official?name=${encodeURIComponent(
+                        entityQuery
+                      )}&returnTo=/forum/new`
                     )
                   }
                   className="text-blue-600 hover:underline font-semibold"
@@ -138,7 +161,7 @@ function NewForumPost() {
             )}
           </div>
 
-          {/* 🧵 DISCUSSION CONTENT */}
+          {/* 🧵 CONTENT */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
             <input
               type="text"

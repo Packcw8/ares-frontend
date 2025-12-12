@@ -1,11 +1,15 @@
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import { stateCountyData } from "../data/stateCountyData";
 import api from "../services/api";
 
 export default function AddOfficialPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const returnTo = searchParams.get("returnTo"); // 👈 NEW
+  const prefillName = searchParams.get("name");
 
   const [form, setForm] = useState({
     name: "",
@@ -19,13 +23,18 @@ export default function AddOfficialPage() {
   const [customCategory, setCustomCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // 🔹 typing state
   const [stateQuery, setStateQuery] = useState("");
   const [countyQuery, setCountyQuery] = useState("");
 
-  // 🔹 dropdown control (FIX)
   const [showStateDropdown, setShowStateDropdown] = useState(false);
   const [showCountyDropdown, setShowCountyDropdown] = useState(false);
+
+  // ✅ Prefill entity name if provided
+  useEffect(() => {
+    if (prefillName) {
+      setForm((prev) => ({ ...prev, name: prefillName }));
+    }
+  }, [prefillName]);
 
   const categoryOptions = {
     individual: [
@@ -56,13 +65,9 @@ export default function AddOfficialPage() {
 
   const showCustomCategory = form.category === "Other";
 
-  // 🔹 state list
   const stateOptions = useMemo(() => {
     return Object.entries(stateCountyData)
-      .map(([abbr, data]) => ({
-        abbr,
-        name: data.name,
-      }))
+      .map(([abbr, data]) => ({ abbr, name: data.name }))
       .filter(
         (s) =>
           s.name.toLowerCase().includes(stateQuery.toLowerCase()) ||
@@ -70,7 +75,6 @@ export default function AddOfficialPage() {
       );
   }, [stateQuery]);
 
-  // 🔹 county list (scoped to state)
   const countyOptions = useMemo(() => {
     if (!form.state) return [];
     return stateCountyData[form.state].counties.filter((county) =>
@@ -89,9 +93,14 @@ export default function AddOfficialPage() {
 
     try {
       const res = await api.post("/ratings/entities", payload);
-      navigate(`/ratings/${res.data.id}`);
+
+      // ✅ SMART REDIRECT
+      if (returnTo) {
+        navigate(`${returnTo}?entityId=${res.data.id}`);
+      } else {
+        navigate(`/ratings/${res.data.id}`);
+      }
     } catch (err) {
-      console.error(err);
       alert(
         err.response?.data?.detail ||
           "Failed to create official. Please try again."
@@ -103,8 +112,8 @@ export default function AddOfficialPage() {
 
   return (
     <Layout>
-      <div className="p-4 text-white space-y-6 max-w-xl mx-auto">
-        <h1 className="text-2xl font-bold">Add New Official</h1>
+      <div className="p-4 max-w-xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold">Add New Entity</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -113,7 +122,7 @@ export default function AddOfficialPage() {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
-            className="w-full px-4 py-2 bg-gray-900 rounded"
+            className="w-full px-4 py-2 bg-gray-900 text-white rounded"
           />
 
           <select
@@ -121,7 +130,7 @@ export default function AddOfficialPage() {
             onChange={(e) =>
               setForm({ ...form, type: e.target.value, category: "" })
             }
-            className="w-full px-4 py-2 bg-gray-900 rounded"
+            className="w-full px-4 py-2 bg-gray-900 text-white rounded"
           >
             <option value="individual">Individual</option>
             <option value="agency">Agency</option>
@@ -132,7 +141,7 @@ export default function AddOfficialPage() {
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
             required
-            className="w-full px-4 py-2 bg-gray-900 rounded"
+            className="w-full px-4 py-2 bg-gray-900 text-white rounded"
           >
             <option value="">Select Category</option>
             {categoryOptions[form.type].map((opt) => (
@@ -145,19 +154,19 @@ export default function AddOfficialPage() {
           {showCustomCategory && (
             <input
               type="text"
-              placeholder="Enter custom category"
+              placeholder="Custom category"
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-gray-900 rounded"
+              className="w-full px-4 py-2 bg-gray-900 text-white rounded"
             />
           )}
 
-          {/* 🔹 STATE TYPE-AHEAD */}
+          {/* STATE */}
           <div className="relative">
             <input
               type="text"
-              placeholder="Type state (e.g. West Virginia)"
+              placeholder="Type state"
               value={stateQuery}
               onChange={(e) => {
                 setStateQuery(e.target.value);
@@ -166,12 +175,12 @@ export default function AddOfficialPage() {
                 setCountyQuery("");
                 setShowCountyDropdown(false);
               }}
-              className="w-full px-4 py-2 bg-gray-900 rounded"
               required
+              className="w-full px-4 py-2 bg-gray-900 text-white rounded"
             />
 
             {showStateDropdown && stateOptions.length > 0 && (
-              <div className="absolute z-10 w-full bg-gray-800 rounded mt-1 max-h-48 overflow-y-auto">
+              <div className="absolute z-10 w-full bg-gray-800 rounded mt-1">
                 {stateOptions.map((s) => (
                   <button
                     type="button"
@@ -179,9 +188,9 @@ export default function AddOfficialPage() {
                     onClick={() => {
                       setForm({ ...form, state: s.abbr, county: "" });
                       setStateQuery(s.name);
-                      setShowStateDropdown(false); // ✅ FIX
+                      setShowStateDropdown(false);
                     }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-700 text-white"
                   >
                     {s.name} ({s.abbr})
                   </button>
@@ -190,11 +199,13 @@ export default function AddOfficialPage() {
             )}
           </div>
 
-          {/* 🔹 COUNTY TYPE-AHEAD */}
+          {/* COUNTY */}
           <div className="relative">
             <input
               type="text"
-              placeholder={form.state ? "Type county" : "Select state first"}
+              placeholder={
+                form.state ? "Type county" : "Select state first"
+              }
               value={countyQuery}
               onChange={(e) => {
                 setCountyQuery(e.target.value);
@@ -203,13 +214,13 @@ export default function AddOfficialPage() {
               }}
               disabled={!form.state}
               required
-              className="w-full px-4 py-2 bg-gray-900 rounded disabled:opacity-50"
+              className="w-full px-4 py-2 bg-gray-900 text-white rounded disabled:opacity-50"
             />
 
             {showCountyDropdown &&
               countyQuery &&
               countyOptions.length > 0 && (
-                <div className="absolute z-10 w-full bg-gray-800 rounded mt-1 max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full bg-gray-800 rounded mt-1">
                   {countyOptions.map((county) => (
                     <button
                       type="button"
@@ -219,7 +230,7 @@ export default function AddOfficialPage() {
                         setCountyQuery(county);
                         setShowCountyDropdown(false);
                       }}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-700 text-white"
                     >
                       {county}
                     </button>
@@ -235,15 +246,15 @@ export default function AddOfficialPage() {
             onChange={(e) =>
               setForm({ ...form, jurisdiction: e.target.value })
             }
-            className="w-full px-4 py-2 bg-gray-900 rounded"
+            className="w-full px-4 py-2 bg-gray-900 text-white rounded"
           />
 
           <button
             type="submit"
             disabled={submitting}
-            className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-semibold w-full"
+            className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-semibold w-full text-white"
           >
-            {submitting ? "Submitting..." : "Add Official & Rate"}
+            {submitting ? "Submitting…" : "Create Entity"}
           </button>
         </form>
       </div>
