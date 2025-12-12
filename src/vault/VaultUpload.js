@@ -18,6 +18,7 @@ export default function VaultUpload() {
 
   const [entities, setEntities] = useState([]);
   const [entitySearch, setEntitySearch] = useState("");
+  const [entitySelected, setEntitySelected] = useState(false);
 
   const [stateQuery, setStateQuery] = useState("");
   const [countyQuery, setCountyQuery] = useState("");
@@ -56,7 +57,7 @@ export default function VaultUpload() {
   }, [entitySearch, entities]);
 
   /* =========================
-     STATE SEARCH (SAFE)
+     STATE SEARCH
      ========================= */
   const stateOptions = useMemo(() => {
     if (!stateQuery) return [];
@@ -68,7 +69,7 @@ export default function VaultUpload() {
   }, [stateQuery]);
 
   /* =========================
-     COUNTY SEARCH (SAFE)
+     COUNTY SEARCH
      ========================= */
   const countyOptions = useMemo(() => {
     if (!state || !countyQuery) return [];
@@ -122,10 +123,8 @@ export default function VaultUpload() {
 
         {/* HEADER */}
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-semibold tracking-wide">
-            Record Evidence
-          </h1>
-          <p className="text-sm opacity-70 mt-2 max-w-xl mx-auto">
+          <h1 className="text-3xl font-semibold">Record Evidence</h1>
+          <p className="text-sm opacity-70 mt-2">
             Upload evidence tied to an official, agency, or institution.
           </p>
         </div>
@@ -162,11 +161,12 @@ export default function VaultUpload() {
               onChange={(e) => {
                 setEntitySearch(e.target.value);
                 setEntityId("");
+                setEntitySelected(false);
               }}
               className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
             />
 
-            {entitySearch && (
+            {entitySearch && !entitySelected && (
               <div className="absolute z-30 w-full bg-[#fdf9ef] border rounded-xl shadow-lg max-h-64 overflow-y-auto">
                 {filteredEntities.length > 0 ? (
                   filteredEntities.slice(0, 8).map((e) => (
@@ -178,6 +178,7 @@ export default function VaultUpload() {
                         setEntitySearch(
                           `${e.name}${e.state ? ` (${e.state})` : ""}`
                         );
+                        setEntitySelected(true);
                       }}
                       className="w-full text-left px-4 py-3 hover:bg-[#efe6cf]"
                     >
