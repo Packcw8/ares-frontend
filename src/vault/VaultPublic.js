@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "../components/Layout";
 import api from "../services/api";
+import ShareButton from "../components/ShareButton";
 
 function formatDateGroup(dateStr) {
   if (!dateStr) return "";
@@ -34,7 +35,6 @@ export default function VaultPublic() {
       .finally(() => setLoading(false));
   }, []);
 
-  // 🔍 Live smart search (no button)
   const filteredEvidence = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return evidenceList;
@@ -45,7 +45,6 @@ export default function VaultPublic() {
       const state = entity.state?.toLowerCase() || "";
       const county = entity.county?.toLowerCase() || "";
 
-      // Short input = prefix match ("w" → all W states/entities)
       if (q.length <= 2) {
         return (
           name.startsWith(q) ||
@@ -54,7 +53,6 @@ export default function VaultPublic() {
         );
       }
 
-      // Longer input = smart partial match
       return (
         name.includes(q) ||
         state.includes(q) ||
@@ -102,7 +100,7 @@ export default function VaultPublic() {
             if (showDate) lastDateLabel = dateLabel;
 
             return (
-              <div key={ev.id}>
+              <div key={ev.id} id={`evidence-${ev.id}`}>
                 {showDate && (
                   <div className="sticky top-0 z-10 bg-white/80 backdrop-blur py-2 mb-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -114,9 +112,12 @@ export default function VaultPublic() {
                 <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                   {/* Entity header */}
                   <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-                    <p className="text-sm font-semibold text-slate-900">
+                    <a
+                      href={`/ratings/${ev.entity?.id}`}
+                      className="text-sm font-semibold text-indigo-700 hover:underline"
+                    >
                       {ev.entity?.name || "Unknown Entity"}
-                    </p>
+                    </a>
                     <p className="text-xs text-slate-500">
                       {ev.entity?.county || ""}
                       {ev.entity?.state ? `, ${ev.entity.state}` : ""}
@@ -146,18 +147,21 @@ export default function VaultPublic() {
                       <audio controls src={ev.media_url} className="w-full" />
                     )}
 
-                    {ev.media_url && !ev.media_url.match(/\.(mp4|webm|jpe?g|png|gif|mp3|wav)$/i) && (
-                      <div className="p-4 bg-slate-100">
-                        <a
-                          href={ev.media_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-indigo-600 underline text-sm"
-                        >
-                          View evidence file
-                        </a>
-                      </div>
-                    )}
+                    {ev.media_url &&
+                      !ev.media_url.match(
+                        /\.(mp4|webm|jpe?g|png|gif|mp3|wav)$/i
+                      ) && (
+                        <div className="p-4 bg-slate-100">
+                          <a
+                            href={ev.media_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-indigo-600 underline text-sm"
+                          >
+                            View evidence file
+                          </a>
+                        </div>
+                      )}
                   </div>
 
                   {/* Description */}
@@ -168,6 +172,17 @@ export default function VaultPublic() {
                       </p>
                     </div>
                   )}
+
+                  {/* Share */}
+                  <div className="px-6 pb-5 flex justify-between items-center">
+                    <ShareButton
+                      url={`/vault/public#evidence-${ev.id}`}
+                      label="Share evidence"
+                    />
+                    <span className="text-xs text-slate-400">
+                      Posted {new Date(ev.created_at).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               </div>
             );
