@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
+import ShareButton from "../components/ShareButton";
 
 export default function ForumPost() {
   const { id } = useParams();
@@ -44,13 +45,19 @@ export default function ForumPost() {
       <div className="px-4 py-8 max-w-3xl mx-auto text-[#1f1f1f]">
 
         {/* 🔙 NAV */}
-        <div className="mb-4 text-sm">
+        <div className="mb-4 text-sm flex justify-between items-center">
           <Link
             to="/forum"
             className="text-blue-700 hover:underline font-medium"
           >
             ← Back to Forum
           </Link>
+
+          {/* 🔗 SHARE */}
+          <ShareButton
+            url={`/forum/${id}`}
+            label="Share discussion"
+          />
         </div>
 
         {/* 📄 POST CARD */}

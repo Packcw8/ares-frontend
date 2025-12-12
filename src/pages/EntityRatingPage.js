@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
+import ShareButton from "../components/ShareButton";
 
 export default function EntityRatingPage() {
   const { id } = useParams();
@@ -70,17 +71,26 @@ export default function EntityRatingPage() {
     <Layout>
       <div className="max-w-5xl mx-auto px-4 pb-24 space-y-8">
 
-        {/* BACK */}
-        <button
-          onClick={() => navigate("/ratings")}
-          className="text-blue-600 hover:underline text-sm"
-        >
-          ← Back to Ratings
-        </button>
+        {/* BACK + SHARE */}
+        <div className="flex justify-between items-center">
+          <button
+            onClick={() => navigate("/ratings")}
+            className="text-blue-600 hover:underline text-sm"
+          >
+            ← Back to Ratings
+          </button>
+
+          <ShareButton
+            url={`/ratings/${entity.id}`}
+            label="Share profile"
+          />
+        </div>
 
         {/* ENTITY PROFILE CARD */}
         <div className="bg-white rounded-2xl border shadow-sm p-6">
-          <h1 className="text-2xl font-bold text-[#283d63]">{entity.name}</h1>
+          <h1 className="text-2xl font-bold text-[#283d63]">
+            {entity.name}
+          </h1>
           <p className="text-sm text-gray-500 mt-1 capitalize">
             {entity.type} • {entity.category}
             {entity.jurisdiction && ` • ${entity.jurisdiction}`}

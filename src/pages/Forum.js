@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
+import ShareButton from "../components/ShareButton";
 
 const TYPE_COLORS = {
   police: "bg-blue-100 text-blue-800",
@@ -18,7 +19,9 @@ function Forum() {
 
   useEffect(() => {
     api.get("/forum/").then((res) => setPosts(res.data));
-    api.get("/auth/me").then((res) => setUserRole(res.data.role)).catch(() => {});
+    api.get("/auth/me")
+      .then((res) => setUserRole(res.data.role))
+      .catch(() => {});
   }, []);
 
   const canPost =
@@ -68,17 +71,14 @@ function Forum() {
         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
           {filteredPosts.map((post) => (
             <div key={post.id} className="mb-6 break-inside-avoid">
-              <Link
-                to={`/forum/${post.id}`}
-                className="block bg-white rounded-2xl border p-4 shadow-sm hover:shadow-lg hover:border-[#c2a76d] transition"
-              >
+              <div className="block bg-white rounded-2xl border p-4 shadow-sm hover:shadow-lg hover:border-[#c2a76d] transition">
+
                 {/* ENTITY HEADER */}
                 {post.entity && (
                   <div className="mb-2 flex justify-between items-start gap-2">
                     <div>
                       <Link
                         to={`/ratings/${post.entity.id}`}
-                        onClick={(e) => e.stopPropagation()}
                         className="text-xs font-bold uppercase tracking-wide text-blue-700 hover:underline"
                       >
                         {post.entity.name}
@@ -89,11 +89,11 @@ function Forum() {
                       </div>
                     </div>
 
-                    {/* ENTITY TYPE CHIP */}
                     {post.entity.type && (
                       <span
                         className={`text-[10px] px-2 py-1 rounded-full font-semibold ${
-                          TYPE_COLORS[post.entity.type] || "bg-gray-100 text-gray-700"
+                          TYPE_COLORS[post.entity.type] ||
+                          "bg-gray-100 text-gray-700"
                         }`}
                       >
                         {post.entity.type.toUpperCase()}
@@ -103,9 +103,11 @@ function Forum() {
                 )}
 
                 {/* TITLE */}
-                <h2 className="text-base font-semibold text-[#c2a76d] mb-1 line-clamp-2">
-                  {post.title}
-                </h2>
+                <Link to={`/forum/${post.id}`}>
+                  <h2 className="text-base font-semibold text-[#c2a76d] mb-1 line-clamp-2 hover:underline">
+                    {post.title}
+                  </h2>
+                </Link>
 
                 {/* BODY PREVIEW */}
                 {post.body && (
@@ -114,7 +116,7 @@ function Forum() {
                   </p>
                 )}
 
-                {/* META */}
+                {/* META + SHARE */}
                 <div className="flex justify-between items-center text-xs text-gray-400">
                   <span>
                     {new Date(post.created_at).toLocaleDateString()}
@@ -123,15 +125,19 @@ function Forum() {
                   <div className="flex items-center gap-2">
                     {post.verified && (
                       <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-[10px] font-semibold">
-                        Verified Statement
+                        Verified
                       </span>
                     )}
-                    <span>
-                      💬 {post.comment_count ?? 0}
-                    </span>
+                    <span>💬 {post.comment_count ?? 0}</span>
                   </div>
                 </div>
-              </Link>
+
+                {/* SHARE */}
+                <div className="mt-3">
+                  <ShareButton url={`/forum/${post.id}`} />
+                </div>
+
+              </div>
             </div>
           ))}
         </div>

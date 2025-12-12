@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
+import ShareButton from "../components/ShareButton";
 
 export default function EntityDetailPage() {
   const { id } = useParams();
@@ -46,38 +47,59 @@ export default function EntityDetailPage() {
     fetchData();
   }, [id, navigate]);
 
-  if (loading) return <Layout><div className="p-4">Loading...</div></Layout>;
+  if (loading)
+    return (
+      <Layout>
+        <div className="p-4">Loading...</div>
+      </Layout>
+    );
+
   if (!entity) return null;
 
   return (
     <Layout>
-      <div className="space-y-6 text-[#1e1e1e]">
-        <button
-          onClick={() => navigate("/ratings")}
-          className="text-blue-600 hover:underline text-sm"
-        >
-          ← Back to Ratings
-        </button>
+      <div className="space-y-6 text-[#1e1e1e] max-w-4xl mx-auto px-4 pb-24">
 
-        <h1 className="text-3xl font-bold">{entity.name}</h1>
-        <p className="capitalize text-gray-600">
-          {entity.type} • {entity.category} • {entity.county}, {entity.state}
-        </p>
-        <p className="text-lg font-semibold text-yellow-600">
-          Reputation Score: {entity.reputation_score.toFixed(1)}
-        </p>
-
-        <div className="mt-4">
+        {/* NAV + SHARE */}
+        <div className="flex justify-between items-center">
           <button
-            onClick={() => navigate(`/ratings/${entity.id}/rate`)}
-            className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm font-semibold"
+            onClick={() => navigate("/ratings")}
+            className="text-blue-600 hover:underline text-sm"
           >
-            Leave a Rating
+            ← Back to Ratings
           </button>
+
+          <ShareButton
+            url={`/ratings/${entity.id}`}
+            label="Share profile"
+          />
+        </div>
+
+        {/* ENTITY HEADER */}
+        <div className="bg-white rounded-2xl border border-[#e5dcc3] p-6 shadow">
+          <h1 className="text-3xl font-bold mb-1">{entity.name}</h1>
+
+          <p className="capitalize text-gray-600 mb-2">
+            {entity.type} • {entity.category} • {entity.county}, {entity.state}
+          </p>
+
+          <p className="text-lg font-semibold text-yellow-600">
+            Reputation Score: {entity.reputation_score.toFixed(1)}
+          </p>
+
+          <div className="mt-4">
+            <button
+              onClick={() => navigate(`/ratings/${entity.id}/rate`)}
+              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm font-semibold"
+            >
+              Leave a Rating
+            </button>
+          </div>
         </div>
 
         <hr className="border-[#c2a76d]" />
 
+        {/* REVIEWS */}
         <h2 className="text-2xl font-bold mt-4">Public Reviews</h2>
 
         {reviews.length === 0 ? (
@@ -121,7 +143,7 @@ export default function EntityDetailPage() {
                   Submitted {new Date(r.created_at).toLocaleString()}
                 </p>
 
-                {/* ⚠️ Flagging UI */}
+                {/* FLAGGING */}
                 {!r.flagged ? (
                   <div className="mt-2">
                     <details className="text-sm">
@@ -130,7 +152,7 @@ export default function EntityDetailPage() {
                       </summary>
                       <div className="mt-2">
                         <textarea
-                          placeholder="Describe the issue (e.g. false claim, hate speech, spam)..."
+                          placeholder="Describe the issue (false claim, hate speech, spam)…"
                           className="w-full p-2 rounded bg-white text-black border border-yellow-400 mb-2"
                           rows={2}
                           onChange={(e) => (r._flag_reason = e.target.value)}
@@ -144,7 +166,7 @@ export default function EntityDetailPage() {
                             }
                             try {
                               await api.post(`/ratings/flag-rating/${r.id}`, {
-                                reason: r._flag_reason,  // ✅ FIXED: send JSON body
+                                reason: r._flag_reason,
                               });
                               alert("Thank you. This review has been submitted for constitutional review.");
                               setReviews((prev) =>
