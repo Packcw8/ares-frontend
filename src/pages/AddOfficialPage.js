@@ -23,6 +23,10 @@ export default function AddOfficialPage() {
   const [stateQuery, setStateQuery] = useState("");
   const [countyQuery, setCountyQuery] = useState("");
 
+  // 🔹 dropdown control (FIX)
+  const [showStateDropdown, setShowStateDropdown] = useState(false);
+  const [showCountyDropdown, setShowCountyDropdown] = useState(false);
+
   const categoryOptions = {
     individual: [
       "Judge",
@@ -157,14 +161,16 @@ export default function AddOfficialPage() {
               value={stateQuery}
               onChange={(e) => {
                 setStateQuery(e.target.value);
+                setShowStateDropdown(true);
                 setForm({ ...form, state: "", county: "" });
                 setCountyQuery("");
+                setShowCountyDropdown(false);
               }}
               className="w-full px-4 py-2 bg-gray-900 rounded"
               required
             />
 
-            {stateQuery && (
+            {showStateDropdown && stateOptions.length > 0 && (
               <div className="absolute z-10 w-full bg-gray-800 rounded mt-1 max-h-48 overflow-y-auto">
                 {stateOptions.map((s) => (
                   <button
@@ -173,6 +179,7 @@ export default function AddOfficialPage() {
                     onClick={() => {
                       setForm({ ...form, state: s.abbr, county: "" });
                       setStateQuery(s.name);
+                      setShowStateDropdown(false); // ✅ FIX
                     }}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-700"
                   >
@@ -187,12 +194,11 @@ export default function AddOfficialPage() {
           <div className="relative">
             <input
               type="text"
-              placeholder={
-                form.state ? "Type county" : "Select state first"
-              }
+              placeholder={form.state ? "Type county" : "Select state first"}
               value={countyQuery}
               onChange={(e) => {
                 setCountyQuery(e.target.value);
+                setShowCountyDropdown(true);
                 setForm({ ...form, county: "" });
               }}
               disabled={!form.state}
@@ -200,23 +206,26 @@ export default function AddOfficialPage() {
               className="w-full px-4 py-2 bg-gray-900 rounded disabled:opacity-50"
             />
 
-            {countyQuery && form.state && (
-              <div className="absolute z-10 w-full bg-gray-800 rounded mt-1 max-h-48 overflow-y-auto">
-                {countyOptions.map((county) => (
-                  <button
-                    type="button"
-                    key={county}
-                    onClick={() => {
-                      setForm({ ...form, county });
-                      setCountyQuery(county);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-700"
-                  >
-                    {county}
-                  </button>
-                ))}
-              </div>
-            )}
+            {showCountyDropdown &&
+              countyQuery &&
+              countyOptions.length > 0 && (
+                <div className="absolute z-10 w-full bg-gray-800 rounded mt-1 max-h-48 overflow-y-auto">
+                  {countyOptions.map((county) => (
+                    <button
+                      type="button"
+                      key={county}
+                      onClick={() => {
+                        setForm({ ...form, county });
+                        setCountyQuery(county);
+                        setShowCountyDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+                    >
+                      {county}
+                    </button>
+                  ))}
+                </div>
+              )}
           </div>
 
           <input
