@@ -11,51 +11,47 @@ function NewForumPost() {
   const [isAMA, setIsAMA] = useState(false);
   const [entityId, setEntityId] = useState("");
   const [entities, setEntities] = useState([]);
+  const [role, setRole] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
+    api.get("/auth/me").then((res) => {
+      setRole(res.data.role);
+      setIsVerified(res.data.is_verified);
+
+      if (
+        !(
+          res.data.role === "official_verified" ||
+          res.data.role === "admin"
+        )
+      ) {
+        navigate("/forum");
+      }
+    });
+
     api
       .get("/ratings/entities")
       .then((res) => setEntities(res.data))
-      .catch((err) => console.error("Error fetching entities:", err));
-  }, []);
+      .catch(console.error);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to post.");
-      return;
-    }
-
-    if (!entityId) {
-      alert("Please select an entity.");
-      return;
-    }
-
     try {
-      await api.post(
-        "/forum/create",
-        {
-          title,
-          body: content,
-          tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-          entity_id: parseInt(entityId),
-          is_pinned: isPinned,
-          is_ama: isAMA,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await api.post("/forum/create", {
+        title,
+        body: content,
+        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+        entity_id: parseInt(entityId),
+        is_pinned: isPinned,
+        is_ama: isAMA,
+      });
 
       navigate("/forum");
     } catch (err) {
-      console.error(err);
       alert(err.response?.data?.detail || "Error creating post.");
     }
   };
@@ -66,80 +62,68 @@ function NewForumPost() {
         <h1 className="text-2xl font-bold mb-4 text-[#c2a76d]">
           Start a New Discussion
         </h1>
+
         <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="w-full border rounded p-2"
+          />
 
-          <div>
-            <label className="block text-sm font-semibold mb-1">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-md p-2"
-            />
-          </div>
+          <textarea
+            rows="6"
+            placeholder="Content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            required
+            className="w-full border rounded p-2"
+          />
 
-          <div>
-            <label className="block text-sm font-semibold mb-1">Content</label>
-            <textarea
-              rows="6"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-md p-2"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Tags (comma-separated)"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="w-full border rounded p-2"
+          />
 
-          <div>
-            <label className="block text-sm font-semibold mb-1">Tags (comma-separated)</label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              className="w-full border border-gray-300 rounded-md p-2"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Entity</label>
-            <select
-              value={entityId}
-              onChange={(e) => setEntityId(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-md p-2"
-            >
-              <option value="">Select an entity...</option>
-              {entities.map((entity) => (
-                <option key={entity.id} value={entity.id}>
-                  {entity.name || `Entity #${entity.id}`}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            required
+            className="w-full border rounded p-2"
+          >
+            <option value="">Select an entity</option>
+            {entities.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.name}
+              </option>
+            ))}
+          </select>
 
           <div className="flex gap-4">
-            <label className="flex items-center gap-2">
+            <label>
               <input
                 type="checkbox"
                 checked={isPinned}
                 onChange={(e) => setIsPinned(e.target.checked)}
-              />
-              Pin this post
+              />{" "}
+              Pin
             </label>
-            <label className="flex items-center gap-2">
+            <label>
               <input
                 type="checkbox"
                 checked={isAMA}
                 onChange={(e) => setIsAMA(e.target.checked)}
-              />
-              Mark as AMA
+              />{" "}
+              AMA
             </label>
           </div>
 
-          <button
-            type="submit"
-            className="bg-[#283d63] text-white font-bold px-4 py-2 rounded hover:bg-[#1d2c49] transition"
-          >
+          <button className="bg-[#283d63] text-white px-4 py-2 rounded">
             Submit Post
           </button>
         </form>

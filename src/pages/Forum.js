@@ -23,8 +23,8 @@ function Forum() {
         const res = await api.get("/auth/me");
         setUserRole(res.data.role);
         setIsVerified(res.data.is_verified);
-      } catch (error) {
-        console.warn("Not logged in or error fetching user:", error);
+      } catch {
+        // Not logged in
       }
     };
 
@@ -32,12 +32,26 @@ function Forum() {
     fetchUser();
   }, []);
 
+  const canPostAsOfficial =
+    userRole === "official_verified" || userRole === "admin";
+
   return (
     <Layout>
       <div className="p-4 pb-24">
-        <h1 className="text-2xl font-bold mb-4 text-[#283d63]">Hear From Officials. Join the Conversation.</h1>
+        <h1 className="text-2xl font-bold mb-4 text-[#283d63]">
+          Hear From Officials. Join the Conversation.
+        </h1>
 
-        {(userRole === "official" || userRole === "admin") && isVerified && (
+        {/* 🟡 Pending official banner */}
+        {userRole === "official_pending" && (
+          <div className="mb-4 p-3 rounded bg-yellow-100 text-yellow-800">
+            Your official account is under review. You can read and comment,
+            but cannot start official discussions yet.
+          </div>
+        )}
+
+        {/* ✅ Only verified officials / admins can post */}
+        {canPostAsOfficial && isVerified && (
           <div className="mb-4 text-right">
             <Link
               to="/forum/new"
@@ -61,7 +75,7 @@ function Forum() {
                 {post.title}
               </h2>
               <p className="text-sm text-gray-500">
-                By user {post.author_id} •{" "}
+                By Official #{post.author_id} •{" "}
                 {new Date(post.created_at).toLocaleString()}
               </p>
             </Link>
