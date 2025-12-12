@@ -1,199 +1,232 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import Layout from "../components/Layout";
+import { stateCountyData } from "../data/stateCountyData";
 
 function NewForumPost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [tags, setTags] = useState("");
-  const [isPinned, setIsPinned] = useState(false);
-  const [isAMA, setIsAMA] = useState(false);
 
   const [entityQuery, setEntityQuery] = useState("");
   const [entityId, setEntityId] = useState(null);
   const [entities, setEntities] = useState([]);
-  const [userRole, setUserRole] = useState(null);
 
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [creatingEntity, setCreatingEntity] = useState(false);
+  const [entityForm, setEntityForm] = useState({
+    name: "",
+    type: "agency",
+    category: "",
+    state: "",
+    county: "",
+  });
 
-  // 🔹 Fetch user role (DO NOT redirect)
+  const [stateQuery, setStateQuery] = useState("");
+  const [countyQuery, setCountyQuery] = useState("");
+
   useEffect(() => {
-    api.get("/auth/me")
-      .then((res) => setUserRole(res.data.role))
-      .catch(() => setUserRole("citizen"));
+    api.get("/ratings/entities").then((res) => setEntities(res.data));
   }, []);
-
-  // 🔹 Fetch entities
-  useEffect(() => {
-    api
-      .get("/ratings/entities")
-      .then((res) => setEntities(res.data))
-      .catch(console.error);
-  }, []);
-
-  // 🔹 Auto-select entity after returning from AddOfficialPage
-  useEffect(() => {
-    const returnedEntityId = searchParams.get("entityId");
-    if (returnedEntityId && entities.length > 0) {
-      const found = entities.find(
-        (e) => e.id === Number(returnedEntityId)
-      );
-      if (found) {
-        setEntityId(found.id);
-        setEntityQuery(found.name);
-      }
-    }
-  }, [searchParams, entities]);
 
   const filteredEntities = useMemo(() => {
-    if (!entityQuery || entityId) return [];
-    return entities
-      .filter((e) =>
-        e.name.toLowerCase().includes(entityQuery.toLowerCase())
-      )
-      .slice(0, 8);
-  }, [entityQuery, entities, entityId]);
+    if (!entityQuery) return [];
+    return entities.filter((e) =>
+      e.name.toLowerCase().includes(entityQuery.toLowerCase())
+    );
+  }, [entityQuery, entities]);
 
-  const handleSelectEntity = (entity) => {
-    setEntityId(entity.id);
-    setEntityQuery(entity.name);
+  const stateOptions = useMemo(() => {
+    return Object.entries(stateCountyData)
+      .map(([abbr, data]) => ({ abbr, name: data.name }))
+      .filter((s) =>
+        s.name.toLowerCase().includes(stateQuery.toLowerCase())
+      );
+  }, [stateQuery]);
+
+  const countyOptions = useMemo(() => {
+    if (!entityForm.state) return [];
+    return stateCountyData[entityForm.state].counties.filter((c) =>
+      c.toLowerCase().includes(countyQuery.toLowerCase())
+    );
+  }, [entityForm.state, countyQuery]);
+
+  const handleCreateEntity = async () => {
+    try {
+      const res = await api.post("/ratings/entities", entityForm);
+      setEntities((prev) => [...prev, res.data]);
+      setEntityId(res.data.id);
+      setEntityQuery(res.data.name);
+      setCreatingEntity(false);
+    } catch (err) {
+      alert("Failed to create entity");
+    }
   };
 
-  const canPublish =
-    userRole === "official_verified" || userRole === "admin";
-
-  const handleSubmit = async (e) => {
+  const handleSubmitPost = async (e) => {
     e.preventDefault();
-
-    if (!canPublish) {
-      alert("Only verified officials can publish discussions.");
-      return;
-    }
-
     if (!entityId) {
-      alert("Please select an entity or add it first.");
+      alert("Select or create an entity first.");
       return;
     }
 
-    try {
-      await api.post("/forum/create", {
-        title,
-        body: content,
-        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-        entity_id: entityId,
-        is_pinned: isPinned,
-        is_ama: isAMA,
-      });
+    await api.post("/forum/create", {
+      title,
+      body: content,
+      entity_id: entityId,
+    });
 
-      navigate("/forum");
-    } catch (err) {
-      alert(err.response?.data?.detail || "Error creating post.");
-    }
+    window.location.href = "/forum";
   };
 
   return (
     <Layout>
-      <div className="px-4 py-8 max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-[#283d63] mb-6">
-          Start a New Discussion
+      <div className="max-w-3xl mx-auto p-6 space-y-6">
+        <h1 className="text-2xl font-bold text-[#283d63]">
+          New Forum Discussion
         </h1>
 
-        {!canPublish && (
-          <div className="mb-6 p-4 rounded-xl bg-yellow-100 text-yellow-800">
-            You may create or link entities, but only verified officials can
-            publish forum discussions.
+        {/* ENTITY SEARCH */}
+        <div className="bg-white p-4 rounded-xl border">
+          <label className="text-sm font-semibold">Entity</label>
+          <input
+            value={entityQuery}
+            onChange={(e) => {
+              setEntityQuery(e.target.value);
+              setEntityId(null);
+              setCreatingEntity(false);
+            }}
+            placeholder="Search entity…"
+            className="w-full mt-2 p-2 border rounded"
+          />
+
+          {filteredEntities.length > 0 && !entityId && (
+            <div className="mt-2 border rounded bg-white">
+              {filteredEntities.map((e) => (
+                <button
+                  key={e.id}
+                  onClick={() => {
+                    setEntityId(e.id);
+                    setEntityQuery(e.name);
+                  }}
+                  className="block w-full text-left px-3 py-2 hover:bg-gray-100"
+                >
+                  {e.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {entityQuery && filteredEntities.length === 0 && !entityId && (
+            <button
+              onClick={() => {
+                setCreatingEntity(true);
+                setEntityForm((f) => ({ ...f, name: entityQuery }));
+              }}
+              className="mt-3 text-blue-600 font-semibold"
+            >
+              + Create new entity
+            </button>
+          )}
+        </div>
+
+        {/* INLINE ENTITY CREATE */}
+        {creatingEntity && (
+          <div className="bg-gray-50 p-4 rounded-xl border space-y-3">
+            <h2 className="font-semibold">Create Entity</h2>
+
+            <select
+              value={entityForm.type}
+              onChange={(e) =>
+                setEntityForm({ ...entityForm, type: e.target.value })
+              }
+              className="w-full p-2 border rounded"
+            >
+              <option value="agency">Agency</option>
+              <option value="individual">Individual</option>
+              <option value="institution">Institution</option>
+            </select>
+
+            <input
+              placeholder="Category"
+              value={entityForm.category}
+              onChange={(e) =>
+                setEntityForm({ ...entityForm, category: e.target.value })
+              }
+              className="w-full p-2 border rounded"
+            />
+
+            <input
+              placeholder="State"
+              value={stateQuery}
+              onChange={(e) => setStateQuery(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+
+            {stateOptions.map((s) => (
+              <button
+                key={s.abbr}
+                onClick={() => {
+                  setEntityForm({ ...entityForm, state: s.abbr });
+                  setStateQuery(s.name);
+                }}
+                className="block w-full text-left px-2 py-1"
+              >
+                {s.name}
+              </button>
+            ))}
+
+            {entityForm.state && (
+              <>
+                <input
+                  placeholder="County"
+                  value={countyQuery}
+                  onChange={(e) => setCountyQuery(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+
+                {countyOptions.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => {
+                      setEntityForm({ ...entityForm, county: c });
+                      setCountyQuery(c);
+                    }}
+                    className="block w-full text-left px-2 py-1"
+                  >
+                    {c}
+                  </button>
+                ))}
+              </>
+            )}
+
+            <button
+              onClick={handleCreateEntity}
+              className="bg-[#283d63] text-white px-4 py-2 rounded"
+            >
+              Create Entity
+            </button>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        {/* POST */}
+        <form onSubmit={handleSubmitPost} className="space-y-4">
+          <input
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-3 border rounded"
+          />
 
-          {/* ENTITY SELECTION */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-700 mb-2">
-              Entity this discussion is about
-            </h2>
+          <textarea
+            placeholder="Write discussion…"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="w-full p-3 border rounded"
+            rows={6}
+          />
 
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search for an official or agency…"
-                value={entityQuery}
-                onChange={(e) => {
-                  setEntityQuery(e.target.value);
-                  setEntityId(null);
-                }}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
-              />
-
-              {filteredEntities.length > 0 && (
-                <div className="absolute z-10 w-full bg-white border rounded-xl shadow max-h-64 overflow-y-auto mt-1">
-                  {filteredEntities.map((e) => (
-                    <button
-                      key={e.id}
-                      type="button"
-                      onClick={() => handleSelectEntity(e)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-100"
-                    >
-                      {e.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {entityQuery && filteredEntities.length === 0 && !entityId && (
-              <div className="mt-2 text-sm text-gray-600">
-                Don’t see this entity?{" "}
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate(
-                      `/add-official?name=${encodeURIComponent(
-                        entityQuery
-                      )}&returnTo=/forum/new`
-                    )
-                  }
-                  className="text-blue-600 hover:underline font-semibold"
-                >
-                  Add it here
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* CONTENT */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
-            <input
-              type="text"
-              placeholder="Discussion title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300"
-              disabled={!canPublish}
-              required
-            />
-
-            <textarea
-              rows="7"
-              placeholder="Write the discussion content…"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300"
-              disabled={!canPublish}
-              required
-            />
-          </div>
-
-          <div className="text-right">
-            <button
-              disabled={!canPublish}
-              className="bg-[#283d63] text-white px-6 py-3 rounded-xl font-semibold disabled:opacity-50"
-            >
-              Publish Discussion
-            </button>
-          </div>
+          <button className="bg-[#283d63] text-white px-6 py-3 rounded font-semibold">
+            Publish
+          </button>
         </form>
       </div>
     </Layout>

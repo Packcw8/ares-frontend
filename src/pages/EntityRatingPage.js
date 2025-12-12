@@ -49,7 +49,6 @@ export default function EntityRatingPage() {
         ...form,
         violated_rights: violatedRights,
       });
-
       alert("Rating submitted successfully");
       navigate("/ratings");
     } catch (err) {
@@ -60,7 +59,7 @@ export default function EntityRatingPage() {
   if (loading) {
     return (
       <Layout>
-        <div className="p-4 text-white">Loading...</div>
+        <div className="p-6">Loading…</div>
       </Layout>
     );
   }
@@ -69,108 +68,136 @@ export default function EntityRatingPage() {
 
   return (
     <Layout>
-      <div className="p-4 space-y-6 text-white">
+      <div className="max-w-5xl mx-auto px-4 pb-24 space-y-8">
+
+        {/* BACK */}
         <button
           onClick={() => navigate("/ratings")}
-          className="text-blue-400 underline"
+          className="text-blue-600 hover:underline text-sm"
         >
           ← Back to Ratings
         </button>
 
-        <h1 className="text-2xl font-bold">{entity.name}</h1>
-        <p className="text-gray-400 capitalize">
-          {entity.type} • {entity.category} • {entity.jurisdiction}
-        </p>
-        <p className="text-yellow-400">
-          Current Reputation: {entity.reputation_score?.toFixed(1)}
-        </p>
+        {/* ENTITY PROFILE CARD */}
+        <div className="bg-white rounded-2xl border shadow-sm p-6">
+          <h1 className="text-2xl font-bold text-[#283d63]">{entity.name}</h1>
+          <p className="text-sm text-gray-500 mt-1 capitalize">
+            {entity.type} • {entity.category}
+            {entity.jurisdiction && ` • ${entity.jurisdiction}`}
+          </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {["accountability", "respect", "effectiveness", "transparency", "public_impact"].map((key) => (
-            <div key={key}>
-              <label className="block mb-2 text-lg font-semibold text-yellow-300 uppercase tracking-wide">
-                {key.replace("_", " ")}
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {[...Array(10)].map((_, i) => {
-                  const val = i + 1;
-                  return (
-                    <label
-                      key={val}
-                      className={`cursor-pointer px-3 py-1 rounded-full border-2 text-sm font-bold transition ${
-                        form[key] === val
-                          ? "bg-yellow-300 text-black border-yellow-500"
-                          : "bg-gray-800 text-white border-gray-700 hover:bg-yellow-500 hover:text-black"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name={key}
-                        value={val}
-                        checked={form[key] === val}
-                        onChange={() => setForm({ ...form, [key]: val })}
-                        className="hidden"
-                      />
-                      {val}
-                    </label>
-                  );
-                })}
+          <div className="mt-4 inline-flex items-center gap-3 bg-gray-100 rounded-xl px-4 py-2">
+            <span className="text-sm text-gray-600">Reputation</span>
+            <span className="text-xl font-bold text-[#c2a76d]">
+              {entity.reputation_score?.toFixed(1) ?? "—"}
+            </span>
+          </div>
+        </div>
+
+        {/* RATING FORM */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+
+          {/* SCORE CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              "accountability",
+              "respect",
+              "effectiveness",
+              "transparency",
+              "public_impact",
+            ].map((key) => (
+              <div
+                key={key}
+                className="bg-white rounded-2xl border shadow-sm p-5"
+              >
+                <label className="block mb-3 text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                  {key.replace("_", " ")}
+                </label>
+
+                <div className="flex flex-wrap gap-2">
+                  {[...Array(10)].map((_, i) => {
+                    const val = i + 1;
+                    const active = form[key] === val;
+                    return (
+                      <button
+                        type="button"
+                        key={val}
+                        onClick={() =>
+                          setForm({ ...form, [key]: val })
+                        }
+                        className={`px-3 py-1 rounded-full text-sm font-semibold border transition ${
+                          active
+                            ? "bg-[#c2a76d] text-black border-[#c2a76d]"
+                            : "bg-gray-100 text-gray-600 border-gray-300 hover:bg-[#c2a76d]/20"
+                        }`}
+                      >
+                        {val}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <div>
-            <label className="block mb-2 text-lg font-semibold text-yellow-300 uppercase tracking-wide">
-              Comment
+          {/* COMMENT CARD */}
+          <div className="bg-white rounded-2xl border shadow-sm p-6">
+            <label className="block mb-3 text-sm font-semibold text-gray-700 uppercase tracking-wide">
+              Comment (optional)
             </label>
             <textarea
-              placeholder="Optional comment or complaint"
               value={form.comment}
-              onChange={(e) => setForm({ ...form, comment: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-900 text-white placeholder-gray-400 rounded"
+              onChange={(e) =>
+                setForm({ ...form, comment: e.target.value })
+              }
+              rows={4}
+              placeholder="Describe the experience, issue, or concern…"
+              className="w-full border rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#c2a76d]"
             />
           </div>
 
-          <div>
-            <label className="block mb-2 text-lg font-bold text-yellow-300 uppercase tracking-wide">
-              🛡️ Bill of Rights Violated? (Optional)
+          {/* RIGHTS CARD */}
+          <div className="bg-white rounded-2xl border shadow-sm p-6">
+            <label className="block mb-3 text-sm font-semibold text-gray-700 uppercase tracking-wide">
+              🛡️ Rights Potentially Violated (optional)
             </label>
+
             <div className="flex flex-wrap gap-2">
-              {RIGHTS_OPTIONS.map((r) => (
-                <label
-                  key={r.value}
-                  className={`flex items-center text-sm gap-2 px-3 py-1 rounded-full cursor-pointer border transition font-semibold ${
-                    violatedRights.includes(r.value)
-                      ? "bg-yellow-300 text-black border-yellow-500"
-                      : "bg-gray-800 text-white border-gray-600 hover:bg-yellow-500 hover:text-black"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    value={r.value}
-                    checked={violatedRights.includes(r.value)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
+              {RIGHTS_OPTIONS.map((r) => {
+                const active = violatedRights.includes(r.value);
+                return (
+                  <button
+                    type="button"
+                    key={r.value}
+                    onClick={() =>
                       setViolatedRights((prev) =>
-                        checked
-                          ? [...prev, r.value]
-                          : prev.filter((v) => v !== r.value)
-                      );
-                    }}
-                    className="hidden"
-                  />
-                  {r.label}
-                </label>
-              ))}
+                        active
+                          ? prev.filter((v) => v !== r.value)
+                          : [...prev, r.value]
+                      )
+                    }
+                    className={`px-3 py-2 rounded-xl text-sm font-semibold border transition ${
+                      active
+                        ? "bg-[#c2a76d] text-black border-[#c2a76d]"
+                        : "bg-gray-100 text-gray-600 border-gray-300 hover:bg-[#c2a76d]/20"
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
-          >
-            Submit Rating
-          </button>
+          {/* SUBMIT */}
+          <div className="text-right">
+            <button
+              type="submit"
+              className="bg-[#283d63] hover:bg-[#1d2c49] text-white px-6 py-3 rounded-xl font-semibold transition"
+            >
+              Submit Rating
+            </button>
+          </div>
         </form>
       </div>
     </Layout>
