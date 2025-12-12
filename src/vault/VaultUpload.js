@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
+// Editable VaultUpload.js
+// We will refine this file together step by step
+
+import { useState, useEffect, useMemo } from "react";
 import Layout from "../components/Layout";
 import api from "../services/api";
+import { stateCountyData } from "../data/stateCountyData";
 
 export default function VaultUpload() {
   const [file, setFile] = useState(null);
@@ -13,38 +17,49 @@ export default function VaultUpload() {
   const [entities, setEntities] = useState([]);
   const [uploading, setUploading] = useState(false);
 
+  const [state, setState] = useState("");
+  const [county, setCounty] = useState("");
+  const [entitySearch, setEntitySearch] = useState("");
+
   useEffect(() => {
     api.get("/ratings/entities").then((res) => setEntities(res.data));
   }, []);
 
+  useEffect(() => {
+    if (state && county) setLocation(`${county}, ${state}`);
+    else if (state) setLocation(state);
+  }, [state, county]);
+
+  const filteredEntities = useMemo(() => {
+    const q = entitySearch.toLowerCase();
+    if (!q) return entities;
+    return entities.filter((e) =>
+      `${e.name} ${e.state ?? ""} ${e.county ?? ""}`.toLowerCase().includes(q)
+    );
+  }, [entitySearch, entities]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file || !entityId) {
-      alert("File and entity are required.");
-      return;
-    }
+    if (!file || !entityId) return alert("File and entity are required");
 
     try {
       setUploading(true);
 
-      // 1️⃣ Get presigned upload URL
       const uploadRes = await api.post("/vault/upload-url", {
         filename: file.name,
-        content_type: file.type,
+        content_type: file.type || "application/octet-stream",
       });
 
       const { upload_url, file_url } = uploadRes.data;
 
-      // 2️⃣ Upload file directly to Backblaze
-      await fetch(upload_url, {
+      const put = await fetch(upload_url, {
         method: "PUT",
-        headers: {
-          "Content-Type": file.type,
-        },
+        headers: { "Content-Type": file.type || "application/octet-stream" },
         body: file,
       });
 
-      // 3️⃣ Save metadata
+      if (!put.ok) throw new Error("Upload failed");
+
       await api.post("/vault", {
         blob_url: file_url,
         description,
@@ -55,17 +70,19 @@ export default function VaultUpload() {
         entity_id: Number(entityId),
       });
 
-      alert("Evidence uploaded successfully.");
-
+      alert("Added to Vault");
       setFile(null);
       setDescription("");
       setTags("");
       setLocation("");
       setEntityId("");
+      setState("");
+      setCounty("");
       setIsAnonymous(false);
+      setIsPublic(true);
     } catch (err) {
       console.error(err);
-      alert("Upload failed.");
+      alert("Upload failed");
     } finally {
       setUploading(false);
     }
@@ -73,33 +90,16 @@ export default function VaultUpload() {
 
   return (
     <Layout>
-      <div className="p-4 space-y-4 text-white">
-        <h1 className="text-2xl font-bold">📤 Upload Evidence</h1>
+      <div className="max-w-3xl mx-auto p-6 text-white space-y-6">
+        <h1 className="text-3xl font-extrabold">Add Evidence to the Vault</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <input type="file" onChange={(e) => setFile(e.target.files[0])} />
 
           <input
-            type="text"
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-gray-900 p-2 rounded"
-          />
-
-          <input
-            type="text"
-            placeholder="Tags"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            className="w-full bg-gray-900 p-2 rounded"
-          />
-
-          <input
-            type="text"
-            placeholder="Location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Search entity"
+            value={entitySearch}
+            onChange={(e) => setEntitySearch(e.target.value)}
             className="w-full bg-gray-900 p-2 rounded"
           />
 
@@ -108,39 +108,65 @@ export default function VaultUpload() {
             onChange={(e) => setEntityId(e.target.value)}
             className="w-full bg-gray-900 p-2 rounded"
           >
-            <option value="">Select Entity</option>
-            {entities.map((e) => (
+            <option value="">Select entity *</option>
+            {filteredEntities.map((e) => (
               <option key={e.id} value={e.id}>
-                {e.name} ({e.state})
+                {e.name} {e.state ? `(${e.state})` : ""}
               </option>
             ))}
           </select>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={() => setIsPublic(!isPublic)}
-            />{" "}
-            Make Public
-          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <select
+              value={state}
+              onChange={(e) => {
+                setState(e.target.value);
+                setCounty("");
+              }}
+              className="bg-gray-900 p-2 rounded"
+            >
+              <option value="">State (optional)</option>
+              {Object.keys(stateCountyData).map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={isAnonymous}
-              onChange={() => setIsAnonymous(!isAnonymous)}
-            />{" "}
-            Submit Anonymously
-          </label>
+            <select
+              value={county}
+              disabled={!state}
+              onChange={(e) => setCounty(e.target.value)}
+              className="bg-gray-900 p-2 rounded"
+            >
+              <option value="">County (optional)</option>
+              {state && stateCountyData[state].map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
 
-          <button
-            type="submit"
-            disabled={uploading}
-            className="bg-blue-600 px-4 py-2 rounded"
-          >
-            {uploading ? "Uploading…" : "Submit"}
-          </button>
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full bg-gray-900 p-2 rounded"
+          />
+
+          <input
+            placeholder="Tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="w-full bg-gray-900 p-2 rounded"
+          />
+
+          <div className="flex justify-center pt-6">
+            <button
+              type="submit"
+              disabled={uploading}
+              className="px-8 py-3 rounded-2xl font-extrabold bg-yellow-300 text-gray-900 hover:bg-yellow-200 disabled:opacity-50"
+            >
+              {uploading ? "Adding…" : "Add to Vault"}
+            </button>
+          </div>
         </form>
       </div>
     </Layout>
