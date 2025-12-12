@@ -10,19 +10,24 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const res = await api.post('/auth/login', form);
       const token = res.data.access_token;
 
+      // 🔐 Store token
       localStorage.setItem('token', token);
       setAuthToken(token);
 
+      // 🔍 Decode role
       const decoded = parseJwt(token);
 
+      // 🧭 ROUTING LOGIC
       if (decoded?.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
-        navigate('/dashboard');
+        // ✅ VAULT IS NOW THE HOME PAGE
+        navigate('/vault/public');
       }
     } catch (err) {
       alert(err.response?.data?.detail || 'Login failed');
@@ -32,6 +37,7 @@ export default function Login() {
   return (
     <Layout>
       <h2 className="text-xl font-bold mb-4">Login to Your Account</h2>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="email"
@@ -41,6 +47,7 @@ export default function Login() {
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
+
         <input
           type="password"
           placeholder="Password"
@@ -49,15 +56,20 @@ export default function Login() {
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
+
         <button
           type="submit"
           className="w-full bg-[#0A2A42] text-white py-2 rounded-lg font-semibold"
         >
           Login
         </button>
+
         <p className="text-sm text-center text-gray-600">
           Don’t have an account?{' '}
-          <Link to="/signup" className="text-[#0A2A42] font-medium hover:underline">
+          <Link
+            to="/signup"
+            className="text-[#0A2A42] font-medium hover:underline"
+          >
             Sign up
           </Link>
         </p>
