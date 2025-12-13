@@ -13,7 +13,14 @@ export default function VaultPublic() {
   useEffect(() => {
     api
       .get("/vault/feed")
-      .then((res) => setEvidenceList(res.data || []))
+      .then((res) => {
+        const normalized = (res.data || []).map((ev) => ({
+          ...ev,
+          // 🔥 Normalize backend storage → frontend contract
+          media_url: ev.media_url || ev.blob_url,
+        }));
+        setEvidenceList(normalized);
+      })
       .catch((err) => console.error("Failed to load vault feed", err))
       .finally(() => setLoading(false));
   }, []);
@@ -106,7 +113,7 @@ export default function VaultPublic() {
                       {ev.entity?.state ? `, ${ev.entity.state}` : ""}
                     </p>
 
-                    {/* ✅ USERNAME */}
+                    {/* Username */}
                     <p className="text-xs text-slate-400 mt-1">
                       Posted by{" "}
                       <span className="font-medium">
