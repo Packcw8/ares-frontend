@@ -1,25 +1,27 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
 
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
 
-// Primary display (human-friendly)
-export function timeAgo(utc) {
-  if (!utc) return "";
-  return dayjs(utc).local().fromNow();
+// Primary display (relative, local)
+export function timeAgo(utcString) {
+  if (!utcString) return "";
+  return dayjs.utc(utcString).local().fromNow();
 }
 
-// Secondary / tooltip / detail display
-export function fullDate(utc) {
-  if (!utc) return "";
-  return dayjs(utc).local().format("MMM D, YYYY h:mm A");
+// Tooltip / full timestamp (local)
+export function fullDate(utcString) {
+  if (!utcString) return "";
+  return dayjs.utc(utcString).local().format("MMM D, YYYY h:mm A");
 }
 
-// Date grouping (Today / Yesterday / Date)
-export function dateGroup(utc) {
-  if (!utc) return "";
+// Group headers (Today / Yesterday / Date)
+export function dateGroup(utcString) {
+  if (!utcString) return "";
 
-  const d = dayjs(utc).local();
+  const d = dayjs.utc(utcString).local();
   const today = dayjs();
   const yesterday = today.subtract(1, "day");
 
