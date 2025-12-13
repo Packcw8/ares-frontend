@@ -10,6 +10,7 @@ export default function Login() {
     password: '',
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [resending, setResending] = useState(false);
   const [resendSent, setResendSent] = useState(false);
@@ -48,10 +49,8 @@ export default function Login() {
       await api.post('/auth/resend-verification', {
         email: form.identifier,
       });
-
       setResendSent(true);
     } catch {
-      // Still show success to avoid account enumeration
       setResendSent(true);
     } finally {
       setResending(false);
@@ -77,16 +76,27 @@ export default function Login() {
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={(e) =>
-            setForm({ ...form, password: e.target.value })
-          }
-          required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-        />
+        {/* Password with toggle */}
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) =>
+              setForm({ ...form, password: e.target.value })
+            }
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg pr-12"
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-600"
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
 
         <button
           type="submit"

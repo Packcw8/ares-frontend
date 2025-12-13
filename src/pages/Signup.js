@@ -7,12 +7,10 @@ export default function Signup() {
   const [form, setForm] = useState({
     role: "citizen",
 
-    // common
     username: "",
     email: "",
     password: "",
 
-    // official-only
     full_name: "",
     title: "",
     agency: "",
@@ -21,6 +19,7 @@ export default function Signup() {
     jurisdiction: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [acceptedRules, setAcceptedRules] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -38,9 +37,8 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      // ✅ FIX: only send official fields if role === "official"
       const payload =
-        form.role === "official"
+        isOfficial
           ? form
           : {
               role: form.role,
@@ -50,7 +48,6 @@ export default function Signup() {
             };
 
       await api.post("/auth/signup", payload);
-
       navigate("/check-email", { state: { email: form.email } });
     } catch (err) {
       alert(err.response?.data?.detail || "Signup failed");
@@ -66,7 +63,6 @@ export default function Signup() {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Role selector */}
         <select
           value={form.role}
           onChange={(e) => setForm({ ...form, role: e.target.value })}
@@ -76,7 +72,6 @@ export default function Signup() {
           <option value="official">🏛️ Official</option>
         </select>
 
-        {/* Common fields */}
         <input
           type="text"
           placeholder="Username"
@@ -95,21 +90,30 @@ export default function Signup() {
           className="w-full px-4 py-2 border rounded-lg"
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required
-          className="w-full px-4 py-2 border rounded-lg"
-        />
+        {/* Password with toggle */}
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+            className="w-full px-4 py-2 border rounded-lg pr-12"
+          />
 
-        {/* Official-only fields */}
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-600"
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
+
         {isOfficial && (
           <div className="space-y-3 border-t pt-4">
             <p className="text-sm text-gray-600">
-              Official accounts require manual verification before posting in an
-              official capacity.
+              Official accounts require manual verification before posting.
             </p>
 
             <input
@@ -163,7 +167,7 @@ export default function Signup() {
 
             <input
               type="text"
-              placeholder="Jurisdiction (City / County / District)"
+              placeholder="Jurisdiction"
               value={form.jurisdiction}
               onChange={(e) =>
                 setForm({ ...form, jurisdiction: e.target.value })
@@ -174,7 +178,6 @@ export default function Signup() {
           </div>
         )}
 
-        {/* Rules agreement */}
         <label className="flex items-start gap-2 text-sm text-gray-700">
           <input
             type="checkbox"
