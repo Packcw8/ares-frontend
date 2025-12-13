@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
 import ShareButton from "../components/ShareButton";
+import { timeAgo, fullDate } from "../utils/time";
 
 export default function ForumPost() {
   const { id } = useParams();
@@ -44,7 +45,7 @@ export default function ForumPost() {
     <Layout>
       <div className="px-4 py-8 max-w-3xl mx-auto text-[#1f1f1f]">
 
-        {/* 🔙 NAV */}
+        {/* NAV */}
         <div className="mb-4 text-sm flex justify-between items-center">
           <Link
             to="/forum"
@@ -53,21 +54,24 @@ export default function ForumPost() {
             ← Back to Forum
           </Link>
 
-          {/* 🔗 SHARE */}
+          {/* SHARE */}
           <ShareButton
             url={`/forum/${id}`}
             label="Share discussion"
           />
         </div>
 
-        {/* 📄 POST CARD */}
+        {/* POST CARD */}
         <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
           <h1 className="text-2xl font-bold text-[#283d63] mb-2">
             {post.title}
           </h1>
 
-          <p className="text-xs text-gray-500 mb-4">
-            Posted on {new Date(post.created_at).toLocaleDateString()}
+          <p
+            className="text-xs text-gray-500 mb-4"
+            title={fullDate(post.created_at)}
+          >
+            Posted {timeAgo(post.created_at)}
           </p>
 
           <div className="prose max-w-none text-gray-800 whitespace-pre-wrap">
@@ -75,7 +79,7 @@ export default function ForumPost() {
           </div>
         </div>
 
-        {/* 💬 COMMENTS */}
+        {/* COMMENTS */}
         <div className="mt-10">
           <h2 className="text-lg font-semibold text-[#283d63] mb-4">
             Discussion
@@ -101,9 +105,11 @@ export default function ForumPost() {
                     <p className="text-sm text-gray-800">
                       {c.content}
                     </p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {displayName} •{" "}
-                      {new Date(c.created_at).toLocaleString()}
+                    <p
+                      className="text-xs text-gray-500 mt-2"
+                      title={fullDate(c.created_at)}
+                    >
+                      {displayName} • {timeAgo(c.created_at)}
                     </p>
                   </div>
                 );
@@ -112,7 +118,7 @@ export default function ForumPost() {
           )}
         </div>
 
-        {/* ✍️ COMMENT INPUT */}
+        {/* COMMENT INPUT */}
         <div className="mt-8 bg-[#f5f3ee] border border-[#e0d8c4] rounded-2xl p-4">
           <textarea
             rows="4"

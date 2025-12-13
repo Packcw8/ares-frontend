@@ -2,25 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Layout from "../components/Layout";
 import api from "../services/api";
 import ShareButton from "../components/ShareButton";
-
-function formatDateGroup(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return "";
-
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  if (d.toDateString() === today.toDateString()) return "Today";
-  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
-
-  return d.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
+import { timeAgo, fullDate, dateGroup } from "../utils/time";
 
 export default function VaultPublic() {
   const [evidenceList, setEvidenceList] = useState([]);
@@ -95,7 +77,7 @@ export default function VaultPublic() {
 
         <div className="space-y-12">
           {filteredEvidence.map((ev) => {
-            const dateLabel = formatDateGroup(ev.created_at);
+            const dateLabel = dateGroup(ev.created_at);
             const showDate = dateLabel && dateLabel !== lastDateLabel;
             if (showDate) lastDateLabel = dateLabel;
 
@@ -173,14 +155,17 @@ export default function VaultPublic() {
                     </div>
                   )}
 
-                  {/* Share */}
+                  {/* Share + Time */}
                   <div className="px-6 pb-5 flex justify-between items-center">
                     <ShareButton
                       url={`/vault/public#evidence-${ev.id}`}
                       label="Share evidence"
                     />
-                    <span className="text-xs text-slate-400">
-                      Posted {new Date(ev.created_at).toLocaleString()}
+                    <span
+                      className="text-xs text-slate-400"
+                      title={fullDate(ev.created_at)}
+                    >
+                      Posted {timeAgo(ev.created_at)}
                     </span>
                   </div>
                 </div>

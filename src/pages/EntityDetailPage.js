@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 import ShareButton from "../components/ShareButton";
+import { timeAgo, fullDate } from "../utils/time";
 
 export default function EntityDetailPage() {
   const { id } = useParams();
@@ -139,8 +140,11 @@ export default function EntityDetailPage() {
                   </p>
                 )}
 
-                <p className="text-xs text-right text-gray-500 mt-1">
-                  Submitted {new Date(r.created_at).toLocaleString()}
+                <p
+                  className="text-xs text-right text-gray-500 mt-1"
+                  title={fullDate(r.created_at)}
+                >
+                  Submitted {timeAgo(r.created_at)}
                 </p>
 
                 {/* FLAGGING */}

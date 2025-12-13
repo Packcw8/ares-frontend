@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
 import ShareButton from "../components/ShareButton";
+import { timeAgo, fullDate } from "../utils/time";
 
 const TYPE_COLORS = {
   police: "bg-blue-100 text-blue-800",
@@ -116,10 +117,10 @@ function Forum() {
                   </p>
                 )}
 
-                {/* META + SHARE */}
+                {/* META */}
                 <div className="flex justify-between items-center text-xs text-gray-400">
-                  <span>
-                    {new Date(post.created_at).toLocaleDateString()}
+                  <span title={fullDate(post.created_at)}>
+                    {timeAgo(post.created_at)}
                   </span>
 
                   <div className="flex items-center gap-2">
