@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function BottomNav() {
   const [showMore, setShowMore] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     setIsAuthenticated(!!localStorage.getItem("token"));
@@ -12,13 +13,12 @@ export default function BottomNav() {
 
   if (!isAuthenticated) return null;
 
+  const isActive = (path) => location.pathname.startsWith(path);
+
   const menuItems = [
     { label: "Know Your Rights", icon: "⚖️", path: "/rights" },
     { label: "Forum", icon: "🗣️", path: "/forum" },
-
-    // ✅ NEW: Community Rules
     { label: "Community Rules", icon: "📜", path: "/rules" },
-
     { label: "Privacy Policy", icon: "📄", path: "/privacy" },
     { label: "Terms of Use", icon: "🛡️", path: "/terms" },
     {
@@ -30,6 +30,14 @@ export default function BottomNav() {
       },
     },
   ];
+
+  const iconBase =
+    "flex flex-col items-center justify-center transition-all duration-200";
+
+  const iconActive =
+    "text-[#f5ecd9] scale-110 drop-shadow-[0_0_6px_rgba(245,236,217,0.8)]";
+
+  const iconInactive = "text-white/70 hover:text-white";
 
   return (
     <>
@@ -94,7 +102,7 @@ export default function BottomNav() {
           z-40
 
           h-24
-          pb-6
+          pb-8
           px-8
 
           flex
@@ -105,7 +113,9 @@ export default function BottomNav() {
         {/* VAULT PUBLIC */}
         <button
           onClick={() => navigate("/vault/public")}
-          className="text-white text-2xl flex flex-col items-center"
+          className={`${iconBase} ${
+            isActive("/vault") ? iconActive : iconInactive
+          } mb-2 text-2xl`}
         >
           📂
         </button>
@@ -113,7 +123,9 @@ export default function BottomNav() {
         {/* RATINGS */}
         <button
           onClick={() => navigate("/ratings")}
-          className="text-white text-2xl flex flex-col items-center"
+          className={`${iconBase} ${
+            isActive("/ratings") ? iconActive : iconInactive
+          } mb-2 text-2xl`}
         >
           📜
         </button>
@@ -121,9 +133,9 @@ export default function BottomNav() {
         {/* CENTER ADD */}
         <button
           onClick={() => navigate("/vault/upload")}
-          aria-label="Add Evidence"
+          aria-label="Add Public Record"
           className="
-            -mt-10
+            -mt-12
             h-16
             w-16
             rounded-full
@@ -145,7 +157,9 @@ export default function BottomNav() {
         {/* FORUM */}
         <button
           onClick={() => navigate("/forum")}
-          className="text-white text-2xl flex flex-col items-center"
+          className={`${iconBase} ${
+            isActive("/forum") ? iconActive : iconInactive
+          } mb-2 text-2xl`}
         >
           🗣️
         </button>
@@ -153,7 +167,9 @@ export default function BottomNav() {
         {/* MENU */}
         <button
           onClick={() => setShowMore((v) => !v)}
-          className="text-white text-3xl flex flex-col items-center"
+          className={`${iconBase} ${
+            showMore ? iconActive : iconInactive
+          } mb-2 text-3xl`}
         >
           ☰
         </button>
