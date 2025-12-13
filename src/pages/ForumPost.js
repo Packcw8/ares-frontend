@@ -4,6 +4,7 @@ import api from "../services/api";
 import Layout from "../components/Layout";
 import ShareButton from "../components/ShareButton";
 import { timeAgo, fullDate } from "../utils/time";
+import { displayName } from "../utils/displayName";
 
 export default function ForumPost() {
   const { id } = useParams();
@@ -91,29 +92,28 @@ export default function ForumPost() {
             </p>
           ) : (
             <div className="space-y-4">
-              {comments.map((c) => {
-                const displayName =
-                  c.user?.username ||
-                  c.username ||
-                  "Anonymous";
+              {comments.map((c) => (
+                <div
+                  key={c.id}
+                  className="bg-[#faf8f2] border border-[#e5dcc3] rounded-xl p-4"
+                >
+                  {/* COMMENT CONTENT */}
+                  <p className="text-sm text-gray-800">
+                    {c.content}
+                  </p>
 
-                return (
-                  <div
-                    key={c.id}
-                    className="bg-[#faf8f2] border border-[#e5dcc3] rounded-xl p-4"
+                  {/* USERNAME + TIME */}
+                  <p
+                    className="text-xs text-gray-500 mt-2"
+                    title={fullDate(c.created_at)}
                   >
-                    <p className="text-sm text-gray-800">
-                      {c.content}
-                    </p>
-                    <p
-                      className="text-xs text-gray-500 mt-2"
-                      title={fullDate(c.created_at)}
-                    >
-                      {displayName} • {timeAgo(c.created_at)}
-                    </p>
-                  </div>
-                );
-              })}
+                    <span className="font-medium">
+                      {displayName(c)}
+                    </span>{" "}
+                    • {timeAgo(c.created_at)}
+                  </p>
+                </div>
+              ))}
             </div>
           )}
         </div>

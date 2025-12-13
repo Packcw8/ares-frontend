@@ -3,6 +3,7 @@ import Layout from "../components/Layout";
 import api from "../services/api";
 import ShareButton from "../components/ShareButton";
 import { timeAgo, fullDate, dateGroup } from "../utils/time";
+import { displayName } from "../utils/displayName";
 
 export default function VaultPublic() {
   const [evidenceList, setEvidenceList] = useState([]);
@@ -103,6 +104,14 @@ export default function VaultPublic() {
                     <p className="text-xs text-slate-500">
                       {ev.entity?.county || ""}
                       {ev.entity?.state ? `, ${ev.entity.state}` : ""}
+                    </p>
+
+                    {/* ✅ USERNAME */}
+                    <p className="text-xs text-slate-400 mt-1">
+                      Posted by{" "}
+                      <span className="font-medium">
+                        {displayName(ev)}
+                      </span>
                     </p>
                   </div>
 

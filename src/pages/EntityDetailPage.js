@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import api from "../services/api";
 import ShareButton from "../components/ShareButton";
 import { timeAgo, fullDate } from "../utils/time";
+import { displayName } from "../utils/displayName";
 
 export default function EntityDetailPage() {
   const { id } = useParams();
@@ -60,7 +61,6 @@ export default function EntityDetailPage() {
   return (
     <Layout>
       <div className="space-y-6 text-[#1e1e1e] max-w-4xl mx-auto px-4 pb-24">
-
         {/* NAV + SHARE */}
         <div className="flex justify-between items-center">
           <button
@@ -70,10 +70,7 @@ export default function EntityDetailPage() {
             ← Back to Ratings
           </button>
 
-          <ShareButton
-            url={`/ratings/${entity.id}`}
-            label="Share profile"
-          />
+          <ShareButton url={`/ratings/${entity.id}`} label="Share profile" />
         </div>
 
         {/* ENTITY HEADER */}
@@ -112,13 +109,31 @@ export default function EntityDetailPage() {
                 key={r.id}
                 className="border border-[#c2a76d] rounded-lg p-4 bg-[#fdf7e3] shadow"
               >
+                {/* NEW: USERNAME */}
+                <div className="text-xs text-gray-600 mb-2">
+                  Submitted by{" "}
+                  <span className="font-semibold">{displayName(r)}</span>
+                </div>
+
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <p><strong>Accountability:</strong> {r.accountability}</p>
-                  <p><strong>Respect:</strong> {r.respect}</p>
-                  <p><strong>Effectiveness:</strong> {r.effectiveness}</p>
-                  <p><strong>Transparency:</strong> {r.transparency}</p>
-                  <p><strong>Public Impact:</strong> {r.public_impact}</p>
-                  <p><strong>Verified:</strong> {r.verified ? "✅" : "❌"}</p>
+                  <p>
+                    <strong>Accountability:</strong> {r.accountability}
+                  </p>
+                  <p>
+                    <strong>Respect:</strong> {r.respect}
+                  </p>
+                  <p>
+                    <strong>Effectiveness:</strong> {r.effectiveness}
+                  </p>
+                  <p>
+                    <strong>Transparency:</strong> {r.transparency}
+                  </p>
+                  <p>
+                    <strong>Public Impact:</strong> {r.public_impact}
+                  </p>
+                  <p>
+                    <strong>Verified:</strong> {r.verified ? "✅" : "❌"}
+                  </p>
                 </div>
 
                 {r.violated_rights?.length > 0 && (
@@ -172,7 +187,9 @@ export default function EntityDetailPage() {
                               await api.post(`/ratings/flag-rating/${r.id}`, {
                                 reason: r._flag_reason,
                               });
-                              alert("Thank you. This review has been submitted for constitutional review.");
+                              alert(
+                                "Thank you. This review has been submitted for constitutional review."
+                              );
                               setReviews((prev) =>
                                 prev.map((rev) =>
                                   rev.id === r.id ? { ...rev, flagged: true } : rev
