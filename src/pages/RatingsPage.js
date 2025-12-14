@@ -30,7 +30,7 @@ export default function RatingsPage() {
   }, []);
 
   /* =========================
-     SILHOUETTE PICKER (NO GENDER)
+     SILHOUETTE PICKER
      ========================= */
   const getSilhouette = (entity) => {
     const t = `${entity.type || ""} ${entity.category || ""}`.toLowerCase();
@@ -41,7 +41,7 @@ export default function RatingsPage() {
     if (t.includes("council") || t.includes("legislature")) return "🏛️";
     if (t.includes("official") || t.includes("individual")) return "👤";
 
-    return "👥"; // safe fallback
+    return "👥";
   };
 
   /* =========================
@@ -52,22 +52,24 @@ export default function RatingsPage() {
 
     const q = search.toLowerCase();
 
-    return entities.filter((e) =>
-      [
-        e.name,
-        e.state,
-        e.county,
-        e.category,
-        e.type,
-        e.jurisdiction,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [search, entities]).sort(
-    (a, b) => (a.reputation_score ?? 100) - (b.reputation_score ?? 100)
-  );
+    return entities
+      .filter((e) =>
+        [
+          e.name,
+          e.state,
+          e.county,
+          e.category,
+          e.type,
+          e.jurisdiction,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(q)
+      )
+      .sort(
+        (a, b) => (a.reputation_score ?? 100) - (b.reputation_score ?? 100)
+      );
+  }, [search, entities]);
 
   return (
     <Layout>
@@ -82,14 +84,14 @@ export default function RatingsPage() {
             onClick={() => navigate("/ratings/new")}
             className="bg-[#8b1e3f] hover:bg-[#72162f] text-white px-4 py-2 rounded-lg font-semibold"
           >
-            + Add New Official
+            + Add New Entity
           </button>
         </div>
 
         {/* SEARCH */}
         <input
           type="text"
-          placeholder="Search officials, courts, agencies, states, counties…"
+          placeholder="Search entities, courts, agencies, states, counties…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="
@@ -109,7 +111,7 @@ export default function RatingsPage() {
           <p className="italic opacity-60">Loading…</p>
         ) : filtered.length === 0 ? (
           <p className="italic opacity-60">
-            No matching officials found.
+            No matching entities found.
           </p>
         ) : (
           <div className="grid gap-5 grid-cols-1 sm:grid-cols-2">
