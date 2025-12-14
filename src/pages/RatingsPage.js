@@ -71,6 +71,32 @@ export default function RatingsPage() {
       );
   }, [search, entities]);
 
+  /* =========================
+     FRONTEND-ONLY TREND LOGIC
+     ========================= */
+  const getTrend = (entity) => {
+    if (typeof entity.reputation_score !== "number") return "neutral";
+
+    const key = `entity_score_${entity.id}`;
+    const last = Number(localStorage.getItem(key));
+    const current = entity.reputation_score;
+
+    let trend = "neutral";
+    if (!isNaN(last)) {
+      if (current > last) trend = "up";
+      else if (current < last) trend = "down";
+    }
+
+    localStorage.setItem(key, current);
+    return trend;
+  };
+
+  const trendUI = {
+    up: { symbol: "▲", className: "text-green-600" },
+    down: { symbol: "▼", className: "text-red-600" },
+    neutral: { symbol: "•", className: "text-gray-500" },
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -87,6 +113,13 @@ export default function RatingsPage() {
             + Add New Entity
           </button>
         </div>
+
+        {/* EXPLANATION */}
+        <p className="text-sm text-[#5a4635] max-w-3xl">
+          Reputation scores begin at <strong>100</strong> as a neutral
+          baseline. Scores may rise or fall over time based on community
+          ratings and verification.
+        </p>
 
         {/* SEARCH */}
         <input
@@ -111,80 +144,88 @@ export default function RatingsPage() {
           <p className="italic opacity-60">Loading…</p>
         ) : filtered.length === 0 ? (
           <p className="italic opacity-60">
-            No matching entities found.
+            No matching entities found. Be the first to add one.
           </p>
         ) : (
           <div className="grid gap-5 grid-cols-1 sm:grid-cols-2">
-            {filtered.map((entity) => (
-              <button
-                key={entity.id}
-                onClick={() => navigate(`/ratings/${entity.id}`)}
-                className="
-                  text-left
-                  rounded-2xl
-                  border
-                  border-[#c2a76d]
-                  bg-[#f7f1e1]
-                  p-5
-                  shadow-sm
-                  transition-all
-                  duration-200
-                  hover:-translate-y-1
-                  hover:shadow-xl
-                  hover:border-[#8b1e3f]
-                  focus:outline-none
-                  focus:ring-2
-                  focus:ring-[#8b1e3f]
-                "
-              >
-                <div className="flex items-start gap-4">
-                  {/* SILHOUETTE */}
-                  <div
-                    className="
-                      text-3xl
-                      bg-[#ede3cb]
-                      border
-                      border-[#c2a76d]
-                      rounded-full
-                      w-12
-                      h-12
-                      flex
-                      items-center
-                      justify-center
-                      shrink-0
-                    "
-                  >
-                    {getSilhouette(entity)}
-                  </div>
+            {filtered.map((entity) => {
+              const trend = getTrend(entity);
 
-                  {/* INFO */}
-                  <div className="flex-1">
-                    <h2 className="text-lg font-extrabold text-[#283d63]">
-                      {entity.name}
-                    </h2>
+              return (
+                <button
+                  key={entity.id}
+                  onClick={() => navigate(`/ratings/${entity.id}`)}
+                  className="
+                    text-left
+                    rounded-2xl
+                    border
+                    border-[#c2a76d]
+                    bg-[#f7f1e1]
+                    p-5
+                    shadow-sm
+                    transition-all
+                    duration-200
+                    hover:-translate-y-1
+                    hover:shadow-xl
+                    hover:border-[#8b1e3f]
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-[#8b1e3f]
+                  "
+                >
+                  <div className="flex items-start gap-4">
+                    {/* SILHOUETTE */}
+                    <div
+                      className="
+                        text-3xl
+                        bg-[#ede3cb]
+                        border
+                        border-[#c2a76d]
+                        rounded-full
+                        w-12
+                        h-12
+                        flex
+                        items-center
+                        justify-center
+                        shrink-0
+                      "
+                    >
+                      {getSilhouette(entity)}
+                    </div>
 
-                    <p className="text-sm capitalize text-[#5a4635] mt-1">
-                      {entity.type} • {entity.category}
-                    </p>
+                    {/* INFO */}
+                    <div className="flex-1">
+                      <h2 className="text-lg font-extrabold text-[#283d63]">
+                        {entity.name}
+                      </h2>
 
-                    <p className="text-sm text-[#5a4635]">
-                      {entity.county}, {entity.state}
-                    </p>
+                      <p className="text-sm capitalize text-[#5a4635] mt-1">
+                        {entity.type} • {entity.category}
+                      </p>
 
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-sm font-medium text-[#3a2f1b]">
-                        Reputation Score
-                      </span>
-                      <span className="text-lg font-bold text-[#8b1e3f]">
-                        {typeof entity.reputation_score === "number"
-                          ? entity.reputation_score.toFixed(1)
-                          : "N/A"}
-                      </span>
+                      <p className="text-sm text-[#5a4635]">
+                        {entity.county}, {entity.state}
+                      </p>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-sm font-medium text-[#3a2f1b]">
+                          Reputation Index
+                        </span>
+
+                        <span className="text-lg font-bold text-[#8b1e3f] flex items-center gap-1">
+                          {typeof entity.reputation_score === "number"
+                            ? entity.reputation_score.toFixed(1)
+                            : "N/A"}
+                          <span className={trendUI[trend].className}>
+                            {trendUI[trend].symbol}
+                          </span>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
