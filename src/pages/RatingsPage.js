@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 
@@ -71,7 +71,7 @@ export default function RatingsPage() {
           </button>
         </div>
 
-        {/* 🔍 DYNAMIC SEARCH */}
+        {/* SEARCH */}
         <input
           type="text"
           placeholder="Search officials, courts, agencies, states, counties…"
@@ -97,32 +97,56 @@ export default function RatingsPage() {
             No matching officials found.
           </p>
         ) : (
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2">
             {filtered.map((entity) => (
-              <div key={entity.id} className="card">
-                {/* ENTITY NAME AS LINK */}
-                <Link
-                  to={`/ratings/${entity.id}`}
-                  className="text-lg font-extrabold text-[#283d63] hover:underline hover:text-[#1c2b4a]"
-                >
+              <button
+                key={entity.id}
+                onClick={() => navigate(`/ratings/${entity.id}`)}
+                className="
+                  text-left
+                  rounded-2xl
+                  border
+                  border-[#c2a76d]
+                  bg-[#f7f1e1]
+                  p-5
+                  shadow-sm
+                  transition-all
+                  duration-200
+                  hover:-translate-y-1
+                  hover:shadow-xl
+                  hover:border-[#8b1e3f]
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-[#8b1e3f]
+                "
+              >
+                {/* NAME */}
+                <h2 className="text-lg font-extrabold text-[#283d63]">
                   {entity.name}
-                </Link>
+                </h2>
 
-                <p className="text-sm capitalize text-[#5a4635]">
+                {/* TYPE */}
+                <p className="text-sm capitalize text-[#5a4635] mt-1">
                   {entity.type} • {entity.category}
                 </p>
 
+                {/* LOCATION */}
                 <p className="text-sm text-[#5a4635]">
                   {entity.county}, {entity.state}
                 </p>
 
-                <p className="mt-2 font-bold text-[#8b1e3f]">
-                  Reputation Score:{" "}
-                  {typeof entity.reputation_score === "number"
-                    ? entity.reputation_score.toFixed(1)
-                    : "N/A"}
-                </p>
-              </div>
+                {/* SCORE */}
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-sm font-medium text-[#3a2f1b]">
+                    Reputation Score
+                  </span>
+                  <span className="text-lg font-bold text-[#8b1e3f]">
+                    {typeof entity.reputation_score === "number"
+                      ? entity.reputation_score.toFixed(1)
+                      : "N/A"}
+                  </span>
+                </div>
+              </button>
             ))}
           </div>
         )}
