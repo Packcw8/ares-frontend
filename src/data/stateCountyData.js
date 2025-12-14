@@ -202,6 +202,6 @@ export const stateCountyData = {
   "DC": {
      "name": "Washington, DC",
      "counties": ["Washington, DC"]
-},
+   },
 
 };
