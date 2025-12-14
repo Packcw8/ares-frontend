@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import Layout from "../components/Layout";
-import ShareButton from "../components/ShareButton";
 import { timeAgo, fullDate } from "../utils/time";
 
 const TYPE_COLORS = {
@@ -131,11 +130,6 @@ function Forum() {
                     )}
                     <span>💬 {post.comment_count ?? 0}</span>
                   </div>
-                </div>
-
-                {/* SHARE */}
-                <div className="mt-3">
-                  <ShareButton url={`/forum/${post.id}`} />
                 </div>
 
               </div>
