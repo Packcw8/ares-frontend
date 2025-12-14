@@ -6,12 +6,19 @@ export default function AdminBottomNav() {
   const navigate = useNavigate();
 
   const menuItems = [
-    { label: "System Logs", icon: "📜", path: "/admin/logs" },
-    { label: "Admin Logout", icon: "🚪", action: () => {
+    {
+      label: "System Logs",
+      icon: "📜",
+      path: "/admin/logs",
+    },
+    {
+      label: "Admin Logout",
+      icon: "🚪",
+      action: () => {
         localStorage.removeItem("token");
         navigate("/login");
-      }
-    }
+      },
+    },
   ];
 
   return (
@@ -37,11 +44,57 @@ export default function AdminBottomNav() {
 
       {/* Admin Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#2c1b0f] text-[#fceabb] border-t-2 border-[#c2a76d] flex justify-around items-center py-5 px-3 z-40 text-lg font-serif tracking-wide">
-        <button onClick={() => navigate("/admin/dashboard")} title="Civic Hub">🏛️</button>
-        <button onClick={() => navigate("/admin/flagged")} title="Due Process">⚠️</button>
-        <button onClick={() => navigate("/admin/verify-officials")} title="Office Vetting">🗳️</button>
-        <button onClick={() => navigate("/admin/verify-ratings")} title="Public Record">✅</button>
-        <button onClick={() => setShowMore(!showMore)} className="text-xl" title="More">☰</button>
+        <button
+          onClick={() => navigate("/admin/dashboard")}
+          title="Civic Hub"
+        >
+          🏛️
+        </button>
+
+        <button
+          onClick={() => navigate("/admin/flagged")}
+          title="Due Process"
+        >
+          ⚠️
+        </button>
+
+        <button
+          onClick={() => navigate("/admin/verify-officials")}
+          title="Office Vetting"
+        >
+          🗳️
+        </button>
+
+        <button
+          onClick={() => navigate("/admin/verify-ratings")}
+          title="Public Record"
+        >
+          ✅
+        </button>
+
+        {/* 🆕 Entity Review */}
+        <button
+          onClick={() => navigate("/admin/entities")}
+          title="Entity Review"
+        >
+          🏷️
+        </button>
+
+        {/* 🆕 Evidence Review */}
+        <button
+          onClick={() => navigate("/admin/evidence")}
+          title="Evidence Review"
+        >
+          🗂️
+        </button>
+
+        <button
+          onClick={() => setShowMore(!showMore)}
+          className="text-xl"
+          title="More"
+        >
+          ☰
+        </button>
       </nav>
     </>
   );

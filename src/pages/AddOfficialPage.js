@@ -8,7 +8,7 @@ export default function AddOfficialPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const returnTo = searchParams.get("returnTo"); // 👈 NEW
+  const returnTo = searchParams.get("returnTo");
   const prefillName = searchParams.get("name");
 
   const [form, setForm] = useState({
@@ -95,7 +95,15 @@ export default function AddOfficialPage() {
     try {
       const res = await api.post("/ratings/entities", payload);
 
-      // ✅ SMART REDIRECT
+      // ✅ Inform user if entity is under review
+      if (res.data.approval_status === "under_review") {
+        alert(
+          "✅ Entity submitted successfully.\n\n" +
+            "This entity is now under admin review and will become publicly visible once approved."
+        );
+      }
+
+      // ✅ Smart redirect (unchanged behavior)
       if (returnTo) {
         navigate(`${returnTo}?entityId=${res.data.id}`);
       } else {
@@ -104,7 +112,7 @@ export default function AddOfficialPage() {
     } catch (err) {
       alert(
         err.response?.data?.detail ||
-          "Failed to create official. Please try again."
+          "Failed to create entity. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -115,6 +123,11 @@ export default function AddOfficialPage() {
     <Layout>
       <div className="p-4 max-w-xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold">Add New Entity</h1>
+
+        {/* 🟡 Review Notice */}
+        <div className="text-sm bg-yellow-100 text-yellow-900 border border-yellow-300 rounded p-3">
+          Newly created entities are reviewed by an administrator before becoming public.
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -204,9 +217,7 @@ export default function AddOfficialPage() {
           <div className="relative">
             <input
               type="text"
-              placeholder={
-                form.state ? "Type county" : "Select state first"
-              }
+              placeholder={form.state ? "Type county" : "Select state first"}
               value={countyQuery}
               onChange={(e) => {
                 setCountyQuery(e.target.value);

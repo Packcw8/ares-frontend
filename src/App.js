@@ -24,6 +24,10 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import RulesPage from "./pages/RulesPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import AdminEvidence from "./pages/admin/AdminEvidence";
+import AdminPendingEntities from "./pages/admin/AdminPendingEntities";
+
+
 
 
 
@@ -62,6 +66,10 @@ function App() {
         <Route path="/rules" element={<RulesPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/admin/evidence" element={<AdminEvidence />} />
+        <Route path="/admin/entities" element={<AdminPendingEntities />} />
+
+
 
 
 
