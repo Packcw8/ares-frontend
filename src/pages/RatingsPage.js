@@ -57,7 +57,6 @@ export default function RatingsPage() {
   return (
     <Layout>
       <div className="space-y-6">
-
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-2xl font-bold text-[#3a2f1b]">
@@ -101,9 +100,13 @@ export default function RatingsPage() {
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
             {filtered.map((entity) => (
               <div key={entity.id} className="card">
-                <h2 className="text-lg font-extrabold">
+                {/* ENTITY NAME AS LINK */}
+                <Link
+                  to={`/ratings/${entity.id}`}
+                  className="text-lg font-extrabold text-[#283d63] hover:underline hover:text-[#1c2b4a]"
+                >
                   {entity.name}
-                </h2>
+                </Link>
 
                 <p className="text-sm capitalize text-[#5a4635]">
                   {entity.type} • {entity.category}
@@ -119,13 +122,6 @@ export default function RatingsPage() {
                     ? entity.reputation_score.toFixed(1)
                     : "N/A"}
                 </p>
-
-                <Link
-                  to={`/ratings/${entity.id}`}
-                  className="text-[#283d63] underline mt-2 inline-block hover:text-[#1c2b4a]"
-                >
-                  View &amp; Rate
-                </Link>
               </div>
             ))}
           </div>
