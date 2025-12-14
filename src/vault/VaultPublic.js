@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 import ShareButton from "../components/ShareButton";
@@ -9,6 +10,8 @@ export default function VaultPublic() {
   const [recordList, setRecordList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     api
@@ -24,6 +27,9 @@ export default function VaultPublic() {
       .finally(() => setLoading(false));
   }, []);
 
+  /* =========================
+     SEARCH FILTER
+     ========================= */
   const filteredRecords = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return recordList;
@@ -55,7 +61,7 @@ export default function VaultPublic() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
+        {/* HEADER */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Public Records
@@ -64,37 +70,97 @@ export default function VaultPublic() {
             Community-submitted records for transparency and accountability
           </p>
 
-          {/* Tooltip */}
+          {/* INFO CALLOUT */}
           <div className="mt-3 inline-flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
-            <span className="font-semibold text-slate-700">What is this?</span>
+            <span className="font-semibold text-slate-700">
+              What is this?
+            </span>
             <span>
-              Public Records are user-submitted media or written accounts preserved
-              to document experiences involving public entities or officials.
-              Submissions reflect personal perspectives and are moderated for
-              policy compliance.
+              Public Records are user-submitted media or written accounts
+              preserved to document experiences involving public entities or
+              officials. Submissions reflect personal perspectives and are
+              moderated for policy compliance.
             </span>
           </div>
         </div>
 
-        {/* Search */}
+        {/* SEARCH */}
         <div className="mb-8">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by state, county, or entity…"
-            className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-5 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="
+              w-full
+              rounded-2xl
+              bg-slate-50
+              border
+              border-slate-200
+              px-5
+              py-3
+              text-sm
+              shadow-sm
+              focus:outline-none
+              focus:ring-2
+              focus:ring-indigo-500
+            "
           />
         </div>
 
-        {loading && <p className="text-slate-500">Loading public records…</p>}
-
-        {!loading && filteredRecords.length === 0 && (
-          <p className="italic text-slate-500">
-            No matching public records found.
+        {/* LOADING */}
+        {loading && (
+          <p className="text-slate-500">
+            Loading public records…
           </p>
         )}
 
+        {/* EMPTY SEARCH STATE (CLEAN, CONDITIONAL) */}
+        {!loading && search.trim() && filteredRecords.length === 0 && (
+          <div className="mt-16 flex justify-center">
+            <div className="max-w-xl w-full rounded-3xl border border-slate-200 bg-slate-50 px-8 py-10 text-center shadow-sm">
+              <h3 className="text-lg font-semibold text-slate-800">
+                No public records found
+              </h3>
+
+              <p className="mt-2 text-sm text-slate-600">
+                There are currently no public records matching{" "}
+                <span className="font-medium">“{search}”</span>.
+                You may be the first to preserve a public record for
+                transparency.
+              </p>
+
+              <button
+                onClick={() => navigate("/vault/upload")}
+                className="
+                  mt-6
+                  inline-flex
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-6
+                  py-3
+                  text-sm
+                  font-semibold
+                  text-slate-700
+                  shadow-sm
+                  transition
+                  hover:bg-slate-100
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-indigo-500
+                "
+              >
+                + Submit a Public Record
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* RECORD FEED */}
         <div className="space-y-12">
           {filteredRecords.map((rec) => {
             const dateLabel = dateGroup(rec.created_at);
@@ -112,7 +178,7 @@ export default function VaultPublic() {
                 )}
 
                 <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                  {/* Entity header */}
+                  {/* ENTITY HEADER */}
                   <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                     <a
                       href={`/ratings/${rec.entity?.id}`}
@@ -120,6 +186,7 @@ export default function VaultPublic() {
                     >
                       {rec.entity?.name || "Unknown Entity"}
                     </a>
+
                     <p className="text-xs text-slate-500">
                       {rec.entity?.county || ""}
                       {rec.entity?.state ? `, ${rec.entity.state}` : ""}
@@ -133,28 +200,35 @@ export default function VaultPublic() {
                     </p>
                   </div>
 
-                  {/* Media */}
+                  {/* MEDIA */}
                   <div className="bg-black">
-                    {rec.media_url && rec.media_url.match(/\.(mp4|webm)$/i) && (
-                      <video
-                        controls
-                        preload="metadata"
-                        src={rec.media_url}
-                        className="w-full max-h-[75vh] object-contain"
-                      />
-                    )}
+                    {rec.media_url &&
+                      rec.media_url.match(/\.(mp4|webm)$/i) && (
+                        <video
+                          controls
+                          preload="metadata"
+                          src={rec.media_url}
+                          className="w-full max-h-[75vh] object-contain"
+                        />
+                      )}
 
-                    {rec.media_url && rec.media_url.match(/\.(jpe?g|png|gif)$/i) && (
-                      <img
-                        src={rec.media_url}
-                        alt="Public record media"
-                        className="w-full max-h-[75vh] object-contain"
-                      />
-                    )}
+                    {rec.media_url &&
+                      rec.media_url.match(/\.(jpe?g|png|gif)$/i) && (
+                        <img
+                          src={rec.media_url}
+                          alt="Public record media"
+                          className="w-full max-h-[75vh] object-contain"
+                        />
+                      )}
 
-                    {rec.media_url && rec.media_url.match(/\.(mp3|wav)$/i) && (
-                      <audio controls src={rec.media_url} className="w-full" />
-                    )}
+                    {rec.media_url &&
+                      rec.media_url.match(/\.(mp3|wav)$/i) && (
+                        <audio
+                          controls
+                          src={rec.media_url}
+                          className="w-full"
+                        />
+                      )}
 
                     {rec.media_url &&
                       !rec.media_url.match(
@@ -173,7 +247,7 @@ export default function VaultPublic() {
                       )}
                   </div>
 
-                  {/* Description */}
+                  {/* DESCRIPTION */}
                   {rec.description && (
                     <div className="px-6 py-5">
                       <p className="text-sm text-slate-800 leading-relaxed">
@@ -182,7 +256,7 @@ export default function VaultPublic() {
                     </div>
                   )}
 
-                  {/* Share + Time */}
+                  {/* FOOTER */}
                   <div className="px-6 pb-5 flex justify-between items-center">
                     <ShareButton
                       url={`/vault/public#record-${rec.id}`}
