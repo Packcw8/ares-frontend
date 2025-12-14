@@ -30,7 +30,22 @@ export default function RatingsPage() {
   }, []);
 
   /* =========================
-     DYNAMIC SEARCH FILTER
+     SILHOUETTE PICKER (NO GENDER)
+     ========================= */
+  const getSilhouette = (entity) => {
+    const t = `${entity.type || ""} ${entity.category || ""}`.toLowerCase();
+
+    if (t.includes("court") || t.includes("judge")) return "🏛️";
+    if (t.includes("agency") || t.includes("department")) return "🏢";
+    if (t.includes("police") || t.includes("sheriff")) return "🚓";
+    if (t.includes("council") || t.includes("legislature")) return "🏛️";
+    if (t.includes("official") || t.includes("individual")) return "👤";
+
+    return "👥"; // safe fallback
+  };
+
+  /* =========================
+     SEARCH FILTER
      ========================= */
   const filtered = useMemo(() => {
     if (!search.trim()) return entities;
@@ -120,31 +135,51 @@ export default function RatingsPage() {
                   focus:ring-[#8b1e3f]
                 "
               >
-                {/* NAME */}
-                <h2 className="text-lg font-extrabold text-[#283d63]">
-                  {entity.name}
-                </h2>
+                <div className="flex items-start gap-4">
+                  {/* SILHOUETTE */}
+                  <div
+                    className="
+                      text-3xl
+                      bg-[#ede3cb]
+                      border
+                      border-[#c2a76d]
+                      rounded-full
+                      w-12
+                      h-12
+                      flex
+                      items-center
+                      justify-center
+                      shrink-0
+                    "
+                  >
+                    {getSilhouette(entity)}
+                  </div>
 
-                {/* TYPE */}
-                <p className="text-sm capitalize text-[#5a4635] mt-1">
-                  {entity.type} • {entity.category}
-                </p>
+                  {/* INFO */}
+                  <div className="flex-1">
+                    <h2 className="text-lg font-extrabold text-[#283d63]">
+                      {entity.name}
+                    </h2>
 
-                {/* LOCATION */}
-                <p className="text-sm text-[#5a4635]">
-                  {entity.county}, {entity.state}
-                </p>
+                    <p className="text-sm capitalize text-[#5a4635] mt-1">
+                      {entity.type} • {entity.category}
+                    </p>
 
-                {/* SCORE */}
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-sm font-medium text-[#3a2f1b]">
-                    Reputation Score
-                  </span>
-                  <span className="text-lg font-bold text-[#8b1e3f]">
-                    {typeof entity.reputation_score === "number"
-                      ? entity.reputation_score.toFixed(1)
-                      : "N/A"}
-                  </span>
+                    <p className="text-sm text-[#5a4635]">
+                      {entity.county}, {entity.state}
+                    </p>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="text-sm font-medium text-[#3a2f1b]">
+                        Reputation Score
+                      </span>
+                      <span className="text-lg font-bold text-[#8b1e3f]">
+                        {typeof entity.reputation_score === "number"
+                          ? entity.reputation_score.toFixed(1)
+                          : "N/A"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </button>
             ))}
