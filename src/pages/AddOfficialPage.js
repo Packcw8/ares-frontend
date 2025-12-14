@@ -29,7 +29,7 @@ export default function AddOfficialPage() {
   const [showStateDropdown, setShowStateDropdown] = useState(false);
   const [showCountyDropdown, setShowCountyDropdown] = useState(false);
 
-  // ✅ Prefill entity name if provided
+  // Prefill name if provided
   useEffect(() => {
     if (prefillName) {
       setForm((prev) => ({ ...prev, name: prefillName }));
@@ -77,7 +77,7 @@ export default function AddOfficialPage() {
   }, [stateQuery]);
 
   const countyOptions = useMemo(() => {
-    if (!form.state) return [];
+    if (!form.state || form.state === "DC") return [];
     return stateCountyData[form.state].counties.filter((county) =>
       county.toLowerCase().includes(countyQuery.toLowerCase())
     );
@@ -95,15 +95,13 @@ export default function AddOfficialPage() {
     try {
       const res = await api.post("/ratings/entities", payload);
 
-      // ✅ Inform user if entity is under review
       if (res.data.approval_status === "under_review") {
         alert(
           "✅ Entity submitted successfully.\n\n" +
-            "This entity is now under admin review and will become publicly visible once approved."
+            "This entity is under admin review and will be visible once approved."
         );
       }
 
-      // ✅ Smart redirect (unchanged behavior)
       if (returnTo) {
         navigate(`${returnTo}?entityId=${res.data.id}`);
       } else {
@@ -124,7 +122,6 @@ export default function AddOfficialPage() {
       <div className="p-4 max-w-xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold">Add New Entity</h1>
 
-        {/* 🟡 Review Notice */}
         <div className="text-sm bg-yellow-100 text-yellow-900 border border-yellow-300 rounded p-3">
           Newly created entities are reviewed by an administrator before becoming public.
         </div>
@@ -200,7 +197,23 @@ export default function AddOfficialPage() {
                     type="button"
                     key={s.abbr}
                     onClick={() => {
-                      setForm({ ...form, state: s.abbr, county: "" });
+                      if (s.abbr === "DC") {
+                        setForm({
+                          ...form,
+                          state: "DC",
+                          county: "Washington, DC",
+                        });
+                        setCountyQuery("Washington, DC");
+                        setShowCountyDropdown(false);
+                      } else {
+                        setForm({
+                          ...form,
+                          state: s.abbr,
+                          county: "",
+                        });
+                        setCountyQuery("");
+                      }
+
                       setStateQuery(s.name);
                       setShowStateDropdown(false);
                     }}
@@ -217,14 +230,20 @@ export default function AddOfficialPage() {
           <div className="relative">
             <input
               type="text"
-              placeholder={form.state ? "Type county" : "Select state first"}
+              placeholder={
+                form.state === "DC"
+                  ? "Washington, DC"
+                  : form.state
+                  ? "Type county"
+                  : "Select state first"
+              }
               value={countyQuery}
               onChange={(e) => {
                 setCountyQuery(e.target.value);
                 setShowCountyDropdown(true);
                 setForm({ ...form, county: "" });
               }}
-              disabled={!form.state}
+              disabled={!form.state || form.state === "DC"}
               required
               className="w-full px-4 py-2 bg-gray-900 text-white rounded disabled:opacity-50"
             />
