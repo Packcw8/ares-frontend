@@ -1,11 +1,12 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
-import Home from './pages/Home';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import RatingsPage from "./pages/RatingsPage";
 import EntityRatingPage from "./pages/EntityRatingPage";
-import AddOfficialPage from './pages/AddOfficialPage';
+import AddOfficialPage from "./pages/AddOfficialPage";
 import EntityDetailPage from "./pages/EntityDetailPage";
 import KnowYourRights from "./pages/KnowYourRights";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -13,66 +14,119 @@ import TermsOfUse from "./pages/TermsOfUse";
 import ForumPost from "./pages/ForumPost";
 import Forum from "./pages/Forum";
 import NewForumPost from "./pages/NewForumPost";
+
 import AdminDashboard from "./pages/admin/Dashboard";
 import FlaggedRatingsPage from "./pages/admin/FlaggedRatingsPage";
 import VerifyOfficialsPage from "./pages/admin/VerifyOfficialsPage";
 import VerifyRatingsPage from "./pages/admin/VerifyRatingsPage";
+import AdminEvidence from "./pages/admin/AdminEvidence";
+import AdminPendingEntities from "./pages/admin/AdminPendingEntities";
+
 import VaultUpload from "./vault/VaultUpload";
 import VaultPublic from "./vault/VaultPublic";
+
 import CheckEmailPage from "./pages/CheckEmailPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import RulesPage from "./pages/RulesPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import AdminEvidence from "./pages/admin/AdminEvidence";
-import AdminPendingEntities from "./pages/admin/AdminPendingEntities";
 
+import AdminRoute from "./components/AdminRoute";
 
+import { setAuthToken } from "./services/api";
 
-
-
-import { setAuthToken } from './services/api'; // ✅ import
-const token = localStorage.getItem('token');   // ✅ read token
-if (token) setAuthToken(token);                // ✅ set global auth header
+// ✅ set auth header if token exists
+const token = localStorage.getItem("token");
+if (token) setAuthToken(token);
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-100 text-gray-900 font-sans">
         <Routes>
+          {/* PUBLIC */}
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+
           <Route path="/ratings" element={<RatingsPage />} />
-          <Route path="/ratings/:id/rate" element={<EntityRatingPage />} />
           <Route path="/ratings/new" element={<AddOfficialPage />} />
           <Route path="/ratings/:id" element={<EntityDetailPage />} />
+          <Route path="/ratings/:id/rate" element={<EntityRatingPage />} />
+
+          <Route path="/forum" element={<Forum />} />
+          <Route path="/forum/new" element={<NewForumPost />} />
+          <Route path="/forum/:id" element={<ForumPost />} />
+
+          <Route path="/vault/upload" element={<VaultUpload />} />
+          <Route path="/vault/public" element={<VaultPublic />} />
+
           <Route path="/rights" element={<KnowYourRights />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfUse />} />
-          <Route path="/forum/:id" element={<ForumPost />} />
-          <Route path="/forum" element={<Forum />} />
-          <Route path="/forum/new" element={<NewForumPost />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/flagged" element={<FlaggedRatingsPage />} />
-        <Route path="/admin/verify-officials" element={<VerifyOfficialsPage />} />
-        <Route path="/admin/verify-ratings" element={<VerifyRatingsPage />} />
-        <Route path="/vault/upload" element={<VaultUpload />} />
-        <Route path="/vault/public" element={<VaultPublic />} />
-        <Route path="/check-email" element={<CheckEmailPage />} />
-        <Route path="/verify-email" element={<VerifyEmailPage />} />
-        <Route path="/rules" element={<RulesPage />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/admin/evidence" element={<AdminEvidence />} />
-        <Route path="/admin/entities" element={<AdminPendingEntities />} />
+          <Route path="/rules" element={<RulesPage />} />
 
+          <Route path="/check-email" element={<CheckEmailPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
+          {/* 🔐 ADMIN (SECURED) */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
 
+          <Route
+            path="/admin/flagged"
+            element={
+              <AdminRoute>
+                <FlaggedRatingsPage />
+              </AdminRoute>
+            }
+          />
 
+          <Route
+            path="/admin/verify-officials"
+            element={
+              <AdminRoute>
+                <VerifyOfficialsPage />
+              </AdminRoute>
+            }
+          />
 
+          <Route
+            path="/admin/verify-ratings"
+            element={
+              <AdminRoute>
+                <VerifyRatingsPage />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/evidence"
+            element={
+              <AdminRoute>
+                <AdminEvidence />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/entities"
+            element={
+              <AdminRoute>
+                <AdminPendingEntities />
+              </AdminRoute>
+            }
+          />
         </Routes>
       </div>
     </Router>
