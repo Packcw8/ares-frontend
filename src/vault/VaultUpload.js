@@ -86,7 +86,7 @@ export default function VaultUpload() {
     e.preventDefault();
 
     if (!file || !entityId) {
-      alert("File and entity are required");
+      alert("A file and an entity are required.");
       return;
     }
 
@@ -106,10 +106,10 @@ export default function VaultUpload() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("Added to Vault");
-      navigate("/vault/public"); // ✅ FIXED ROUTE
+      alert("Public record submitted.");
+      navigate("/vault/public");
     } catch {
-      alert("Upload failed");
+      alert("Submission failed.");
     } finally {
       setUploading(false);
     }
@@ -120,9 +120,12 @@ export default function VaultUpload() {
       <div className="max-w-4xl mx-auto p-6">
         {/* HEADER */}
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-semibold">Record Evidence</h1>
+          <h1 className="text-3xl font-semibold">
+            Submit a Public Record
+          </h1>
           <p className="text-sm opacity-70 mt-2">
-            Upload evidence tied to an official, agency, or institution.
+            Preserve media or written accounts connected to a public official,
+            agency, or institution.
           </p>
         </div>
 
@@ -131,13 +134,19 @@ export default function VaultUpload() {
           <div className="rounded-3xl border bg-[#f7f1e1] p-12 text-center shadow-md">
             <label className="cursor-pointer block">
               <div className="text-5xl mb-3">📎</div>
-              <p className="font-medium">Drop evidence here or click to select</p>
+              <p className="font-medium">
+                Add a file that supports this public record
+              </p>
+              <p className="text-xs opacity-60 mt-1">
+                Video, audio, image, or document
+              </p>
               <input
                 type="file"
                 className="hidden"
                 onChange={(e) => setFile(e.target.files[0])}
               />
             </label>
+
             {file && (
               <p className="mt-4 text-sm opacity-80">
                 Selected: <strong>{file.name}</strong>
@@ -148,11 +157,12 @@ export default function VaultUpload() {
           {/* ENTITY SEARCH */}
           <div className="space-y-3 relative">
             <p className="text-sm font-medium">
-              Who is this evidence about? <span className="text-red-600">*</span>
+              Who is this record associated with?{" "}
+              <span className="text-red-600">*</span>
             </p>
 
             <input
-              placeholder="Search entity (name, state, county...)"
+              placeholder="Search by name, state, or county"
               value={entitySearch}
               onChange={(e) => {
                 setEntitySearch(e.target.value);
@@ -196,85 +206,17 @@ export default function VaultUpload() {
                     onClick={() => navigate("/ratings/new")}
                     className="text-sm font-medium text-[#8b1e3f] hover:underline"
                   >
-                    Do not see your entity? Add them
+                    Don’t see the entity? Add it
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* STATE + COUNTY */}
+          {/* LOCATION + DESCRIPTION */}
           <div className="rounded-3xl border bg-[#f7f1e1] p-8 space-y-6">
-            {/* STATE */}
-            <div className="relative">
-              <input
-                placeholder="State"
-                value={stateQuery}
-                onChange={(e) => {
-                  setStateQuery(e.target.value);
-                  setState("");
-                  setCounty("");
-                  setCountyQuery("");
-                }}
-                className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
-              />
-
-              {stateQuery && !state && (
-                <div className="absolute z-20 w-full bg-[#fdf9ef] border rounded-xl shadow-lg max-h-56 overflow-y-auto">
-                  {stateOptions.map((s) => (
-                    <button
-                      key={s.abbr}
-                      type="button"
-                      onClick={() => {
-                        setState(s.abbr);
-                        setStateQuery(s.name);
-                        setCounty("");
-                        setCountyQuery("");
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-[#efe6cf]"
-                    >
-                      {s.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* COUNTY */}
-            {state && (
-              <div className="relative">
-                <input
-                  placeholder="County"
-                  value={countyQuery}
-                  onChange={(e) => {
-                    setCountyQuery(e.target.value);
-                    setCounty("");
-                  }}
-                  className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
-                />
-
-                {countyQuery && !county && (
-                  <div className="absolute z-20 w-full bg-[#fdf9ef] border rounded-xl shadow-lg max-h-56 overflow-y-auto">
-                    {countyOptions.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => {
-                          setCounty(c);
-                          setCountyQuery(c);
-                        }}
-                        className="w-full text-left px-4 py-2 hover:bg-[#efe6cf]"
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             <textarea
-              placeholder="What does this evidence show?"
+              placeholder="Describe what this record documents (optional)"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -282,11 +224,34 @@ export default function VaultUpload() {
             />
 
             <input
-              placeholder="Tags (comma separated)"
+              placeholder="Optional tags (comma separated)"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               className="w-full p-3 rounded-xl border bg-[#fdf9ef]"
             />
+          </div>
+
+          {/* VISIBILITY */}
+          <div className="rounded-3xl border bg-[#f7f1e1] p-6 space-y-4">
+            <p className="text-sm font-medium">Visibility</p>
+
+            <div className="flex items-start gap-4">
+              <input
+                type="checkbox"
+                checked={isPublic}
+                onChange={() => setIsPublic((v) => !v)}
+                className="mt-1"
+              />
+              <div>
+                <p className="font-medium text-sm">
+                  Make this record public
+                </p>
+                <p className="text-xs opacity-70">
+                  Public records appear in the public feed and on entity pages.
+                  Private records are saved but only visible to you.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* SUBMIT */}
@@ -296,7 +261,7 @@ export default function VaultUpload() {
               disabled={uploading}
               className="w-16 h-16 rounded-full bg-[#cfa64a] hover:bg-[#b8943f] text-3xl font-bold shadow-lg"
             >
-              {uploading ? "..." : "+"}
+              {uploading ? "…" : "+"}
             </button>
           </div>
         </form>
