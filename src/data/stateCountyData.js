@@ -198,5 +198,10 @@ export const stateCountyData = {
   "WY": {
     "name": "Wyoming",
     "counties": ["Albany", "Big Horn", "Campbell", "Carbon", "Converse", "Crook", "Fremont", "Goshen", "Hot Springs", "Johnson", "Laramie", "Lincoln", "Natrona", "Niobrara", "Park", "Platte", "Sheridan", "Sublette", "Sweetwater", "Teton", "Uinta", "Washakie", "Weston"]
-  }
+  },
+  "DC": {
+     "name": "Washington, DC",
+     "counties": ["Washington, DC"]
+},
+
 };
