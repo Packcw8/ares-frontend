@@ -14,6 +14,7 @@ import TermsOfUse from "./pages/TermsOfUse";
 import ForumPost from "./pages/ForumPost";
 import Forum from "./pages/Forum";
 import NewForumPost from "./pages/NewForumPost";
+import About from "./pages/About";
 
 import AdminDashboard from "./pages/admin/Dashboard";
 import FlaggedRatingsPage from "./pages/admin/FlaggedRatingsPage";
@@ -50,6 +51,8 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/about" element={<About />} />
+
 
           <Route path="/ratings" element={<RatingsPage />} />
           <Route path="/ratings/new" element={<AddOfficialPage />} />

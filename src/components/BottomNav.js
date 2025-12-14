@@ -16,6 +16,7 @@ export default function BottomNav() {
   const isActive = (path) => location.pathname.startsWith(path);
 
   const menuItems = [
+    { label: "About ARES", icon: "🏛️", path: "/about" },
     { label: "Know Your Rights", icon: "⚖️", path: "/rights" },
     { label: "Forum", icon: "🗣️", path: "/forum" },
     { label: "Community Rules", icon: "📜", path: "/rules" },
