@@ -43,6 +43,7 @@ export default function AddOfficialPage() {
       "Caseworker",
       "Attorney",
       "Guardian ad Litem",
+      "Politician",
       "Other",
     ],
     agency: [
