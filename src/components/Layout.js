@@ -114,8 +114,30 @@ export default function Layout({ children }) {
         <main className="space-y-6">{children}</main>
 
         {/* FOOTER */}
-        <footer className="mt-12 text-center text-xs text-[#5a4635] italic border-t border-[#c2a76d] pt-4">
-          © 2025 ARES – Upholding Justice, Defending the Constitution.
+        <footer className="mt-12 border-t border-[#c2a76d] pt-6 text-center text-xs text-[#5a4635] space-y-3">
+          <div className="flex justify-center gap-4 font-semibold">
+            <Link to="/about" className="hover:underline">
+              About ARES
+            </Link>
+            <span>•</span>
+            <Link to="/rights" className="hover:underline">
+              Know Your Rights
+            </Link>
+            <span>•</span>
+            <Link to="/rules" className="hover:underline">
+              Community Rules
+            </Link>
+          </div>
+
+          <p className="max-w-3xl mx-auto italic">
+            ARES is a public transparency platform. Content is user-generated
+            and does not constitute legal findings or determinations of guilt.
+            ARES does not replace courts, law enforcement, or legal counsel.
+          </p>
+
+          <p className="opacity-80">
+            © 2025 ARES — Upholding Justice, Defending the Constitution.
+          </p>
         </footer>
       </div>
 
