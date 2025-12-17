@@ -16,6 +16,7 @@ export default function BottomNav() {
   const isActive = (path) => location.pathname.startsWith(path);
 
   const menuItems = [
+    { label: "My Vault", icon: "🔐", path: "/vault/mine" }, // 👈 NEW
     { label: "About ARES", icon: "🏛️", path: "/about" },
     { label: "Know Your Rights", icon: "⚖️", path: "/rights" },
     { label: "Forum", icon: "🗣️", path: "/forum" },
@@ -101,11 +102,9 @@ export default function BottomNav() {
           border-t
           border-[#c2a76d]
           z-40
-
           h-24
           pb-8
           px-8
-
           flex
           items-end
           justify-between
@@ -115,7 +114,7 @@ export default function BottomNav() {
         <button
           onClick={() => navigate("/vault/public")}
           className={`${iconBase} ${
-            isActive("/vault") ? iconActive : iconInactive
+            isActive("/vault/public") ? iconActive : iconInactive
           } mb-2 text-2xl`}
         >
           📂

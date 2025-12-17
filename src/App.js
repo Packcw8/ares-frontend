@@ -25,6 +25,8 @@ import AdminPendingEntities from "./pages/admin/AdminPendingEntities";
 
 import VaultUpload from "./vault/VaultUpload";
 import VaultPublic from "./vault/VaultPublic";
+import MyVault from "./vault/MyVault";
+
 
 import CheckEmailPage from "./pages/CheckEmailPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
@@ -65,6 +67,8 @@ function App() {
 
           <Route path="/vault/upload" element={<VaultUpload />} />
           <Route path="/vault/public" element={<VaultPublic />} />
+          <Route path="/vault/mine" element={<MyVault />} />
+
 
           <Route path="/rights" element={<KnowYourRights />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
