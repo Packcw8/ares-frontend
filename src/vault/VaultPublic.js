@@ -17,13 +17,16 @@ export default function VaultPublic() {
     api
       .get("/vault/feed")
       .then((res) => {
+        // ✅ SAFE NORMALIZATION (media may be missing)
         const normalized = (res.data || []).map((ev) => ({
           ...ev,
-          media_url: ev.media_url || ev.blob_url,
+          media_url: ev.blob_url || ev.media_url || null,
         }));
         setRecordList(normalized);
       })
-      .catch((err) => console.error("Failed to load public records", err))
+      .catch((err) =>
+        console.error("Failed to load public records", err)
+      )
       .finally(() => setLoading(false));
   }, []);
 
@@ -115,7 +118,7 @@ export default function VaultPublic() {
           </p>
         )}
 
-        {/* EMPTY SEARCH STATE (CLEAN, CONDITIONAL) */}
+        {/* EMPTY SEARCH STATE */}
         {!loading && search.trim() && filteredRecords.length === 0 && (
           <div className="mt-16 flex justify-center">
             <div className="max-w-xl w-full rounded-3xl border border-slate-200 bg-slate-50 px-8 py-10 text-center shadow-sm">
@@ -164,7 +167,8 @@ export default function VaultPublic() {
         <div className="space-y-12">
           {filteredRecords.map((rec) => {
             const dateLabel = dateGroup(rec.created_at);
-            const showDate = dateLabel && dateLabel !== lastDateLabel;
+            const showDate =
+              dateLabel && dateLabel !== lastDateLabel;
             if (showDate) lastDateLabel = dateLabel;
 
             return (
@@ -189,7 +193,9 @@ export default function VaultPublic() {
 
                     <p className="text-xs text-slate-500">
                       {rec.entity?.county || ""}
-                      {rec.entity?.state ? `, ${rec.entity.state}` : ""}
+                      {rec.entity?.state
+                        ? `, ${rec.entity.state}`
+                        : ""}
                     </p>
 
                     <p className="text-xs text-slate-400 mt-1">
@@ -200,7 +206,7 @@ export default function VaultPublic() {
                     </p>
                   </div>
 
-                  {/* MEDIA */}
+                  {/* MEDIA (OPTIONAL) */}
                   <div className="bg-black">
                     {rec.media_url &&
                       rec.media_url.match(/\.(mp4|webm)$/i) && (
@@ -213,7 +219,9 @@ export default function VaultPublic() {
                       )}
 
                     {rec.media_url &&
-                      rec.media_url.match(/\.(jpe?g|png|gif)$/i) && (
+                      rec.media_url.match(
+                        /\.(jpe?g|png|gif)$/i
+                      ) && (
                         <img
                           src={rec.media_url}
                           alt="Public record media"
