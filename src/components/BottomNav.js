@@ -23,12 +23,24 @@ export default function BottomNav() {
 
   const iconInactive = "text-white/70 hover:text-white";
 
+  /* =========================
+     FIXED HAMBURGER (GLOBAL)
+     ========================= */
   return (
     <>
-      {/* TOP RIGHT HAMBURGER */}
-      <div className="fixed top-4 right-4 z-50">
+      {/* FIXED TOP-RIGHT HAMBURGER (NEVER SCROLLS) */}
+      <div
+        className="
+          fixed
+          top-4
+          right-4
+          z-[9999]
+          pointer-events-auto
+        "
+      >
         <button
           onClick={() => setShowMenu((v) => !v)}
+          aria-label="Menu"
           className="
             h-11
             w-11
@@ -41,28 +53,27 @@ export default function BottomNav() {
             flex
             items-center
             justify-center
-            shadow-lg
+            shadow-xl
           "
-          aria-label="Menu"
         >
           ☰
         </button>
       </div>
 
-      {/* DROPDOWN MENU */}
+      {/* FIXED DROPDOWN MENU */}
       {showMenu && (
         <div
           className="
             fixed
             top-20
             right-4
+            z-[9999]
             w-64
             bg-[#f5ecd9]
             border
             border-[#c2a76d]
             rounded-xl
             shadow-2xl
-            z-50
             p-2
             space-y-1
           "
@@ -127,7 +138,7 @@ export default function BottomNav() {
         </div>
       )}
 
-      {/* BOTTOM NAV */}
+      {/* BOTTOM NAV (5 ICONS ONLY) */}
       <nav
         className="
           fixed
