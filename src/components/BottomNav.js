@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export default function BottomNav() {
-  const [showMore, setShowMore] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,24 +15,6 @@ export default function BottomNav() {
 
   const isActive = (path) => location.pathname.startsWith(path);
 
-  const menuItems = [
-    { label: "My Vault", icon: "🔐", path: "/vault/mine" }, // 👈 NEW
-    { label: "About ARES", icon: "🏛️", path: "/about" },
-    { label: "Know Your Rights", icon: "⚖️", path: "/rights" },
-    { label: "Forum", icon: "🗣️", path: "/forum" },
-    { label: "Community Rules", icon: "📜", path: "/rules" },
-    { label: "Privacy Policy", icon: "📄", path: "/privacy" },
-    { label: "Terms of Use", icon: "🛡️", path: "/terms" },
-    {
-      label: "Logout",
-      icon: "🚪",
-      action: () => {
-        localStorage.removeItem("token");
-        navigate("/login");
-      },
-    },
-  ];
-
   const iconBase =
     "flex flex-col items-center justify-center transition-all duration-200";
 
@@ -43,32 +25,60 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* MORE MENU */}
-      {showMore && (
+      {/* TOP RIGHT HAMBURGER */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          onClick={() => setShowMenu((v) => !v)}
+          className="
+            h-11
+            w-11
+            rounded-full
+            bg-[#2c1b0f]
+            border
+            border-[#c2a76d]
+            text-[#f5ecd9]
+            text-2xl
+            flex
+            items-center
+            justify-center
+            shadow-lg
+          "
+          aria-label="Menu"
+        >
+          ☰
+        </button>
+      </div>
+
+      {/* DROPDOWN MENU */}
+      {showMenu && (
         <div
           className="
             fixed
-            bottom-32
-            left-1/2
-            -translate-x-1/2
-            w-[92%]
-            max-w-sm
+            top-20
+            right-4
+            w-64
             bg-[#f5ecd9]
             border
             border-[#c2a76d]
             rounded-xl
             shadow-2xl
             z-50
-            p-3
+            p-2
             space-y-1
           "
         >
-          {menuItems.map((item, idx) => (
+          {[
+            { label: "About ARES", path: "/about", icon: "🏛️" },
+            { label: "Know Your Rights", path: "/rights", icon: "⚖️" },
+            { label: "Community Rules", path: "/rules", icon: "📜" },
+            { label: "Privacy Policy", path: "/privacy", icon: "📄" },
+            { label: "Terms of Use", path: "/terms", icon: "🛡️" },
+          ].map((item, idx) => (
             <button
               key={idx}
               onClick={() => {
-                setShowMore(false);
-                item.action ? item.action() : navigate(item.path);
+                setShowMenu(false);
+                navigate(item.path);
               }}
               className="
                 w-full
@@ -88,6 +98,32 @@ export default function BottomNav() {
               <span className="font-medium">{item.label}</span>
             </button>
           ))}
+
+          <hr className="my-2 border-[#c2a76d]" />
+
+          <button
+            onClick={() => {
+              localStorage.removeItem("token");
+              setShowMenu(false);
+              navigate("/login");
+            }}
+            className="
+              w-full
+              flex
+              items-center
+              gap-3
+              px-4
+              py-3
+              rounded-lg
+              text-left
+              text-red-700
+              hover:bg-red-100
+              text-base
+              font-medium
+            "
+          >
+            🚪 Logout
+          </button>
         </div>
       )}
 
@@ -110,7 +146,7 @@ export default function BottomNav() {
           justify-between
         "
       >
-        {/* VAULT PUBLIC */}
+        {/* PUBLIC VAULT */}
         <button
           onClick={() => navigate("/vault/public")}
           className={`${iconBase} ${
@@ -130,7 +166,7 @@ export default function BottomNav() {
           📜
         </button>
 
-        {/* CENTER ADD */}
+        {/* ADD */}
         <button
           onClick={() => navigate("/vault/upload")}
           aria-label="Add Public Record"
@@ -164,14 +200,14 @@ export default function BottomNav() {
           🗣️
         </button>
 
-        {/* MENU */}
+        {/* MY VAULT */}
         <button
-          onClick={() => setShowMore((v) => !v)}
+          onClick={() => navigate("/vault/mine")}
           className={`${iconBase} ${
-            showMore ? iconActive : iconInactive
-          } mb-2 text-3xl`}
+            isActive("/vault/mine") ? iconActive : iconInactive
+          } mb-2 text-2xl`}
         >
-          ☰
+          🔐
         </button>
       </nav>
     </>
