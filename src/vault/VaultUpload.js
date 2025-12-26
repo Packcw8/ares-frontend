@@ -129,11 +129,73 @@ export default function VaultUpload() {
     }
   };
 
+  // =====================
+  // EVIDENCE PREVIEW RENDERER
+  // =====================
+  const renderPreview = (url) => {
+    if (!url) return null;
+    const lower = url.toLowerCase();
+
+    if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+      return (
+        <img
+          src={url}
+          alt="Evidence"
+          className="h-28 w-auto rounded-lg border"
+        />
+      );
+    }
+
+    if (lower.match(/\.(mp4|webm)$/)) {
+      return (
+        <video
+          src={url}
+          controls
+          className="h-28 rounded-lg border"
+        />
+      );
+    }
+
+    if (lower.match(/\.(mp3|wav|ogg)$/)) {
+      return (
+        <audio
+          src={url}
+          controls
+          className="w-full"
+        />
+      );
+    }
+
+    if (lower.match(/\.pdf$/)) {
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-indigo-600 text-sm underline"
+        >
+          📄 View PDF
+        </a>
+      );
+    }
+
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="text-indigo-600 text-sm underline"
+      >
+        Download file
+      </a>
+    );
+  };
+
   return (
     <Layout>
       <div className="max-w-3xl mx-auto px-4 py-10">
 
-        {/* ENTITY ANCHOR */}
+        {/* ENTITY */}
         <div className="mb-6">
           <h2 className="text-sm font-semibold mb-2">
             This record is about
@@ -163,10 +225,9 @@ export default function VaultUpload() {
           )}
         </div>
 
-        {/* MAIN RECORD CARD */}
+        {/* RECORD */}
         <div className="rounded-2xl border bg-white p-6 space-y-6">
 
-          {/* TESTIMONY */}
           <textarea
             rows={7}
             value={testimony}
@@ -175,27 +236,17 @@ export default function VaultUpload() {
             className="w-full p-4 rounded-xl border text-sm"
           />
 
-          {/* VISIBILITY */}
           <div className="flex gap-6 text-sm">
             <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                checked={!isPublic}
-                onChange={() => setIsPublic(false)}
-              />
+              <input type="radio" checked={!isPublic} onChange={() => setIsPublic(false)} />
               Private
             </label>
             <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                checked={isPublic}
-                onChange={() => setIsPublic(true)}
-              />
+              <input type="radio" checked={isPublic} onChange={() => setIsPublic(true)} />
               Public
             </label>
           </div>
 
-          {/* SAVE */}
           <button
             onClick={saveRecord}
             disabled={saving}
@@ -204,17 +255,12 @@ export default function VaultUpload() {
             {saving ? "Saving…" : isNewEntry ? "Create Record" : "Save Changes"}
           </button>
 
-          {/* EVIDENCE INLINE */}
+          {/* EVIDENCE */}
           {vaultEntryId && (
             <div className="pt-4 border-t space-y-4">
-              <h3 className="font-semibold text-sm">
-                Supporting Evidence
-              </h3>
+              <h3 className="font-semibold text-sm">Supporting Evidence</h3>
 
-              <input
-                type="file"
-                onChange={e => setFile(e.target.files[0])}
-              />
+              <input type="file" onChange={e => setFile(e.target.files[0])} />
 
               <textarea
                 rows={2}
@@ -232,24 +278,20 @@ export default function VaultUpload() {
                 {uploading ? "Uploading…" : "Attach Evidence"}
               </button>
 
+              {/* PREVIEW LINE */}
               {evidenceList.length > 0 && (
                 <div className="space-y-3 pt-2">
                   {evidenceList.map(ev => (
                     <div
                       key={ev.id}
-                      className="border rounded-lg p-3 text-sm"
+                      className="flex gap-4 items-start border rounded-lg p-3"
                     >
-                      <p className="font-medium">
-                        {ev.description || "Evidence"}
-                      </p>
-                      <a
-                        href={ev.blob_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-indigo-600"
-                      >
-                        View file
-                      </a>
+                      {renderPreview(ev.blob_url)}
+                      <div className="text-sm">
+                        <p className="font-medium">
+                          {ev.description || "Evidence"}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
