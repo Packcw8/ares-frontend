@@ -3,103 +3,73 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 import ShareButton from "../components/ShareButton";
-import { timeAgo, fullDate, dateGroup } from "../utils/time";
+import { timeAgo } from "../utils/time";
 import { displayName } from "../utils/displayName";
 
 export default function VaultPublic() {
-  const [recordList, setRecordList] = useState([]);
+  const navigate = useNavigate();
+
+  const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const navigate = useNavigate();
-
+  /* =========================
+     LOAD UNIFIED FEED
+     ========================= */
   useEffect(() => {
     api
-      .get("/vault/feed")
-      .then((res) => {
-        // ✅ SAFE NORMALIZATION (media may be missing)
-        const normalized = (res.data || []).map((ev) => ({
-          ...ev,
-          media_url: ev.blob_url || ev.media_url || null,
-        }));
-        setRecordList(normalized);
-      })
+      .get("/feed")
+      .then((res) => setFeed(res.data || []))
       .catch((err) =>
-        console.error("Failed to load public records", err)
+        console.error("Failed to load unified feed", err)
       )
       .finally(() => setLoading(false));
   }, []);
 
   /* =========================
-     SEARCH FILTER
+     SEARCH FILTER (Nextdoor-style)
      ========================= */
-  const filteredRecords = useMemo(() => {
+  const filteredFeed = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return recordList;
+    if (!q) return feed;
 
-    return recordList.filter((rec) => {
-      const entity = rec.entity || {};
-      const name = entity.name?.toLowerCase() || "";
-      const state = entity.state?.toLowerCase() || "";
-      const county = entity.county?.toLowerCase() || "";
-
-      if (q.length <= 2) {
-        return (
-          name.startsWith(q) ||
-          state.startsWith(q) ||
-          county.startsWith(q)
-        );
-      }
-
+    return feed.filter((item) => {
+      const entity = item.entity || {};
       return (
-        name.includes(q) ||
-        state.includes(q) ||
-        county.includes(q)
+        entity.name?.toLowerCase().includes(q) ||
+        entity.state?.toLowerCase().includes(q) ||
+        entity.county?.toLowerCase().includes(q) ||
+        item.title?.toLowerCase().includes(q) ||
+        item.description?.toLowerCase().includes(q)
       );
     });
-  }, [search, recordList]);
-
-  let lastDateLabel = null;
+  }, [search, feed]);
 
   return (
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* HEADER */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Public Records
+          <h1 className="text-3xl font-bold text-slate-900">
+            Community Feed
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Community-submitted records for transparency and accountability
+            Local records, ratings, and verified public posts
           </p>
-
-          {/* INFO CALLOUT */}
-          <div className="mt-3 inline-flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
-            <span className="font-semibold text-slate-700">
-              What is this?
-            </span>
-            <span>
-              Public Records are user-submitted media or written accounts
-              preserved to document experiences involving public entities or
-              officials. Submissions reflect personal perspectives and are
-              moderated for policy compliance.
-            </span>
-          </div>
         </div>
 
         {/* SEARCH */}
         <div className="mb-8">
           <input
-            type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by state, county, or entity…"
             className="
               w-full
               rounded-2xl
-              bg-slate-50
               border
               border-slate-200
+              bg-slate-50
               px-5
               py-3
               text-sm
@@ -114,175 +84,127 @@ export default function VaultPublic() {
         {/* LOADING */}
         {loading && (
           <p className="text-slate-500">
-            Loading public records…
+            Loading community activity…
           </p>
         )}
 
-        {/* EMPTY SEARCH STATE */}
-        {!loading && search.trim() && filteredRecords.length === 0 && (
-          <div className="mt-16 flex justify-center">
-            <div className="max-w-xl w-full rounded-3xl border border-slate-200 bg-slate-50 px-8 py-10 text-center shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-800">
-                No public records found
-              </h3>
-
-              <p className="mt-2 text-sm text-slate-600">
-                There are currently no public records matching{" "}
-                <span className="font-medium">“{search}”</span>.
-                You may be the first to preserve a public record for
-                transparency.
-              </p>
-
-              <button
-                onClick={() => navigate("/vault/upload")}
-                className="
-                  mt-6
-                  inline-flex
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-6
-                  py-3
-                  text-sm
-                  font-semibold
-                  text-slate-700
-                  shadow-sm
-                  transition
-                  hover:bg-slate-100
-                  focus:outline-none
-                  focus:ring-2
-                  focus:ring-indigo-500
-                "
-              >
-                + Submit a Public Record
-              </button>
-            </div>
+        {/* EMPTY */}
+        {!loading && filteredFeed.length === 0 && (
+          <div className="mt-16 text-center">
+            <p className="text-slate-500">
+              No activity found.
+            </p>
           </div>
         )}
 
-        {/* RECORD FEED */}
-        <div className="space-y-12">
-          {filteredRecords.map((rec) => {
-            const dateLabel = dateGroup(rec.created_at);
-            const showDate =
-              dateLabel && dateLabel !== lastDateLabel;
-            if (showDate) lastDateLabel = dateLabel;
-
-            return (
-              <div key={rec.id} id={`record-${rec.id}`}>
-                {showDate && (
-                  <div className="sticky top-0 z-10 bg-white/80 backdrop-blur py-2 mb-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      {dateLabel}
-                    </p>
-                  </div>
-                )}
-
-                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                  {/* ENTITY HEADER */}
-                  <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-                    <a
-                      href={`/ratings/${rec.entity?.id}`}
-                      className="text-sm font-semibold text-indigo-700 hover:underline"
-                    >
-                      {rec.entity?.name || "Unknown Entity"}
-                    </a>
-
-                    <p className="text-xs text-slate-500">
-                      {rec.entity?.county || ""}
-                      {rec.entity?.state
-                        ? `, ${rec.entity.state}`
-                        : ""}
-                    </p>
-
-                    <p className="text-xs text-slate-400 mt-1">
-                      Submitted by{" "}
-                      <span className="font-medium">
-                        {displayName(rec)}
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* MEDIA (OPTIONAL) */}
-                  <div className="bg-black">
-                    {rec.media_url &&
-                      rec.media_url.match(/\.(mp4|webm)$/i) && (
-                        <video
-                          controls
-                          preload="metadata"
-                          src={rec.media_url}
-                          className="w-full max-h-[75vh] object-contain"
-                        />
-                      )}
-
-                    {rec.media_url &&
-                      rec.media_url.match(
-                        /\.(jpe?g|png|gif)$/i
-                      ) && (
-                        <img
-                          src={rec.media_url}
-                          alt="Public record media"
-                          className="w-full max-h-[75vh] object-contain"
-                        />
-                      )}
-
-                    {rec.media_url &&
-                      rec.media_url.match(/\.(mp3|wav)$/i) && (
-                        <audio
-                          controls
-                          src={rec.media_url}
-                          className="w-full"
-                        />
-                      )}
-
-                    {rec.media_url &&
-                      !rec.media_url.match(
-                        /\.(mp4|webm|jpe?g|png|gif|mp3|wav)$/i
-                      ) && (
-                        <div className="p-4 bg-slate-100">
-                          <a
-                            href={rec.media_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-indigo-600 underline text-sm"
-                          >
-                            View attached record
-                          </a>
-                        </div>
-                      )}
-                  </div>
-
-                  {/* DESCRIPTION */}
-                  {rec.description && (
-                    <div className="px-6 py-5">
-                      <p className="text-sm text-slate-800 leading-relaxed">
-                        {rec.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* FOOTER */}
-                  <div className="px-6 pb-5 flex justify-between items-center">
-                    <ShareButton
-                      url={`/vault/public#record-${rec.id}`}
-                      label="Share record"
-                    />
-                    <span
-                      className="text-xs text-slate-400"
-                      title={fullDate(rec.created_at)}
-                    >
-                      Submitted {timeAgo(rec.created_at)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        {/* FEED */}
+        <div className="space-y-6">
+          {filteredFeed.map((item, idx) => (
+            <FeedCard
+              key={`${item.type}-${idx}`}
+              item={item}
+              navigate={navigate}
+            />
+          ))}
         </div>
       </div>
     </Layout>
+  );
+}
+
+/* ======================================================
+   FEED CARD (Nextdoor-style)
+   ====================================================== */
+function FeedCard({ item, navigate }) {
+  const entity = item.entity;
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      {/* HEADER */}
+      <div className="px-6 py-4 border-b bg-slate-50">
+        {entity && (
+          <>
+            <button
+              onClick={() => navigate(`/ratings/${entity.id}`)}
+              className="text-sm font-semibold text-indigo-700 hover:underline"
+            >
+              {entity.name}
+            </button>
+            <p className="text-xs text-slate-500">
+              {entity.county}
+              {entity.state ? `, ${entity.state}` : ""}
+            </p>
+          </>
+        )}
+
+        {!entity && item.type === "entity_created" && (
+          <p className="text-sm font-semibold text-slate-700">
+            New entity added
+          </p>
+        )}
+
+        <p className="text-xs text-slate-400 mt-1">
+          {item.user
+            ? `Posted by ${displayName(item)}`
+            : "System event"}{" "}
+          · {timeAgo(item.created_at)}
+        </p>
+      </div>
+
+      {/* BODY */}
+      <div className="px-6 py-5 space-y-3">
+        {item.type === "vault_record" && (
+          <p className="text-sm text-slate-800">
+            {item.description}
+          </p>
+        )}
+
+        {item.type === "entity_created" && (
+          <p className="text-sm text-slate-800">
+            A new public entity is now available for review and
+            rating.
+          </p>
+        )}
+
+        {item.type === "rating" && (
+          <p className="text-sm text-slate-800">
+            New rating submitted.
+            {item.rating?.comment && (
+              <>
+                <br />
+                <span className="italic opacity-80">
+                  “{item.rating.comment}”
+                </span>
+              </>
+            )}
+          </p>
+        )}
+
+        {item.type === "forum_post" && (
+          <>
+            <h3 className="font-semibold text-slate-900">
+              {item.title}
+            </h3>
+            <p className="text-sm text-slate-800">
+              {item.body}
+            </p>
+          </>
+        )}
+      </div>
+
+      {/* FOOTER */}
+      <div className="px-6 pb-5 flex justify-between items-center">
+        <ShareButton
+          url={`/feed`}
+          label="Share"
+        />
+
+        {item.type === "forum_post" && item.is_ama && (
+          <span className="text-xs font-semibold text-indigo-600">
+            AMA
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
