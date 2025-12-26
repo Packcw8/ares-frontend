@@ -1,264 +1,168 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
+import ShareButton from "../components/ShareButton";
+import { timeAgo } from "../utils/time";
+import { displayName } from "../utils/displayName";
 
-export default function VaultUpload() {
+export default function VaultPublic() {
   const navigate = useNavigate();
-  const locationState = useLocation().state;
 
-  const initialEntryId = locationState?.vault_entry_id || null;
-  const [vaultEntryId, setVaultEntryId] = useState(initialEntryId);
-  const isNewEntry = !vaultEntryId;
+  const [feed, setFeed] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
-  // =====================
-  // CORE RECORD STATE
-  // =====================
-  const [testimony, setTestimony] = useState("");
-  const [entityId, setEntityId] = useState(null);
-  const [entityLabel, setEntityLabel] = useState("");
-  const [entitySearch, setEntitySearch] = useState("");
-  const [entityResults, setEntityResults] = useState([]);
-  const [allEntities, setAllEntities] = useState([]);
-
-  const [isPublic, setIsPublic] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  // =====================
-  // EVIDENCE
-  // =====================
-  const [files, setFiles] = useState([]);
-  const [evidenceNote, setEvidenceNote] = useState("");
-  const [evidenceList, setEvidenceList] = useState([]);
-  const [uploading, setUploading] = useState(false);
-
-  // =====================
-  // LOAD ENTITIES
-  // =====================
+  /* =========================
+     LOAD FEED
+     ========================= */
   useEffect(() => {
-    api.get("/ratings/entities").then(res => {
-      setAllEntities(res.data || []);
-    });
+    api.get("/feed")
+      .then(res => setFeed(res.data || []))
+      .catch(err => console.error("Failed to load feed", err))
+      .finally(() => setLoading(false));
   }, []);
 
-  // =====================
-  // ENTITY SEARCH
-  // =====================
-  useEffect(() => {
-    if (entitySearch.length < 2) {
-      setEntityResults([]);
-      return;
-    }
-    const q = entitySearch.toLowerCase();
-    setEntityResults(
-      allEntities.filter(e => e.name.toLowerCase().includes(q)).slice(0, 8)
-    );
-  }, [entitySearch, allEntities]);
+  /* =========================
+     SEARCH FILTER
+     ========================= */
+  const filteredFeed = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return feed;
 
-  // =====================
-  // LOAD ENTRY
-  // =====================
-  useEffect(() => {
-    if (!vaultEntryId) return;
-    Promise.all([
-      api.get("/vault-entries/mine"),
-      api.get(`/vault-entries/${vaultEntryId}/evidence`)
-    ]).then(([entriesRes, evidenceRes]) => {
-      const entry = entriesRes.data.find(e => e.id === Number(vaultEntryId));
-      if (!entry) return navigate("/vault/mine");
-      setTestimony(entry.testimony);
-      setEntityId(entry.entity_id);
-      setIsPublic(entry.is_public);
-      const ent = allEntities.find(e => e.id === entry.entity_id);
-      if (ent) setEntityLabel(ent.name);
-      setEvidenceList(evidenceRes.data || []);
+    return feed.filter(item => {
+      const e = item.entity || {};
+      return (
+        e.name?.toLowerCase().includes(q) ||
+        e.state?.toLowerCase().includes(q) ||
+        e.county?.toLowerCase().includes(q) ||
+        item.title?.toLowerCase().includes(q) ||
+        item.description?.toLowerCase().includes(q)
+      );
     });
-  }, [vaultEntryId, allEntities, navigate]);
-
-  // =====================
-  // SAVE RECORD
-  // =====================
-  const saveRecord = async () => {
-    if (!entityId || !testimony.trim()) return alert("Entity & testimony required");
-    setSaving(true);
-    try {
-      if (isNewEntry) {
-        const res = await api.post("/vault-entries", {
-          entity_id: entityId,
-          testimony,
-          is_public: isPublic
-        });
-        setVaultEntryId(res.data.id);
-        navigate("/vault/upload", { state: { vault_entry_id: res.data.id }, replace: true });
-      } else {
-        await api.patch(`/vault-entries/${vaultEntryId}`, {
-          entity_id: entityId,
-          testimony,
-          is_public: isPublic
-        });
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // =====================
-  // DRAG & DROP
-  // =====================
-  const onDrop = useCallback((e) => {
-    e.preventDefault();
-    setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
-  }, []);
-
-  // =====================
-  // UPLOAD FILES
-  // =====================
-  const uploadEvidence = async () => {
-    if (!vaultEntryId || files.length === 0) return;
-    setUploading(true);
-    try {
-      for (const file of files) {
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("description", evidenceNote);
-        fd.append("vault_entry_id", vaultEntryId);
-
-        await api.post("/vault", fd, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-      }
-      setFiles([]);
-      setEvidenceNote("");
-      const res = await api.get(`/vault-entries/${vaultEntryId}/evidence`);
-      setEvidenceList(res.data || []);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const renderPreview = (url) => {
-    if (!url) return null;
-    const l = url.toLowerCase();
-    if (/\.(jpg|png|jpeg|webp|gif)$/.test(l)) return <img src={url} className="h-24 rounded" />;
-    if (/\.(mp4|webm)$/.test(l)) return <video src={url} controls className="h-24 rounded" />;
-    if (/\.(mp3|wav|ogg)$/.test(l)) return <audio src={url} controls />;
-    return <a href={url} target="_blank" rel="noreferrer" className="text-indigo-600">Download</a>;
-  };
+  }, [search, feed]);
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
 
-        {/* ENTITY */}
-        <div>
-          <h2 className="text-xs font-semibold mb-1">This record is about</h2>
-          <input
-            value={entitySearch}
-            onChange={e => setEntitySearch(e.target.value)}
-            placeholder="Search entity…"
-            className="w-full p-3 rounded-xl border"
-          />
-          {entityResults.length > 0 && (
-            <div className="border rounded-xl mt-2 bg-white shadow">
-              {entityResults.map(ent => (
-                <div
-                  key={ent.id}
-                  onClick={() => {
-                    setEntityId(ent.id);
-                    setEntityLabel(ent.name);
-                    setEntitySearch(ent.name);
-                    setEntityResults([]);
-                  }}
-                  className="px-4 py-2 hover:bg-slate-100 cursor-pointer text-sm"
-                >
-                  {ent.name} · {ent.state}
-                </div>
-              ))}
-            </div>
-          )}
-          {entityId && <p className="text-xs text-slate-500">Selected: {entityLabel}</p>}
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Community Feed</h1>
+            <p className="text-sm text-slate-500">Public records and community activity</p>
+          </div>
         </div>
 
-        {/* RECORD */}
-        <div className="rounded-2xl border bg-white p-6 space-y-6 shadow-sm">
-          <textarea
-            rows={6}
-            value={testimony}
-            onChange={e => setTestimony(e.target.value)}
-            placeholder="Describe what happened…"
-            className="w-full p-4 rounded-xl border"
+        {/* SEARCH BAR */}
+        <div className="sticky top-2 z-10 bg-white/80 backdrop-blur rounded-2xl p-3 shadow-sm">
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search entities, locations, or text…"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+        </div>
 
-          <div className="flex gap-6 text-sm">
-            <label><input type="radio" checked={!isPublic} onChange={() => setIsPublic(false)} /> Private</label>
-            <label><input type="radio" checked={isPublic} onChange={() => setIsPublic(true)} /> Public</label>
-          </div>
+        {/* LOADING */}
+        {loading && (
+          <p className="text-slate-500">Loading activity…</p>
+        )}
 
-          <button onClick={saveRecord} disabled={saving} className="text-indigo-600 font-semibold">
-            {saving ? "Saving…" : isNewEntry ? "Create Record" : "Save Changes"}
-          </button>
+        {/* EMPTY */}
+        {!loading && filteredFeed.length === 0 && (
+          <div className="py-20 text-center text-slate-500">No activity found.</div>
+        )}
 
-          {/* EVIDENCE */}
-          <div className="pt-4 border-t space-y-4">
-            <h3 className="text-sm font-semibold">Evidence</h3>
-
-            {!vaultEntryId && (
-              <p className="text-xs text-slate-500">Create the record first to upload evidence.</p>
-            )}
-
-            {vaultEntryId && (
-              <>
-                <div
-                  onDrop={onDrop}
-                  onDragOver={e => e.preventDefault()}
-                  className="border-2 border-dashed rounded-xl p-6 text-center text-sm text-slate-500"
-                >
-                  Drag & drop files here or click to select
-                  <input
-                    type="file"
-                    multiple
-                    onChange={e => setFiles(Array.from(e.target.files))}
-                    className="hidden"
-                  />
-                </div>
-
-                {files.length > 0 && (
-                  <ul className="text-xs">
-                    {files.map((f, i) => <li key={i}>{f.name}</li>)}
-                  </ul>
-                )}
-
-                <textarea
-                  rows={2}
-                  value={evidenceNote}
-                  onChange={e => setEvidenceNote(e.target.value)}
-                  placeholder="Why this evidence matters"
-                  className="w-full p-3 rounded-lg border text-sm"
-                />
-
-                <button
-                  onClick={uploadEvidence}
-                  disabled={uploading}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
-                >
-                  {uploading ? "Uploading…" : "Upload Evidence"}
-                </button>
-
-                {evidenceList.length > 0 && (
-                  <div className="space-y-3">
-                    {evidenceList.map(ev => (
-                      <div key={ev.id} className="flex gap-4 items-start border rounded-lg p-3">
-                        {renderPreview(ev.blob_url)}
-                        <p className="text-sm">{ev.description || "Evidence"}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+        {/* FEED */}
+        <div className="space-y-6">
+          {filteredFeed.map((item, idx) => (
+            <FeedCard
+              key={`${item.type}-${idx}`}
+              item={item}
+              navigate={navigate}
+            />
+          ))}
         </div>
       </div>
     </Layout>
+  );
+}
+
+/* ======================================================
+   FEED CARD – MODERN WALL STYLE
+   ====================================================== */
+function FeedCard({ item, navigate }) {
+  const entity = item.entity;
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+
+      {/* HEADER */}
+      <div className="flex items-start gap-4 px-5 py-4 border-b bg-slate-50">
+        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700">
+          {entity?.name?.charAt(0) || "A"}
+        </div>
+
+        <div className="flex-1">
+          {entity && (
+            <button
+              onClick={() => navigate(`/ratings/${entity.id}`)}
+              className="text-sm font-semibold text-slate-900 hover:underline"
+            >
+              {entity.name}
+            </button>
+          )}
+
+          {!entity && (
+            <p className="text-sm font-semibold text-slate-700">System Activity</p>
+          )}
+
+          <p className="text-xs text-slate-500">
+            {item.user ? displayName(item) : "System"} · {timeAgo(item.created_at)}
+          </p>
+        </div>
+      </div>
+
+      {/* BODY */}
+      <div className="px-5 py-4 space-y-3">
+        {item.type === "vault_record" && (
+          <p className="text-sm text-slate-800 whitespace-pre-line">
+            {item.description}
+          </p>
+        )}
+
+        {item.type === "entity_created" && (
+          <p className="text-sm text-slate-800">
+            A new public entity has been added and is now available for review.
+          </p>
+        )}
+
+        {item.type === "rating" && (
+          <p className="text-sm text-slate-800">
+            A new rating was submitted.
+            {item.rating?.comment && (
+              <span className="block italic opacity-80 mt-1">“{item.rating.comment}”</span>
+            )}
+          </p>
+        )}
+
+        {item.type === "forum_post" && (
+          <>
+            <h3 className="font-semibold text-slate-900">{item.title}</h3>
+            <p className="text-sm text-slate-800 whitespace-pre-line">{item.body}</p>
+          </>
+        )}
+      </div>
+
+      {/* FOOTER */}
+      <div className="flex justify-between items-center px-5 py-3 border-t bg-slate-50">
+        <ShareButton url="/feed" label="Share" />
+
+        {item.type === "forum_post" && item.is_ama && (
+          <span className="text-xs font-semibold text-indigo-600">AMA</span>
+        )}
+      </div>
+    </div>
   );
 }
