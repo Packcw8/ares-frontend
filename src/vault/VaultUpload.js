@@ -12,10 +12,10 @@ export default function VaultUpload() {
   const isNewEntry = !vaultEntryId;
 
   // =====================
-  // CORE STATE
+  // CORE RECORD STATE
   // =====================
   const [testimony, setTestimony] = useState("");
-  const [entityId, setEntityId] = useState("");
+  const [entityId, setEntityId] = useState(null);
   const [entitySearch, setEntitySearch] = useState("");
   const [entityResults, setEntityResults] = useState([]);
   const [isPublic, setIsPublic] = useState(false);
@@ -39,12 +39,14 @@ export default function VaultUpload() {
       api.get("/vault-entries/mine"),
       api.get(`/vault-entries/${vaultEntryId}/evidence`)
     ])
-      .then(([entryRes, evidenceRes]) => {
-        const entry = entryRes.data.find(e => e.id === Number(vaultEntryId));
-        if (!entry) throw new Error("Not found");
+      .then(([entriesRes, evidenceRes]) => {
+        const entry = entriesRes.data.find(
+          e => e.id === Number(vaultEntryId)
+        );
+        if (!entry) return navigate("/vault/mine");
 
-        setTestimony(entry.testimony || "");
-        setEntityId(entry.entity_id || "");
+        setTestimony(entry.testimony);
+        setEntityId(entry.entity_id);
         setIsPublic(entry.is_public);
         setEvidenceList(evidenceRes.data || []);
       })
@@ -66,9 +68,9 @@ export default function VaultUpload() {
   }, [entitySearch]);
 
   // =====================
-  // SAVE ENTRY
+  // SAVE RECORD
   // =====================
-  const saveEntry = async () => {
+  const saveRecord = async () => {
     if (!entityId || !testimony.trim()) {
       alert("Entity and testimony are required.");
       return;
@@ -103,7 +105,7 @@ export default function VaultUpload() {
   // =====================
   // UPLOAD EVIDENCE
   // =====================
-  const uploadEvidence = async () => {
+  const addEvidence = async () => {
     if (!file || !vaultEntryId) return;
 
     setUploading(true);
@@ -114,10 +116,13 @@ export default function VaultUpload() {
       fd.append("vault_entry_id", vaultEntryId);
 
       await api.post("/vault", fd);
+
       setFile(null);
       setEvidenceNote("");
 
-      const res = await api.get(`/vault-entries/${vaultEntryId}/evidence`);
+      const res = await api.get(
+        `/vault-entries/${vaultEntryId}/evidence`
+      );
       setEvidenceList(res.data || []);
     } finally {
       setUploading(false);
@@ -126,19 +131,21 @@ export default function VaultUpload() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <div className="max-w-3xl mx-auto px-4 py-10">
 
-        {/* ENTITY */}
-        <div className="rounded-2xl border bg-white p-5">
-          <h2 className="font-semibold mb-2">Who is this about?</h2>
+        {/* ENTITY ANCHOR */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold mb-2">
+            This record is about
+          </h2>
           <input
             value={entitySearch}
             onChange={e => setEntitySearch(e.target.value)}
             placeholder="Search official, agency, or institution…"
-            className="w-full p-3 rounded-lg border"
+            className="w-full p-3 rounded-xl border"
           />
           {entityResults.length > 0 && (
-            <div className="border rounded-lg mt-2 bg-white shadow">
+            <div className="border rounded-xl mt-2 bg-white shadow">
               {entityResults.map(ent => (
                 <div
                   key={ent.id}
@@ -147,7 +154,7 @@ export default function VaultUpload() {
                     setEntitySearch(ent.name);
                     setEntityResults([]);
                   }}
-                  className="px-3 py-2 hover:bg-slate-100 cursor-pointer text-sm"
+                  className="px-4 py-2 hover:bg-slate-100 cursor-pointer text-sm"
                 >
                   {ent.name} · {ent.state}
                 </div>
@@ -156,74 +163,100 @@ export default function VaultUpload() {
           )}
         </div>
 
-        {/* TESTIMONY */}
-        <div className="rounded-2xl border bg-white p-5 space-y-4">
-          <h2 className="font-semibold">What happened?</h2>
+        {/* MAIN RECORD CARD */}
+        <div className="rounded-2xl border bg-white p-6 space-y-6">
+
+          {/* TESTIMONY */}
           <textarea
             rows={7}
             value={testimony}
             onChange={e => setTestimony(e.target.value)}
-            placeholder="Write your account in your own words…"
-            className="w-full p-4 rounded-xl border"
+            placeholder="Write what happened. This is the core record."
+            className="w-full p-4 rounded-xl border text-sm"
           />
 
+          {/* VISIBILITY */}
           <div className="flex gap-6 text-sm">
             <label className="flex items-center gap-2">
-              <input type="radio" checked={!isPublic} onChange={() => setIsPublic(false)} />
+              <input
+                type="radio"
+                checked={!isPublic}
+                onChange={() => setIsPublic(false)}
+              />
               Private
             </label>
             <label className="flex items-center gap-2">
-              <input type="radio" checked={isPublic} onChange={() => setIsPublic(true)} />
+              <input
+                type="radio"
+                checked={isPublic}
+                onChange={() => setIsPublic(true)}
+              />
               Public
             </label>
           </div>
 
+          {/* SAVE */}
           <button
-            onClick={saveEntry}
+            onClick={saveRecord}
             disabled={saving}
-            className="text-indigo-600 font-semibold"
+            className="text-indigo-600 font-semibold text-sm"
           >
-            {saving ? "Saving…" : "Save Record"}
+            {saving ? "Saving…" : isNewEntry ? "Create Record" : "Save Changes"}
           </button>
+
+          {/* EVIDENCE INLINE */}
+          {vaultEntryId && (
+            <div className="pt-4 border-t space-y-4">
+              <h3 className="font-semibold text-sm">
+                Supporting Evidence
+              </h3>
+
+              <input
+                type="file"
+                onChange={e => setFile(e.target.files[0])}
+              />
+
+              <textarea
+                rows={2}
+                value={evidenceNote}
+                onChange={e => setEvidenceNote(e.target.value)}
+                placeholder="Why this evidence matters"
+                className="w-full p-3 rounded-lg border text-sm"
+              />
+
+              <button
+                onClick={addEvidence}
+                disabled={uploading}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm"
+              >
+                {uploading ? "Uploading…" : "Attach Evidence"}
+              </button>
+
+              {evidenceList.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  {evidenceList.map(ev => (
+                    <div
+                      key={ev.id}
+                      className="border rounded-lg p-3 text-sm"
+                    >
+                      <p className="font-medium">
+                        {ev.description || "Evidence"}
+                      </p>
+                      <a
+                        href={ev.blob_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-indigo-600"
+                      >
+                        View file
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
-
-        {/* EVIDENCE */}
-        {vaultEntryId && (
-          <div className="rounded-2xl border bg-white p-5 space-y-4">
-            <h2 className="font-semibold">Attach Evidence</h2>
-
-            <input type="file" onChange={e => setFile(e.target.files[0])} />
-            <textarea
-              rows={2}
-              value={evidenceNote}
-              onChange={e => setEvidenceNote(e.target.value)}
-              placeholder="Why this evidence matters…"
-              className="w-full p-3 rounded-lg border"
-            />
-
-            <button
-              onClick={uploadEvidence}
-              disabled={uploading}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
-            >
-              {uploading ? "Uploading…" : "Attach Evidence"}
-            </button>
-
-            {evidenceList.length > 0 && (
-              <div className="space-y-3">
-                {evidenceList.map(ev => (
-                  <div key={ev.id} className="border rounded-lg p-3 text-sm">
-                    <p className="font-medium">{ev.description || "Evidence"}</p>
-                    <a href={ev.blob_url} target="_blank" rel="noreferrer" className="text-indigo-600">
-                      View file
-                    </a>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
       </div>
     </Layout>
   );
