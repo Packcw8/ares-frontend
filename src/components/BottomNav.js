@@ -14,91 +14,61 @@ export default function BottomNav() {
 
   const isActive = (path) => location.pathname.startsWith(path);
 
-  const iconBase =
-    "flex flex-col items-center justify-center transition-all duration-200";
-
-  const iconActive =
-    "text-[#f5ecd9] scale-110 drop-shadow-[0_0_6px_rgba(245,236,217,0.8)]";
-
-  const iconInactive = "text-white/70 hover:text-white";
+  const base = "flex flex-col items-center justify-center transition-all duration-200";
+  const active = "text-indigo-600 scale-110";
+  const inactive = "text-slate-400 hover:text-slate-600";
 
   return (
-    <nav
-      className="
-        fixed
-        bottom-0
-        left-0
-        right-0
-        bg-[#2c1b0f]
-        border-t
-        border-[#c2a76d]
-        z-40
-        h-24
-        pb-8
-        px-8
-        flex
-        items-end
-        justify-between
-      "
-    >
-      <button
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur border-t border-slate-200 h-20 px-6 flex items-center justify-between">
+
+      <NavButton
+        label="Public"
+        icon="📂"
         onClick={() => navigate("/vault/public")}
-        className={`${iconBase} ${
-          isActive("/vault/public") ? iconActive : iconInactive
-        } mb-2 text-2xl`}
-      >
-        📂
-      </button>
+        active={isActive("/vault/public")}
+      />
 
-      <button
+      <NavButton
+        label="Ratings"
+        icon="📜"
         onClick={() => navigate("/ratings")}
-        className={`${iconBase} ${
-          isActive("/ratings") ? iconActive : iconInactive
-        } mb-2 text-2xl`}
-      >
-        📜
-      </button>
+        active={isActive("/ratings")}
+      />
 
+      {/* CENTER ACTION */}
       <button
         onClick={() => navigate("/vault/upload")}
-        aria-label="Add Public Record"
-        className="
-          -mt-12
-          h-16
-          w-16
-          rounded-full
-          bg-[#8b1e3f]
-          hover:bg-[#72162f]
-          border-4
-          border-[#f5ecd9]
-          text-white
-          text-4xl
-          flex
-          items-center
-          justify-center
-          shadow-2xl
-        "
+        aria-label="Add Record"
+        className="-mt-8 h-16 w-16 rounded-full bg-indigo-600 text-white text-3xl flex items-center justify-center shadow-xl active:scale-95"
       >
         +
       </button>
 
-      <button
+      <NavButton
+        label="Forum"
+        icon="💬"
         onClick={() => navigate("/forum")}
-        className={`${iconBase} ${
-          isActive("/forum") ? iconActive : iconInactive
-        } mb-2 text-2xl`}
-      >
-        🗣️
-      </button>
+        active={isActive("/forum")}
+      />
 
-      <button
+      <NavButton
+        label="My Vault"
+        icon="🔒"
         onClick={() => navigate("/vault/mine")}
-        className={`${iconBase} ${
-          isActive("/vault/mine") ? iconActive : iconInactive
-        } mb-2 text-2xl`}
-      >
-        🔐
-      </button>
+        active={isActive("/vault/mine")}
+      />
     </nav>
+  );
+}
+
+function NavButton({ icon, label, onClick, active }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center text-xs ${active ? "text-indigo-600" : "text-slate-400"}`}
+    >
+      <span className="text-xl leading-none">{icon}</span>
+      <span className="mt-1">{label}</span>
+    </button>
   );
 }
