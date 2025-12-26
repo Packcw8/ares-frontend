@@ -36,7 +36,7 @@ export default function Layout({ children }) {
   /* Show hamburger only when near top */
   useEffect(() => {
     const handleScroll = () => {
-      setShowHamburger(window.scrollY < 40);
+      setShowHamburger(window.scrollY < 48);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -45,9 +45,7 @@ export default function Layout({ children }) {
 
   /* Auto-close menu if hamburger hides */
   useEffect(() => {
-    if (!showHamburger) {
-      setShowMenu(false);
-    }
+    if (!showHamburger) setShowMenu(false);
   }, [showHamburger]);
 
   const randomQuote = useMemo(
@@ -59,116 +57,51 @@ export default function Layout({ children }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif relative">
-      {/* 🔒 GLOBAL HAMBURGER (TOP ONLY) */}
+    <div className="min-h-screen bg-gradient-to-b from-[#f7f5ef] to-[#efe9dc] text-slate-900 relative font-sans">
+      {/* HAMBURGER */}
       {shouldShowHamburger && (
         <>
           <button
             onClick={() => setShowMenu(true)}
             aria-label="Open menu"
-            className="
-              fixed
-              top-3
-              right-3
-              z-[10000]
-              h-12
-              w-12
-              rounded-full
-              bg-[#2c1b0f]
-              border
-              border-[#c2a76d]
-              text-[#f5ecd9]
-              text-2xl
-              flex
-              items-center
-              justify-center
-              shadow-2xl
-              hover:scale-105
-              transition
-            "
+            className="fixed top-4 right-4 z-[10000] h-12 w-12 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg transition hover:scale-105"
           >
             ☰
           </button>
 
           {showMenu && (
             <div className="fixed inset-0 z-[9999]">
-              {/* Overlay */}
               <div
-                className="absolute inset-0 bg-black/40"
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                 onClick={() => setShowMenu(false)}
               />
 
-              {/* Menu */}
-              <div
-                className="
-                  absolute
-                  top-16
-                  right-3
-                  w-64
-                  bg-[#f5ecd9]
-                  border
-                  border-[#c2a76d]
-                  rounded-xl
-                  shadow-2xl
-                  p-2
-                  space-y-1
-                "
-              >
-                {[
-                  { label: "About ARES", path: "/about", icon: "🏛️" },
-                  { label: "Know Your Rights", path: "/rights", icon: "⚖️" },
-                  { label: "Community Rules", path: "/rules", icon: "📜" },
-                  { label: "Privacy Policy", path: "/privacy", icon: "📄" },
-                  { label: "Terms of Use", path: "/terms", icon: "🛡️" },
-                ].map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setShowMenu(false);
-                      navigate(item.path);
-                    }}
-                    className="
-                      w-full
-                      flex
-                      items-center
-                      gap-3
-                      px-4
-                      py-3
-                      rounded-lg
-                      text-left
-                      text-[#3a2f1b]
-                      hover:bg-[#ede3cb]
-                      text-base
-                    "
-                  >
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="font-medium">{item.label}</span>
-                  </button>
-                ))}
+              <div className="absolute top-20 right-4 w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2">
+                {["About ARES", "Know Your Rights", "Community Rules", "Privacy Policy", "Terms of Use"].map(
+                  (label, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setShowMenu(false);
+                        navigate(`/${label.toLowerCase().replace(/\s+/g, "")}`);
+                      }}
+                      className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-100"
+                    >
+                      {label}
+                    </button>
+                  )
+                )}
 
-                <hr className="my-2 border-[#c2a76d]" />
+                <hr className="my-2" />
 
                 <button
                   onClick={() => {
                     setShowMenu(false);
                     handleLogout();
                   }}
-                  className="
-                    w-full
-                    flex
-                    items-center
-                    gap-3
-                    px-4
-                    py-3
-                    rounded-lg
-                    text-left
-                    text-red-700
-                    hover:bg-red-100
-                    text-base
-                    font-medium
-                  "
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50"
                 >
-                  🚪 Logout
+                  Logout
                 </button>
               </div>
             </div>
@@ -176,42 +109,31 @@ export default function Layout({ children }) {
         </>
       )}
 
-      {/* PAGE CONTENT */}
-      <div
-        className="
-          mx-auto
-          w-full
-          max-w-7xl
-          px-4 sm:px-6 lg:px-10
-          pt-6
-          pb-28 md:pb-10
-        "
-      >
+      {/* PAGE WRAPPER */}
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10 pt-6 pb-28 md:pb-10">
         {/* HEADER */}
-        <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 border-b border-[#c2a76d] pb-4">
+        <header className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <img
               src={aresLogo}
               alt="ARES"
-              className="h-12 w-12 rounded-full border border-[#3a2f1b] shadow-sm"
+              className="h-12 w-12 rounded-full shadow-md"
             />
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-[#3a2f1b] tracking-wide">
-                ARES
-              </h1>
-              <p className="text-xs md:text-sm italic text-[#5a4635] max-w-xl">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">ARES</h1>
+              <p className="text-xs md:text-sm text-slate-600 italic max-w-xl">
                 “{randomQuote.quote}” — {randomQuote.author}
               </p>
             </div>
           </div>
         </header>
 
+        {/* CONTENT */}
         <main className="space-y-6">{children}</main>
 
-        <footer className="mt-12 border-t border-[#c2a76d] pt-6 text-center text-xs text-[#5a4635] space-y-3">
-          <p className="opacity-80">
-            © 2025 ARES — Upholding Justice, Defending the Constitution.
-          </p>
+        {/* FOOTER */}
+        <footer className="mt-14 border-t border-slate-200 pt-6 text-center text-xs text-slate-500 space-y-2">
+          <p>© 2025 ARES — Accountability through transparency.</p>
         </footer>
       </div>
 
