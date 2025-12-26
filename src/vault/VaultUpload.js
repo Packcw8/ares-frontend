@@ -7,23 +7,20 @@ export default function VaultUpload() {
   const navigate = useNavigate();
   const locationState = useLocation().state;
 
-  // ======================================================
-  // VAULT ENTRY CONTEXT
-  // ======================================================
   const initialEntryId = locationState?.vault_entry_id || null;
   const [vaultEntryId, setVaultEntryId] = useState(initialEntryId);
   const isNewEntry = !vaultEntryId;
 
-  // ======================================================
-  // VAULT ENTRY STATE
-  // ======================================================
+  // =====================
+  // Vault entry state
+  // =====================
   const [testimony, setTestimony] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
 
-  // ======================================================
-  // EVIDENCE STATE
-  // ======================================================
+  // =====================
+  // Evidence state
+  // =====================
   const [file, setFile] = useState(null);
   const [evidenceNote, setEvidenceNote] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -130,32 +127,89 @@ export default function VaultUpload() {
     }
   };
 
+  // ======================================================
+  // MEDIA PREVIEW RENDERER
+  // ======================================================
+  const renderPreview = (url) => {
+    if (!url) return null;
+    const lower = url.toLowerCase();
+
+    if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+      return (
+        <img
+          src={url}
+          alt="Evidence"
+          className="mt-2 max-h-64 rounded-lg border"
+        />
+      );
+    }
+
+    if (lower.match(/\.(mp4|webm)$/)) {
+      return (
+        <video
+          src={url}
+          controls
+          className="mt-2 max-h-64 rounded-lg border"
+        />
+      );
+    }
+
+    if (lower.match(/\.(mp3|wav|ogg)$/)) {
+      return (
+        <audio
+          src={url}
+          controls
+          className="mt-2 w-full"
+        />
+      );
+    }
+
+    if (lower.match(/\.pdf$/)) {
+      return (
+        <div className="mt-2">
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm text-indigo-600 underline"
+          >
+            📄 View PDF
+          </a>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-2">
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm text-indigo-600 underline"
+        >
+          Download file
+        </a>
+      </div>
+    );
+  };
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-12">
 
-        {/* ======================================================
-            TESTIMONY (PRIMARY RECORD)
-           ====================================================== */}
+        {/* ===================== TESTIMONY ===================== */}
         <section className="rounded-2xl border bg-white p-6 shadow-sm space-y-5">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">
-              Testimony
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              This is the written record. Attach media below as evidence.
-            </p>
-          </div>
+          <h1 className="text-xl font-semibold">Testimony</h1>
 
           <textarea
             value={testimony}
             onChange={(e) => setTestimony(e.target.value)}
             rows={6}
-            placeholder="Describe what happened, in your own words…"
-            className="w-full p-4 rounded-xl border text-sm leading-relaxed"
+            placeholder="Describe what happened…"
+            className="w-full p-4 rounded-xl border text-sm"
           />
 
-          <div className="flex flex-wrap gap-6 items-center pt-2">
+          <div className="flex gap-6 items-center">
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="radio"
@@ -175,7 +229,7 @@ export default function VaultUpload() {
             </label>
 
             <span className="text-xs text-slate-500">
-              All attached evidence follows this setting
+              Evidence inherits visibility
             </span>
           </div>
 
@@ -192,33 +246,21 @@ export default function VaultUpload() {
           </button>
         </section>
 
-        {/* ======================================================
-            ATTACH EVIDENCE
-           ====================================================== */}
+        {/* ===================== ATTACH EVIDENCE ===================== */}
         <section className="space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold">
-              Attach Evidence
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Upload photos, videos, audio, or documents that support this testimony.
-            </p>
-          </div>
+          <h2 className="text-lg font-semibold">Attach Evidence</h2>
 
           <form onSubmit={submitEvidence} className="space-y-6">
             <div className="rounded-3xl border bg-slate-50 p-10 text-center">
               <label className="cursor-pointer block">
                 <div className="text-5xl mb-3">📎</div>
-                <p className="text-sm font-medium">
-                  Click to attach evidence
-                </p>
+                <p className="text-sm">Click to attach media or documents</p>
                 <input
                   type="file"
                   className="hidden"
                   onChange={(e) => setFile(e.target.files[0])}
                 />
               </label>
-
               {file && (
                 <p className="text-xs mt-3 text-slate-600">
                   Selected: {file.name}
@@ -227,7 +269,7 @@ export default function VaultUpload() {
             </div>
 
             <textarea
-              placeholder="Optional note about this piece of evidence"
+              placeholder="Optional note about this evidence"
               value={evidenceNote}
               onChange={(e) => setEvidenceNote(e.target.value)}
               rows={2}
@@ -246,9 +288,7 @@ export default function VaultUpload() {
           </form>
         </section>
 
-        {/* ======================================================
-            ATTACHED EVIDENCE LIST
-           ====================================================== */}
+        {/* ===================== EVIDENCE LIST ===================== */}
         {vaultEntryId && (
           <section className="space-y-4">
             <h3 className="font-semibold">
@@ -260,17 +300,11 @@ export default function VaultUpload() {
                 key={e.id}
                 className="rounded-xl border bg-white p-4"
               >
-                <p className="text-sm truncate">
-                  {e.description || "Evidence file"}
+                <p className="text-sm font-medium">
+                  {e.description || "Evidence"}
                 </p>
-                <a
-                  href={e.blob_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-indigo-600 underline"
-                >
-                  View
-                </a>
+
+                {renderPreview(e.blob_url)}
               </div>
             ))}
           </section>
