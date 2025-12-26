@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import React, { useMemo, useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import aresLogo from "../assets/areslogo.png";
 import { constitutionalQuotes } from "../data/constitutionalQuotes";
 import BottomNav from "./BottomNav";
@@ -12,13 +12,43 @@ export default function Layout({ children }) {
   const isAuthenticated = !!token;
 
   const [showMenu, setShowMenu] = useState(false);
+  const [showHamburger, setShowHamburger] = useState(true);
 
-  const showBottomNav = !["/login", "/signup"].includes(location.pathname);
+  const hideHamburgerRoutes = ["/login", "/signup"];
+
+  const shouldShowHamburger =
+    isAuthenticated &&
+    showHamburger &&
+    !hideHamburgerRoutes.includes(location.pathname);
+
+  const showBottomNav = !hideHamburgerRoutes.includes(location.pathname);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
+
+  /* Close menu on route change */
+  useEffect(() => {
+    setShowMenu(false);
+  }, [location.pathname]);
+
+  /* Show hamburger only when near top */
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowHamburger(window.scrollY < 40);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  /* Auto-close menu if hamburger hides */
+  useEffect(() => {
+    if (!showHamburger) {
+      setShowMenu(false);
+    }
+  }, [showHamburger]);
 
   const randomQuote = useMemo(
     () =>
@@ -30,19 +60,19 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-[#f5ecd9] text-[#2c2c2c] font-serif relative">
-      {/* 🔒 FIXED GLOBAL HAMBURGER */}
-      {isAuthenticated && (
+      {/* 🔒 GLOBAL HAMBURGER (TOP ONLY) */}
+      {shouldShowHamburger && (
         <>
           <button
-            onClick={() => setShowMenu((v) => !v)}
-            aria-label="Menu"
+            onClick={() => setShowMenu(true)}
+            aria-label="Open menu"
             className="
               fixed
-              top-4
-              right-4
-              z-[9999]
-              h-11
-              w-11
+              top-3
+              right-3
+              z-[10000]
+              h-12
+              w-12
               rounded-full
               bg-[#2c1b0f]
               border
@@ -52,41 +82,76 @@ export default function Layout({ children }) {
               flex
               items-center
               justify-center
-              shadow-xl
+              shadow-2xl
+              hover:scale-105
+              transition
             "
           >
             ☰
           </button>
 
           {showMenu && (
-            <div
-              className="
-                fixed
-                top-20
-                right-4
-                z-[9999]
-                w-64
-                bg-[#f5ecd9]
-                border
-                border-[#c2a76d]
-                rounded-xl
-                shadow-2xl
-                p-2
-                space-y-1
-              "
-            >
-              {[
-                { label: "About ARES", path: "/about", icon: "🏛️" },
-                { label: "Know Your Rights", path: "/rights", icon: "⚖️" },
-                { label: "Community Rules", path: "/rules", icon: "📜" },
-                { label: "Privacy Policy", path: "/privacy", icon: "📄" },
-                { label: "Terms of Use", path: "/terms", icon: "🛡️" },
-              ].map((item, idx) => (
+            <div className="fixed inset-0 z-[9999]">
+              {/* Overlay */}
+              <div
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setShowMenu(false)}
+              />
+
+              {/* Menu */}
+              <div
+                className="
+                  absolute
+                  top-16
+                  right-3
+                  w-64
+                  bg-[#f5ecd9]
+                  border
+                  border-[#c2a76d]
+                  rounded-xl
+                  shadow-2xl
+                  p-2
+                  space-y-1
+                "
+              >
+                {[
+                  { label: "About ARES", path: "/about", icon: "🏛️" },
+                  { label: "Know Your Rights", path: "/rights", icon: "⚖️" },
+                  { label: "Community Rules", path: "/rules", icon: "📜" },
+                  { label: "Privacy Policy", path: "/privacy", icon: "📄" },
+                  { label: "Terms of Use", path: "/terms", icon: "🛡️" },
+                ].map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setShowMenu(false);
+                      navigate(item.path);
+                    }}
+                    className="
+                      w-full
+                      flex
+                      items-center
+                      gap-3
+                      px-4
+                      py-3
+                      rounded-lg
+                      text-left
+                      text-[#3a2f1b]
+                      hover:bg-[#ede3cb]
+                      text-base
+                    "
+                  >
+                    <span className="text-xl">{item.icon}</span>
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                ))}
+
+                <hr className="my-2 border-[#c2a76d]" />
+
                 <button
-                  key={idx}
                   onClick={() => {
                     setShowMenu(false);
-                    navigate(item.path);
+                    handleLogout();
                   }}
                   className="
                     w-full
@@ -97,37 +162,15 @@ export default function Layout({ children }) {
                     py-3
                     rounded-lg
                     text-left
-                    text-[#3a2f1b]
-                    hover:bg-[#ede3cb]
+                    text-red-700
+                    hover:bg-red-100
                     text-base
+                    font-medium
                   "
                 >
-                  <span className="text-xl">{item.icon}</span>
-                  <span className="font-medium">{item.label}</span>
+                  🚪 Logout
                 </button>
-              ))}
-
-              <hr className="my-2 border-[#c2a76d]" />
-
-              <button
-                onClick={handleLogout}
-                className="
-                  w-full
-                  flex
-                  items-center
-                  gap-3
-                  px-4
-                  py-3
-                  rounded-lg
-                  text-left
-                  text-red-700
-                  hover:bg-red-100
-                  text-base
-                  font-medium
-                "
-              >
-                🚪 Logout
-              </button>
+              </div>
             </div>
           )}
         </>
