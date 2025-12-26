@@ -12,26 +12,25 @@ export default function VaultUpload() {
   // ======================================================
   const initialEntryId = locationState?.vault_entry_id || null;
   const [vaultEntryId, setVaultEntryId] = useState(initialEntryId);
-
   const isNewEntry = !vaultEntryId;
 
   // ======================================================
   // VAULT ENTRY STATE
   // ======================================================
-  const [entryText, setEntryText] = useState("");
-  const [entryPublic, setEntryPublic] = useState(false);
+  const [testimony, setTestimony] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
 
   // ======================================================
   // EVIDENCE STATE
   // ======================================================
   const [file, setFile] = useState(null);
-  const [evidenceDescription, setEvidenceDescription] = useState("");
+  const [evidenceNote, setEvidenceNote] = useState("");
   const [uploading, setUploading] = useState(false);
   const [evidenceList, setEvidenceList] = useState([]);
 
   // ======================================================
-  // LOAD EXISTING VAULT ENTRY (IF EDIT MODE)
+  // LOAD EXISTING ENTRY
   // ======================================================
   useEffect(() => {
     if (!vaultEntryId) return;
@@ -46,8 +45,8 @@ export default function VaultUpload() {
         );
         if (!entry) throw new Error("Entry not found");
 
-        setEntryText(entry.testimony || "");
-        setEntryPublic(entry.is_public);
+        setTestimony(entry.testimony || "");
+        setIsPublic(entry.is_public);
         setEvidenceList(evidenceRes.data || []);
       })
       .catch(() => {
@@ -57,40 +56,35 @@ export default function VaultUpload() {
   }, [vaultEntryId, navigate]);
 
   // ======================================================
-  // CREATE OR UPDATE VAULT ENTRY
+  // CREATE OR UPDATE ENTRY
   // ======================================================
-  const saveVaultEntry = async () => {
-    if (!entryText.trim()) {
-      alert("Description is required.");
+  const saveEntry = async () => {
+    if (!testimony.trim()) {
+      alert("Testimony is required.");
       return;
     }
 
     setSavingEntry(true);
-
     try {
       if (isNewEntry) {
-        // CREATE
         const res = await api.post("/vault-entries", {
-          testimony: entryText,
-          is_public: entryPublic,
+          testimony,
+          is_public: isPublic,
         });
 
-        const newId = res.data.id;
-        setVaultEntryId(newId);
-
+        setVaultEntryId(res.data.id);
         navigate("/vault/upload", {
-          state: { vault_entry_id: newId },
+          state: { vault_entry_id: res.data.id },
           replace: true,
         });
       } else {
-        // UPDATE
         await api.patch(`/vault-entries/${vaultEntryId}`, {
-          testimony: entryText,
-          is_public: entryPublic,
+          testimony,
+          is_public: isPublic,
         });
       }
     } catch {
-      alert("Failed to save vault entry.");
+      alert("Failed to save testimony.");
     } finally {
       setSavingEntry(false);
     }
@@ -103,7 +97,7 @@ export default function VaultUpload() {
     e.preventDefault();
 
     if (!vaultEntryId) {
-      alert("Save the entry before adding evidence.");
+      alert("Save the testimony before attaching evidence.");
       return;
     }
 
@@ -117,13 +111,13 @@ export default function VaultUpload() {
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("description", evidenceDescription);
+      formData.append("description", evidenceNote);
       formData.append("vault_entry_id", vaultEntryId);
 
       await api.post("/vault", formData);
 
       setFile(null);
-      setEvidenceDescription("");
+      setEvidenceNote("");
 
       const res = await api.get(
         `/vault-entries/${vaultEntryId}/evidence`
@@ -138,108 +132,125 @@ export default function VaultUpload() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-10">
+      <div className="max-w-4xl mx-auto px-4 py-10 space-y-12">
 
         {/* ======================================================
-            VAULT ENTRY EDITOR (ALWAYS VISIBLE)
+            TESTIMONY (PRIMARY RECORD)
            ====================================================== */}
-        <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-4">
-          <h2 className="text-lg font-semibold">
-            Vault Entry Description
-          </h2>
+        <section className="rounded-2xl border bg-white p-6 shadow-sm space-y-5">
+          <div>
+            <h1 className="text-xl font-semibold text-slate-900">
+              Testimony
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              This is the written record. Attach media below as evidence.
+            </p>
+          </div>
 
           <textarea
-            value={entryText}
-            onChange={(e) => setEntryText(e.target.value)}
-            rows={5}
-            placeholder="Describe the incident or record..."
-            className="w-full p-3 rounded-xl border"
+            value={testimony}
+            onChange={(e) => setTestimony(e.target.value)}
+            rows={6}
+            placeholder="Describe what happened, in your own words…"
+            className="w-full p-4 rounded-xl border text-sm leading-relaxed"
           />
 
-          <div className="flex gap-6 items-center">
-            <label className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-6 items-center pt-2">
+            <label className="flex items-center gap-2 text-sm">
               <input
                 type="radio"
-                checked={!entryPublic}
-                onChange={() => setEntryPublic(false)}
+                checked={!isPublic}
+                onChange={() => setIsPublic(false)}
               />
               Private
             </label>
 
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2 text-sm">
               <input
                 type="radio"
-                checked={entryPublic}
-                onChange={() => setEntryPublic(true)}
+                checked={isPublic}
+                onChange={() => setIsPublic(true)}
               />
               Public
             </label>
+
+            <span className="text-xs text-slate-500">
+              All attached evidence follows this setting
+            </span>
           </div>
 
           <button
-            onClick={saveVaultEntry}
+            onClick={saveEntry}
             disabled={savingEntry}
             className="text-sm font-semibold text-indigo-600"
           >
             {savingEntry
               ? "Saving…"
               : isNewEntry
-                ? "Create Entry"
-                : "Save Entry"}
+                ? "Create Record"
+                : "Save Changes"}
           </button>
-
-          <p className="text-xs text-slate-500">
-            All attached evidence inherits this visibility.
-          </p>
-        </div>
+        </section>
 
         {/* ======================================================
-            EVIDENCE UPLOAD
+            ATTACH EVIDENCE
            ====================================================== */}
-        <form onSubmit={submitEvidence} className="space-y-6">
-          <div className="rounded-3xl border bg-slate-50 p-8 text-center">
-            <label className="cursor-pointer block">
-              <div className="text-4xl mb-2">📎</div>
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) => setFile(e.target.files[0])}
-              />
-            </label>
-
-            {file && (
-              <p className="text-sm mt-2">
-                {file.name}
-              </p>
-            )}
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold">
+              Attach Evidence
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Upload photos, videos, audio, or documents that support this testimony.
+            </p>
           </div>
 
-          <textarea
-            placeholder="Optional evidence description"
-            value={evidenceDescription}
-            onChange={(e) =>
-              setEvidenceDescription(e.target.value)
-            }
-            rows={3}
-            className="w-full p-3 rounded-xl border"
-          />
+          <form onSubmit={submitEvidence} className="space-y-6">
+            <div className="rounded-3xl border bg-slate-50 p-10 text-center">
+              <label className="cursor-pointer block">
+                <div className="text-5xl mb-3">📎</div>
+                <p className="text-sm font-medium">
+                  Click to attach evidence
+                </p>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
+              </label>
 
-          <div className="flex justify-center">
-            <button
-              type="submit"
-              disabled={uploading}
-              className="w-14 h-14 rounded-full bg-indigo-600 text-white text-2xl"
-            >
-              {uploading ? "…" : "+"}
-            </button>
-          </div>
-        </form>
+              {file && (
+                <p className="text-xs mt-3 text-slate-600">
+                  Selected: {file.name}
+                </p>
+              )}
+            </div>
+
+            <textarea
+              placeholder="Optional note about this piece of evidence"
+              value={evidenceNote}
+              onChange={(e) => setEvidenceNote(e.target.value)}
+              rows={2}
+              className="w-full p-3 rounded-xl border text-sm"
+            />
+
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                disabled={uploading}
+                className="w-14 h-14 rounded-full bg-indigo-600 text-white text-2xl"
+              >
+                {uploading ? "…" : "+"}
+              </button>
+            </div>
+          </form>
+        </section>
 
         {/* ======================================================
-            EVIDENCE LIST
+            ATTACHED EVIDENCE LIST
            ====================================================== */}
         {vaultEntryId && (
-          <div className="space-y-3">
+          <section className="space-y-4">
             <h3 className="font-semibold">
               Attached Evidence ({evidenceList.length})
             </h3>
@@ -262,7 +273,7 @@ export default function VaultUpload() {
                 </a>
               </div>
             ))}
-          </div>
+          </section>
         )}
       </div>
     </Layout>
