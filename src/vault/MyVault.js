@@ -79,7 +79,7 @@ export default function MyVault() {
             My Vault
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Private documentation and published records you control
+            Your private and public evidence archive
           </p>
         </div>
 
@@ -90,36 +90,15 @@ export default function MyVault() {
           </p>
         )}
 
-        {/* EMPTY STATE */}
+        {/* EMPTY STATE — informational only */}
         {!loading && entries.length === 0 && (
           <div className="mt-16 text-center">
             <h3 className="text-lg font-semibold text-slate-800">
-              Your vault is empty
+              No vault entries yet
             </h3>
             <p className="text-sm text-slate-500 mt-2">
-              Start by documenting an incident privately or publicly.
+              This vault will contain all documentation and evidence you create.
             </p>
-
-            <button
-              onClick={() => navigate("/vault/new")}
-              className="
-                mt-6
-                inline-flex
-                items-center
-                justify-center
-                rounded-xl
-                bg-indigo-600
-                px-6
-                py-3
-                text-sm
-                font-semibold
-                text-white
-                shadow
-                hover:bg-indigo-700
-              "
-            >
-              + Create Vault Entry
-            </button>
           </div>
         )}
 
