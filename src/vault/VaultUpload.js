@@ -42,7 +42,7 @@ export default function VaultUpload() {
   }, []);
 
   /* =====================
-     ENTITY SEARCH (MOBILE FRIENDLY)
+     ENTITY SEARCH
      ===================== */
   useEffect(() => {
     if (entitySearch.length < 2) {
@@ -58,27 +58,31 @@ export default function VaultUpload() {
   }, [entitySearch, allEntities]);
 
   /* =====================
-     LOAD ENTRY
+     LOAD EXISTING ENTRY
      ===================== */
   useEffect(() => {
     if (!vaultEntryId) return;
+
     Promise.all([
       api.get("/vault-entries/mine"),
       api.get(`/vault-entries/${vaultEntryId}/evidence`)
     ]).then(([entriesRes, evidenceRes]) => {
       const entry = entriesRes.data.find(e => e.id === Number(vaultEntryId));
       if (!entry) return navigate("/vault/mine");
+
       setTestimony(entry.testimony);
       setEntityId(entry.entity_id);
       setIsPublic(entry.is_public);
+
       const ent = allEntities.find(e => e.id === entry.entity_id);
       if (ent) setEntityLabel(ent.name);
+
       setEvidenceList(evidenceRes.data || []);
     });
   }, [vaultEntryId, allEntities, navigate]);
 
   /* =====================
-     SAVE RECORD
+     SAVE RECORD (FIXED)
      ===================== */
   const saveRecord = async () => {
     if (!entityId || !testimony.trim()) {
@@ -88,31 +92,40 @@ export default function VaultUpload() {
 
     setSaving(true);
     try {
+      let entryId = vaultEntryId;
+
       if (isNewEntry) {
         const res = await api.post("/vault-entries", {
           entity_id: entityId,
           testimony,
-          is_public: isPublic
+          is_public: isPublic,
         });
-        setVaultEntryId(res.data.id);
-        navigate("/vault/upload", {
-          state: { vault_entry_id: res.data.id },
-          replace: true
-        });
+        entryId = res.data.id;
+        setVaultEntryId(entryId);
       } else {
         await api.patch(`/vault-entries/${vaultEntryId}`, {
           entity_id: entityId,
           testimony,
-          is_public: isPublic
+          is_public: isPublic,
         });
       }
+
+      // ✅ CLEAR USER FEEDBACK
+      if (isPublic) {
+        navigate("/vault/public", { replace: true });
+      } else {
+        navigate("/vault/mine", { replace: true });
+      }
+    } catch (err) {
+      console.error("Failed to save vault record", err);
+      alert("Something went wrong while saving. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
   /* =====================
-     FILE PICKER (MOBILE FIRST)
+     FILE PICKER
      ===================== */
   const handleFilePick = (e) => {
     setSelectedFiles(Array.from(e.target.files));
@@ -133,12 +146,13 @@ export default function VaultUpload() {
         fd.append("vault_entry_id", vaultEntryId);
 
         await api.post("/vault", fd, {
-          headers: { "Content-Type": "multipart/form-data" }
+          headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
       setSelectedFiles([]);
       setEvidenceNote("");
+
       const res = await api.get(`/vault-entries/${vaultEntryId}/evidence`);
       setEvidenceList(res.data || []);
     } finally {
@@ -149,10 +163,31 @@ export default function VaultUpload() {
   const renderPreview = (url) => {
     if (!url) return null;
     const l = url.toLowerCase();
-    if (/\.(jpg|jpeg|png|webp|gif)$/.test(l)) return <img src={url} className="h-24 w-24 object-cover rounded-lg" />;
-    if (/\.(mp4|webm)$/.test(l)) return <video src={url} controls className="h-24 rounded-lg" />;
-    if (/\.(mp3|wav|ogg)$/.test(l)) return <audio src={url} controls />;
-    return <a href={url} target="_blank" rel="noreferrer" className="text-indigo-600 text-sm">Open file</a>;
+
+    if (/\.(jpg|jpeg|png|webp|gif)$/.test(l)) {
+      return (
+        <img
+          src={url}
+          className="h-24 w-24 object-cover rounded-lg"
+        />
+      );
+    }
+    if (/\.(mp4|webm)$/.test(l)) {
+      return <video src={url} controls className="h-24 rounded-lg" />;
+    }
+    if (/\.(mp3|wav|ogg)$/.test(l)) {
+      return <audio src={url} controls />;
+    }
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="text-indigo-600 text-sm"
+      >
+        Open file
+      </a>
+    );
   };
 
   return (
@@ -161,13 +196,17 @@ export default function VaultUpload() {
 
         {/* ENTITY */}
         <div className="space-y-1">
-          <h2 className="text-xs font-semibold text-slate-600">This record is about</h2>
+          <h2 className="text-xs font-semibold text-slate-600">
+            This record is about
+          </h2>
+
           <input
             value={entitySearch}
             onChange={e => setEntitySearch(e.target.value)}
             placeholder="Search an official or agency"
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
           />
+
           {entityResults.length > 0 && (
             <div className="mt-2 rounded-xl border bg-white shadow">
               {entityResults.map(ent => (
@@ -186,8 +225,11 @@ export default function VaultUpload() {
               ))}
             </div>
           )}
+
           {entityId && (
-            <p className="text-xs text-slate-500">Selected: {entityLabel}</p>
+            <p className="text-xs text-slate-500">
+              Selected: {entityLabel}
+            </p>
           )}
         </div>
 
@@ -204,14 +246,23 @@ export default function VaultUpload() {
           <div className="flex items-center justify-between text-sm">
             <div className="flex gap-4">
               <label className="flex items-center gap-2">
-                <input type="radio" checked={!isPublic} onChange={() => setIsPublic(false)} />
+                <input
+                  type="radio"
+                  checked={!isPublic}
+                  onChange={() => setIsPublic(false)}
+                />
                 Private
               </label>
               <label className="flex items-center gap-2">
-                <input type="radio" checked={isPublic} onChange={() => setIsPublic(true)} />
+                <input
+                  type="radio"
+                  checked={isPublic}
+                  onChange={() => setIsPublic(true)}
+                />
                 Public
               </label>
             </div>
+
             <button
               onClick={saveRecord}
               disabled={saving}
@@ -226,7 +277,9 @@ export default function VaultUpload() {
             <h3 className="text-sm font-semibold">Evidence</h3>
 
             {!vaultEntryId && (
-              <p className="text-xs text-slate-500">Create the record first to add evidence.</p>
+              <p className="text-xs text-slate-500">
+                Create the record first to add evidence.
+              </p>
             )}
 
             {vaultEntryId && (
@@ -270,9 +323,14 @@ export default function VaultUpload() {
                 {evidenceList.length > 0 && (
                   <div className="space-y-3">
                     {evidenceList.map(ev => (
-                      <div key={ev.id} className="flex gap-3 items-start rounded-xl border border-slate-200 p-3">
+                      <div
+                        key={ev.id}
+                        className="flex gap-3 items-start rounded-xl border border-slate-200 p-3"
+                      >
                         {renderPreview(ev.blob_url)}
-                        <p className="text-sm">{ev.description || "Evidence"}</p>
+                        <p className="text-sm">
+                          {ev.description || "Evidence"}
+                        </p>
                       </div>
                     ))}
                   </div>
