@@ -7,43 +7,29 @@ export default function VaultUpload() {
   const navigate = useNavigate();
   const locationState = useLocation().state;
 
-  // 🔗 Vault context
   const vaultEntryId = locationState?.vault_entry_id || null;
-
-  // =====================
-  // Upload state
-  // =====================
-  const [file, setFile] = useState(null);
-  const [description, setDescription] = useState("");
-  const [tags, setTags] = useState("");
-  const [location, setLocation] = useState("");
-  const [entityId, setEntityId] = useState("");
-  const [isPublic, setIsPublic] = useState(true);
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   // =====================
   // Vault entry state
   // =====================
   const [vaultEntry, setVaultEntry] = useState(null);
-  const [evidenceList, setEvidenceList] = useState([]);
-  const [loadingEntry, setLoadingEntry] = useState(false);
-  const [updatingVisibility, setUpdatingVisibility] = useState(false);
+  const [entryText, setEntryText] = useState("");
+  const [entryPublic, setEntryPublic] = useState(false);
+  const [savingEntry, setSavingEntry] = useState(false);
 
   // =====================
-  // Entity search (legacy)
+  // Evidence state
   // =====================
-  const [entities, setEntities] = useState([]);
-  const [entitySearch, setEntitySearch] = useState("");
-  const [entitySelected, setEntitySelected] = useState(false);
+  const [file, setFile] = useState(null);
+  const [evidenceDescription, setEvidenceDescription] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [evidenceList, setEvidenceList] = useState([]);
 
   // ======================================================
-  // LOAD VAULT ENTRY + EVIDENCE (VAULT MODE)
+  // LOAD VAULT ENTRY
   // ======================================================
   useEffect(() => {
     if (!vaultEntryId) return;
-
-    setLoadingEntry(true);
 
     Promise.all([
       api.get("/vault-entries/mine"),
@@ -53,81 +39,58 @@ export default function VaultUpload() {
         const entry = entriesRes.data.find(
           e => e.id === Number(vaultEntryId)
         );
-        if (!entry) throw new Error("Entry not found");
+        if (!entry) throw new Error();
 
         setVaultEntry(entry);
+        setEntryText(entry.testimony || "");
+        setEntryPublic(entry.is_public);
         setEvidenceList(evidenceRes.data || []);
       })
       .catch(() => {
-        alert("Unable to load vault entry.");
+        alert("Unable to load vault entry");
         navigate("/vault/mine");
-      })
-      .finally(() => setLoadingEntry(false));
+      });
   }, [vaultEntryId, navigate]);
 
   // ======================================================
-  // LOAD ENTITIES (LEGACY MODE ONLY)
+  // SAVE VAULT ENTRY (TEXT + VISIBILITY)
   // ======================================================
-  useEffect(() => {
-    if (vaultEntryId) return;
+  const saveVaultEntry = async () => {
+    if (!entryText.trim()) {
+      alert("Description is required.");
+      return;
+    }
 
-    api
-      .get("/ratings/entities")
-      .then((res) => setEntities(res.data || []))
-      .catch(() => {});
-  }, [vaultEntryId]);
-
-  const filteredEntities = useMemo(() => {
-    if (vaultEntryId) return [];
-    const q = entitySearch.trim().toLowerCase();
-    if (!q) return [];
-    return entities.filter((e) =>
-      `${e.name} ${e.state || ""} ${e.county || ""}`
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [entitySearch, entities, vaultEntryId]);
-
-  // ======================================================
-  // TOGGLE ENTRY VISIBILITY
-  // ======================================================
-  const toggleEntryVisibility = async () => {
-    if (!vaultEntry) return;
-
-    setUpdatingVisibility(true);
+    setSavingEntry(true);
     try {
-      const makePublic = !vaultEntry.is_public;
       const res = await api.patch(
-        `/vault-entries/${vaultEntry.id}/visibility`,
-        null,
-        { params: { make_public: makePublic } }
+        `/vault-entries/${vaultEntryId}`,
+        {
+          testimony: entryText,
+          is_public: entryPublic,
+        }
       );
 
       setVaultEntry(prev => ({
         ...prev,
         is_public: res.data.is_public,
-        published_at: res.data.published_at
+        published_at: res.data.published_at,
       }));
     } catch {
-      alert("Failed to update visibility.");
+      alert("Failed to save entry.");
     } finally {
-      setUpdatingVisibility(false);
+      setSavingEntry(false);
     }
   };
 
   // ======================================================
-  // SUBMIT EVIDENCE
+  // UPLOAD EVIDENCE
   // ======================================================
-  const handleSubmit = async (e) => {
+  const submitEvidence = async (e) => {
     e.preventDefault();
 
     if (!file) {
-      alert("A file is required.");
-      return;
-    }
-
-    if (!vaultEntryId && !entityId) {
-      alert("An entity is required.");
+      alert("Select a file first.");
       return;
     }
 
@@ -136,89 +99,82 @@ export default function VaultUpload() {
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("description", description);
-      formData.append("tags", tags);
-      formData.append("location", location);
-      formData.append("is_anonymous", isAnonymous);
+      formData.append("description", evidenceDescription);
+      formData.append("vault_entry_id", vaultEntryId);
 
-      if (vaultEntryId) {
-        formData.append("vault_entry_id", vaultEntryId);
-      } else {
-        formData.append("entity_id", entityId);
-        formData.append("is_public", isPublic);
-      }
-
-      await api.post("/vault", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post("/vault", formData);
 
       setFile(null);
-      setDescription("");
+      setEvidenceDescription("");
 
-      if (vaultEntryId) {
-        const res = await api.get(`/vault-entries/${vaultEntryId}/evidence`);
-        setEvidenceList(res.data || []);
-      } else {
-        navigate("/vault/public");
-      }
+      const res = await api.get(
+        `/vault-entries/${vaultEntryId}/evidence`
+      );
+      setEvidenceList(res.data || []);
     } catch {
-      alert("Submission failed.");
+      alert("Upload failed.");
     } finally {
       setUploading(false);
     }
   };
 
-  // ======================================================
-  // RENDER
-  // ======================================================
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-10">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-10">
 
-        {/* VAULT ENTRY HEADER */}
+        {/* VAULT ENTRY EDITOR */}
         {vaultEntry && (
           <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <span
-                  className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
-                    vaultEntry.is_public
-                      ? "bg-green-100 text-green-700"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {vaultEntry.is_public ? "Public Record" : "Private Record"}
-                </span>
+            <h2 className="text-lg font-semibold">
+              Vault Entry Description
+            </h2>
 
-                <p className="mt-2 text-xs text-slate-500">
-                  All attached evidence follows this visibility.
-                </p>
-              </div>
+            <textarea
+              value={entryText}
+              onChange={(e) => setEntryText(e.target.value)}
+              rows={5}
+              className="w-full p-3 rounded-xl border"
+            />
 
-              <button
-                type="button"
-                onClick={toggleEntryVisibility}
-                disabled={updatingVisibility}
-                className="text-sm font-medium text-indigo-600 hover:underline disabled:opacity-50"
-              >
-                {vaultEntry.is_public ? "Make Private" : "Publish"}
-              </button>
+            <div className="flex gap-6 items-center">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  checked={!entryPublic}
+                  onChange={() => setEntryPublic(false)}
+                />
+                Private
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  checked={entryPublic}
+                  onChange={() => setEntryPublic(true)}
+                />
+                Public
+              </label>
             </div>
 
-            <div className="pt-4 border-t">
-              <p className="text-slate-800 whitespace-pre-wrap">
-                {vaultEntry.testimony}
-              </p>
-            </div>
+            <button
+              onClick={saveVaultEntry}
+              disabled={savingEntry}
+              className="text-sm font-semibold text-indigo-600"
+            >
+              {savingEntry ? "Saving…" : "Save Entry"}
+            </button>
+
+            <p className="text-xs text-slate-500">
+              All attached evidence inherits this visibility.
+            </p>
           </div>
         )}
 
-        {/* FILE UPLOAD */}
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="rounded-3xl border bg-[#f7f1e1] p-12 text-center shadow-md">
+        {/* EVIDENCE UPLOAD */}
+        <form onSubmit={submitEvidence} className="space-y-6">
+          <div className="rounded-3xl border bg-slate-50 p-8 text-center">
             <label className="cursor-pointer block">
-              <div className="text-5xl mb-3">📎</div>
-              <p className="font-medium">Add supporting media</p>
+              <div className="text-4xl mb-2">📎</div>
               <input
                 type="file"
                 className="hidden"
@@ -227,50 +183,18 @@ export default function VaultUpload() {
             </label>
 
             {file && (
-              <p className="mt-4 text-sm opacity-80">
-                Selected: <strong>{file.name}</strong>
+              <p className="text-sm mt-2">
+                {file.name}
               </p>
             )}
           </div>
 
-          {!vaultEntryId && (
-            <div className="space-y-3 relative">
-              <input
-                placeholder="Search entity"
-                value={entitySearch}
-                onChange={(e) => {
-                  setEntitySearch(e.target.value);
-                  setEntityId("");
-                  setEntitySelected(false);
-                }}
-                className="w-full p-3 rounded-xl border"
-              />
-
-              {entitySearch && !entitySelected && (
-                <div className="absolute z-30 w-full bg-white border rounded-xl shadow max-h-64 overflow-y-auto">
-                  {filteredEntities.slice(0, 8).map((e) => (
-                    <button
-                      key={e.id}
-                      type="button"
-                      onClick={() => {
-                        setEntityId(e.id);
-                        setEntitySearch(e.name);
-                        setEntitySelected(true);
-                      }}
-                      className="w-full text-left px-4 py-3 hover:bg-slate-100"
-                    >
-                      {e.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
           <textarea
             placeholder="Optional evidence description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={evidenceDescription}
+            onChange={(e) =>
+              setEvidenceDescription(e.target.value)
+            }
             rows={3}
             className="w-full p-3 rounded-xl border"
           />
@@ -279,48 +203,38 @@ export default function VaultUpload() {
             <button
               type="submit"
               disabled={uploading}
-              className="w-16 h-16 rounded-full bg-indigo-600 text-white text-3xl font-bold shadow-lg"
+              className="w-14 h-14 rounded-full bg-indigo-600 text-white text-2xl"
             >
               {uploading ? "…" : "+"}
             </button>
           </div>
         </form>
 
-        {/* ATTACHED EVIDENCE */}
-        {vaultEntry && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">
-              Attached Evidence ({evidenceList.length})
-            </h2>
+        {/* EVIDENCE LIST */}
+        <div className="space-y-3">
+          <h3 className="font-semibold">
+            Attached Evidence ({evidenceList.length})
+          </h3>
 
-            {evidenceList.length === 0 && (
-              <p className="text-sm text-slate-500">
-                No evidence attached yet.
+          {evidenceList.map((e) => (
+            <div
+              key={e.id}
+              className="rounded-xl border bg-white p-4"
+            >
+              <p className="text-sm truncate">
+                {e.description || "Evidence file"}
               </p>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {evidenceList.map((e) => (
-                <div
-                  key={e.id}
-                  className="rounded-xl border bg-white p-4 shadow-sm"
-                >
-                  <p className="text-sm font-medium truncate">
-                    {e.description || "Evidence file"}
-                  </p>
-                  <a
-                    href={e.blob_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-indigo-600 hover:underline"
-                  >
-                    View file
-                  </a>
-                </div>
-              ))}
+              <a
+                href={e.blob_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-indigo-600 underline"
+              >
+                View
+              </a>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     </Layout>
   );
