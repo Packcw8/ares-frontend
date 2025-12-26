@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
@@ -27,81 +27,59 @@ export default function VaultUpload() {
   // =====================
   // EVIDENCE
   // =====================
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [evidenceNote, setEvidenceNote] = useState("");
   const [evidenceList, setEvidenceList] = useState([]);
   const [uploading, setUploading] = useState(false);
 
   // =====================
-  // LOAD ENTITIES (ONCE)
+  // LOAD ENTITIES
   // =====================
   useEffect(() => {
-    api
-      .get("/ratings/entities")
-      .then(res => setAllEntities(res.data || []))
-      .catch(err => {
-        console.error("Failed to load entities", err);
-        setAllEntities([]);
-      });
+    api.get("/ratings/entities").then(res => {
+      setAllEntities(res.data || []);
+    });
   }, []);
 
   // =====================
-  // ENTITY SEARCH (CLIENT SIDE)
+  // ENTITY SEARCH
   // =====================
   useEffect(() => {
     if (entitySearch.length < 2) {
       setEntityResults([]);
       return;
     }
-
     const q = entitySearch.toLowerCase();
-    const filtered = allEntities.filter(e =>
-      e.name.toLowerCase().includes(q)
+    setEntityResults(
+      allEntities.filter(e => e.name.toLowerCase().includes(q)).slice(0, 8)
     );
-
-    setEntityResults(filtered.slice(0, 10));
   }, [entitySearch, allEntities]);
 
   // =====================
-  // LOAD EXISTING ENTRY
+  // LOAD ENTRY
   // =====================
   useEffect(() => {
     if (!vaultEntryId) return;
-
     Promise.all([
       api.get("/vault-entries/mine"),
       api.get(`/vault-entries/${vaultEntryId}/evidence`)
-    ])
-      .then(([entriesRes, evidenceRes]) => {
-        const entry = entriesRes.data.find(
-          e => e.id === Number(vaultEntryId)
-        );
-        if (!entry) return navigate("/vault/mine");
-
-        setTestimony(entry.testimony);
-        setEntityId(entry.entity_id);
-        setIsPublic(entry.is_public);
-
-        const ent = allEntities.find(e => e.id === entry.entity_id);
-        if (ent) setEntityLabel(ent.name);
-
-        setEvidenceList(evidenceRes.data || []);
-      })
-      .catch(err => {
-        console.error("Failed to load vault entry", err);
-        navigate("/vault/mine");
-      });
+    ]).then(([entriesRes, evidenceRes]) => {
+      const entry = entriesRes.data.find(e => e.id === Number(vaultEntryId));
+      if (!entry) return navigate("/vault/mine");
+      setTestimony(entry.testimony);
+      setEntityId(entry.entity_id);
+      setIsPublic(entry.is_public);
+      const ent = allEntities.find(e => e.id === entry.entity_id);
+      if (ent) setEntityLabel(ent.name);
+      setEvidenceList(evidenceRes.data || []);
+    });
   }, [vaultEntryId, allEntities, navigate]);
 
   // =====================
   // SAVE RECORD
   // =====================
   const saveRecord = async () => {
-    if (!entityId || !testimony.trim()) {
-      alert("Entity and testimony are required.");
-      return;
-    }
-
+    if (!entityId || !testimony.trim()) return alert("Entity & testimony required");
     setSaving(true);
     try {
       if (isNewEntry) {
@@ -110,12 +88,8 @@ export default function VaultUpload() {
           testimony,
           is_public: isPublic
         });
-
         setVaultEntryId(res.data.id);
-        navigate("/vault/upload", {
-          state: { vault_entry_id: res.data.id },
-          replace: true
-        });
+        navigate("/vault/upload", { state: { vault_entry_id: res.data.id }, replace: true });
       } else {
         await api.patch(`/vault-entries/${vaultEntryId}`, {
           entity_id: entityId,
@@ -123,72 +97,52 @@ export default function VaultUpload() {
           is_public: isPublic
         });
       }
-    } catch (err) {
-      console.error("Save failed", err);
-      alert("Failed to save record");
     } finally {
       setSaving(false);
     }
   };
 
   // =====================
-  // UPLOAD EVIDENCE
+  // DRAG & DROP
   // =====================
-  const addEvidence = async () => {
-    if (!file || !vaultEntryId) return;
+  const onDrop = useCallback((e) => {
+    e.preventDefault();
+    setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
+  }, []);
 
+  // =====================
+  // UPLOAD FILES
+  // =====================
+  const uploadEvidence = async () => {
+    if (!vaultEntryId || files.length === 0) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("description", evidenceNote);
-      fd.append("vault_entry_id", vaultEntryId);
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("description", evidenceNote);
+        fd.append("vault_entry_id", vaultEntryId);
 
-      await api.post("/vault", fd);
-
-      setFile(null);
+        await api.post("/vault", fd, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+      }
+      setFiles([]);
       setEvidenceNote("");
-
-      const res = await api.get(
-        `/vault-entries/${vaultEntryId}/evidence`
-      );
+      const res = await api.get(`/vault-entries/${vaultEntryId}/evidence`);
       setEvidenceList(res.data || []);
-    } catch (err) {
-      console.error("Evidence upload failed", err);
-      alert("Evidence upload failed");
     } finally {
       setUploading(false);
     }
   };
 
-  // =====================
-  // EVIDENCE PREVIEW
-  // =====================
   const renderPreview = (url) => {
     if (!url) return null;
-    const lower = url.toLowerCase();
-
-    if (/\.(jpg|jpeg|png|gif|webp)$/.test(lower)) {
-      return <img src={url} className="h-24 rounded border" />;
-    }
-    if (/\.(mp4|webm)$/.test(lower)) {
-      return <video src={url} controls className="h-24 rounded border" />;
-    }
-    if (/\.(mp3|wav|ogg)$/.test(lower)) {
-      return <audio src={url} controls className="w-full" />;
-    }
-    if (/\.pdf$/.test(lower)) {
-      return (
-        <a href={url} target="_blank" rel="noreferrer" className="text-indigo-600">
-          View PDF
-        </a>
-      );
-    }
-    return (
-      <a href={url} target="_blank" rel="noreferrer" className="text-indigo-600">
-        Download file
-      </a>
-    );
+    const l = url.toLowerCase();
+    if (/\.(jpg|png|jpeg|webp|gif)$/.test(l)) return <img src={url} className="h-24 rounded" />;
+    if (/\.(mp4|webm)$/.test(l)) return <video src={url} controls className="h-24 rounded" />;
+    if (/\.(mp3|wav|ogg)$/.test(l)) return <audio src={url} controls />;
+    return <a href={url} target="_blank" rel="noreferrer" className="text-indigo-600">Download</a>;
   };
 
   return (
@@ -197,14 +151,13 @@ export default function VaultUpload() {
 
         {/* ENTITY */}
         <div>
-          <h2 className="text-sm font-semibold mb-2">This record is about</h2>
+          <h2 className="text-xs font-semibold mb-1">This record is about</h2>
           <input
             value={entitySearch}
             onChange={e => setEntitySearch(e.target.value)}
-            placeholder="Search approved entity..."
+            placeholder="Search entity…"
             className="w-full p-3 rounded-xl border"
           />
-
           {entityResults.length > 0 && (
             <div className="border rounded-xl mt-2 bg-white shadow">
               {entityResults.map(ent => (
@@ -223,64 +176,57 @@ export default function VaultUpload() {
               ))}
             </div>
           )}
-
-          {entityId && (
-            <p className="text-xs text-slate-500 mt-1">
-              Selected: {entityLabel}
-            </p>
-          )}
+          {entityId && <p className="text-xs text-slate-500">Selected: {entityLabel}</p>}
         </div>
 
         {/* RECORD */}
-        <div className="rounded-2xl border bg-white p-6 space-y-6">
+        <div className="rounded-2xl border bg-white p-6 space-y-6 shadow-sm">
           <textarea
-            rows={7}
+            rows={6}
             value={testimony}
             onChange={e => setTestimony(e.target.value)}
-            placeholder="Write what happened. This is the core record."
-            className="w-full p-4 rounded-xl border text-sm"
+            placeholder="Describe what happened…"
+            className="w-full p-4 rounded-xl border"
           />
 
           <div className="flex gap-6 text-sm">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                checked={!isPublic}
-                onChange={() => setIsPublic(false)}
-              />
-              Private
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                checked={isPublic}
-                onChange={() => setIsPublic(true)}
-              />
-              Public
-            </label>
+            <label><input type="radio" checked={!isPublic} onChange={() => setIsPublic(false)} /> Private</label>
+            <label><input type="radio" checked={isPublic} onChange={() => setIsPublic(true)} /> Public</label>
           </div>
 
-          <button
-            onClick={saveRecord}
-            disabled={saving}
-            className="text-indigo-600 font-semibold text-sm"
-          >
+          <button onClick={saveRecord} disabled={saving} className="text-indigo-600 font-semibold">
             {saving ? "Saving…" : isNewEntry ? "Create Record" : "Save Changes"}
           </button>
 
           {/* EVIDENCE */}
           <div className="pt-4 border-t space-y-4">
-            <h3 className="font-semibold text-sm">Supporting Evidence</h3>
+            <h3 className="text-sm font-semibold">Evidence</h3>
 
             {!vaultEntryId && (
-              <p className="text-xs text-slate-500">
-                Create the record first to attach evidence.
-              </p>
+              <p className="text-xs text-slate-500">Create the record first to upload evidence.</p>
             )}
 
             {vaultEntryId && (
               <>
-                <input type="file" onChange={e => setFile(e.target.files[0])} />
+                <div
+                  onDrop={onDrop}
+                  onDragOver={e => e.preventDefault()}
+                  className="border-2 border-dashed rounded-xl p-6 text-center text-sm text-slate-500"
+                >
+                  Drag & drop files here or click to select
+                  <input
+                    type="file"
+                    multiple
+                    onChange={e => setFiles(Array.from(e.target.files))}
+                    className="hidden"
+                  />
+                </div>
+
+                {files.length > 0 && (
+                  <ul className="text-xs">
+                    {files.map((f, i) => <li key={i}>{f.name}</li>)}
+                  </ul>
+                )}
 
                 <textarea
                   rows={2}
@@ -291,24 +237,19 @@ export default function VaultUpload() {
                 />
 
                 <button
-                  onClick={addEvidence}
+                  onClick={uploadEvidence}
                   disabled={uploading}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm"
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
                 >
-                  {uploading ? "Uploading…" : "Attach Evidence"}
+                  {uploading ? "Uploading…" : "Upload Evidence"}
                 </button>
 
                 {evidenceList.length > 0 && (
                   <div className="space-y-3">
                     {evidenceList.map(ev => (
-                      <div
-                        key={ev.id}
-                        className="flex gap-4 items-start border rounded-lg p-3"
-                      >
+                      <div key={ev.id} className="flex gap-4 items-start border rounded-lg p-3">
                         {renderPreview(ev.blob_url)}
-                        <p className="text-sm font-medium">
-                          {ev.description || "Evidence"}
-                        </p>
+                        <p className="text-sm">{ev.description || "Evidence"}</p>
                       </div>
                     ))}
                   </div>
