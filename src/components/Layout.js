@@ -56,6 +56,14 @@ export default function Layout({ children }) {
     []
   );
 
+  const menuItems = [
+    { label: "About ARES", route: "/about" },
+    { label: "Know Your Rights", route: "/know-your-rights" },
+    { label: "Community Rules", route: "/rules" },
+    { label: "Privacy Policy", route: "/privacy-policy" },
+    { label: "Terms of Use", route: "/terms-of-use" },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f7f5ef] to-[#efe9dc] text-slate-900 relative font-sans">
       {/* HAMBURGER */}
@@ -77,20 +85,18 @@ export default function Layout({ children }) {
               />
 
               <div className="absolute top-20 right-4 w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2">
-                {["About ARES", "Know Your Rights", "Community Rules", "Privacy Policy", "Terms of Use"].map(
-                  (label, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setShowMenu(false);
-                        navigate(`/${label.toLowerCase().replace(/\s+/g, "")}`);
-                      }}
-                      className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-100"
-                    >
-                      {label}
-                    </button>
-                  )
-                )}
+                {menuItems.map((item) => (
+                  <button
+                    key={item.route}
+                    onClick={() => {
+                      setShowMenu(false);
+                      navigate(item.route);
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-100"
+                  >
+                    {item.label}
+                  </button>
+                ))}
 
                 <hr className="my-2" />
 
@@ -120,7 +126,9 @@ export default function Layout({ children }) {
               className="h-12 w-12 rounded-full shadow-md"
             />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">ARES</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                ARES
+              </h1>
               <p className="text-xs md:text-sm text-slate-600 italic max-w-xl">
                 “{randomQuote.quote}” — {randomQuote.author}
               </p>
