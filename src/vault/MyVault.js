@@ -8,19 +8,47 @@ export default function MyVault() {
   const navigate = useNavigate();
 
   const [entries, setEntries] = useState([]);
+  const [entities, setEntities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
 
   /* =========================
-     LOAD MY VAULT ENTRIES
+     LOAD ENTITIES (for names)
      ========================= */
-  const loadEntries = () => {
+  useEffect(() => {
+    api.get("/ratings/entities").then((res) => {
+      setEntities(res.data || []);
+    });
+  }, []);
+
+  const entityName = (id) =>
+    entities.find((e) => e.id === id)?.name || "Unknown entity";
+
+  /* =========================
+     LOAD VAULT + EVIDENCE
+     ========================= */
+  const loadEntries = async () => {
     setLoading(true);
-    api
-      .get("/vault-entries/mine")
-      .then((res) => setEntries(res.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    try {
+      const res = await api.get("/vault-entries/mine");
+      const baseEntries = res.data || [];
+
+      const hydrated = await Promise.all(
+        baseEntries.map(async (entry) => {
+          const evRes = await api.get(
+            `/vault-entries/${entry.id}/evidence`
+          );
+          return {
+            ...entry,
+            evidence: evRes.data || [],
+          };
+        })
+      );
+
+      setEntries(hydrated);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -41,19 +69,7 @@ export default function MyVault() {
         { params: { make_public: makePublic } }
       );
 
-      setEntries((prev) =>
-        prev.map((e) =>
-          e.id === entry.id
-            ? {
-                ...e,
-                is_public: makePublic,
-                published_at: makePublic
-                  ? new Date().toISOString()
-                  : null,
-              }
-            : e
-        )
-      );
+      await loadEntries(); // 🔄 rehydrate
     } catch {
       alert("Failed to update visibility.");
     } finally {
@@ -62,12 +78,41 @@ export default function MyVault() {
   };
 
   /* =========================
-     ADD EVIDENCE
+     RENDER EVIDENCE
      ========================= */
-  const addEvidence = (entryId) => {
-    navigate("/vault/upload", {
-      state: { vault_entry_id: entryId },
-    });
+  const renderEvidence = (ev) => {
+    const url = ev.blob_url?.toLowerCase() || "";
+
+    if (/\.(jpg|jpeg|png|webp|gif)$/.test(url)) {
+      return (
+        <img
+          src={ev.blob_url}
+          className="h-24 w-24 object-cover rounded-lg"
+          alt="evidence"
+        />
+      );
+    }
+
+    if (/\.(mp4|webm)$/.test(url)) {
+      return (
+        <video
+          src={ev.blob_url}
+          controls
+          className="h-24 rounded-lg"
+        />
+      );
+    }
+
+    return (
+      <a
+        href={ev.blob_url}
+        target="_blank"
+        rel="noreferrer"
+        className="text-indigo-600 text-sm underline"
+      >
+        Open file
+      </a>
+    );
   };
 
   return (
@@ -83,26 +128,18 @@ export default function MyVault() {
           </p>
         </div>
 
-        {/* LOADING */}
         {loading && (
-          <p className="text-slate-500">
-            Loading your vault…
-          </p>
+          <p className="text-slate-500">Loading your vault…</p>
         )}
 
-        {/* EMPTY STATE — informational only */}
         {!loading && entries.length === 0 && (
           <div className="mt-16 text-center">
             <h3 className="text-lg font-semibold text-slate-800">
               No vault entries yet
             </h3>
-            <p className="text-sm text-slate-500 mt-2">
-              This vault will contain all documentation and evidence you create.
-            </p>
           </div>
         )}
 
-        {/* ENTRY LIST */}
         <div className="space-y-6">
           {entries.map((entry) => (
             <div
@@ -110,20 +147,14 @@ export default function MyVault() {
               className="rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
               {/* HEADER */}
-              <div className="flex items-start justify-between px-6 py-4 border-b">
+              <div className="px-6 py-4 border-b flex justify-between">
                 <div>
-                  <span
-                    className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
-                      entry.is_public
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {entry.is_public ? "Public" : "Private"}
+                  <span className="text-xs font-semibold text-indigo-700">
+                    {entityName(entry.entity_id)}
                   </span>
 
                   <p
-                    className="mt-2 text-xs text-slate-400"
+                    className="text-xs text-slate-400 mt-1"
                     title={fullDate(entry.created_at)}
                   >
                     Created {timeAgo(entry.created_at)}
@@ -133,13 +164,7 @@ export default function MyVault() {
                 <button
                   onClick={() => toggleVisibility(entry)}
                   disabled={updatingId === entry.id}
-                  className="
-                    text-sm
-                    font-medium
-                    text-indigo-600
-                    hover:underline
-                    disabled:opacity-50
-                  "
+                  className="text-sm font-medium text-indigo-600 hover:underline"
                 >
                   {entry.is_public ? "Make Private" : "Publish"}
                 </button>
@@ -147,38 +172,44 @@ export default function MyVault() {
 
               {/* BODY */}
               <div className="px-6 py-4">
-                <p className="text-sm text-slate-800 leading-relaxed line-clamp-5">
+                <p className="text-sm text-slate-800 whitespace-pre-line">
                   {entry.testimony}
                 </p>
+
+                {/* EVIDENCE */}
+                {entry.evidence?.length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    {entry.evidence.map((ev) => (
+                      <div
+                        key={ev.id}
+                        className="flex gap-3 items-start border rounded-xl p-3"
+                      >
+                        {renderEvidence(ev)}
+                        <p className="text-xs text-slate-600">
+                          {ev.description || "Evidence"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* FOOTER */}
               <div className="px-6 py-4 flex justify-between items-center border-t bg-slate-50">
                 <button
-                  onClick={() => addEvidence(entry.id)}
-                  className="
-                    text-sm
-                    font-semibold
-                    text-slate-700
-                    hover:text-indigo-600
-                  "
+                  onClick={() =>
+                    navigate("/vault/upload", {
+                      state: { vault_entry_id: entry.id },
+                    })
+                  }
+                  className="text-sm font-semibold text-slate-700 hover:text-indigo-600"
                 >
                   + Add Evidence
                 </button>
 
-                <button
-                  onClick={() =>
-                    navigate(`/vault/entry/${entry.id}`)
-                  }
-                  className="
-                    text-sm
-                    font-semibold
-                    text-indigo-600
-                    hover:underline
-                  "
-                >
-                  View Entry
-                </button>
+                <span className="text-xs text-slate-400">
+                  {entry.evidence?.length || 0} files
+                </span>
               </div>
             </div>
           ))}
