@@ -14,25 +14,27 @@ export default function Layout({ children }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showHamburger, setShowHamburger] = useState(true);
 
-  const hideHamburgerRoutes = ["/login", "/signup"];
+  const authHiddenRoutes = ["/login", "/signup"];
 
   const shouldShowHamburger =
     isAuthenticated &&
     showHamburger &&
-    !hideHamburgerRoutes.includes(location.pathname);
+    !authHiddenRoutes.includes(location.pathname);
 
   const showBottomNav =
-    isAuthenticated && !hideHamburgerRoutes.includes(location.pathname);
+    isAuthenticated && !authHiddenRoutes.includes(location.pathname);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
+  /* Close menu on route change */
   useEffect(() => {
     setShowMenu(false);
   }, [location.pathname]);
 
+  /* Show hamburger only when near top */
   useEffect(() => {
     const handleScroll = () => {
       setShowHamburger(window.scrollY < 48);
@@ -41,6 +43,7 @@ export default function Layout({ children }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  /* Auto-close menu if hamburger hides */
   useEffect(() => {
     if (!showHamburger) setShowMenu(false);
   }, [showHamburger]);
@@ -53,17 +56,21 @@ export default function Layout({ children }) {
     []
   );
 
+  /* ✅ ROUTES MATCH App.js EXACTLY */
   const menuItems = [
     { label: "About ARES", route: "/about" },
-    { label: "Know Your Rights", route: "/knowYourRights" },
-    { label: "Community Rules", route: "/RulesPage" },
-    { label: "Privacy Policy", route: "/privacypolicy" },
-    { label: "Terms of Use", route: "/termsofuse" },
+    { label: "Know Your Rights", route: "/rights" },
+    { label: "Community Rules", route: "/rules" },
+    { label: "Privacy Policy", route: "/privacy" },
+    { label: "Terms of Use", route: "/terms" },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f7f5ef] to-[#efe9dc] text-slate-900 relative font-sans">
-      {/* HAMBURGER (AUTH ONLY) */}
+
+      {/* =======================
+          HAMBURGER (AUTH ONLY)
+         ======================= */}
       {shouldShowHamburger && (
         <>
           <button
@@ -112,8 +119,11 @@ export default function Layout({ children }) {
         </>
       )}
 
-      {/* PAGE WRAPPER */}
+      {/* =======================
+          PAGE WRAPPER
+         ======================= */}
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10 pt-6 pb-28 md:pb-10">
+
         {/* HEADER */}
         <header className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -133,32 +143,37 @@ export default function Layout({ children }) {
           </div>
         </header>
 
-        {/* PUBLIC CTA (NOT LOGGED IN) */}
-        {!isAuthenticated && (
-          <div className="mb-10 rounded-2xl border border-[#c2a76d]/40 bg-white/70 backdrop-blur p-6 text-center shadow-sm">
-            <h2 className="text-xl font-bold text-[#283d63] mb-2">
-              Create an account for free
-            </h2>
-            <p className="text-sm text-slate-600 mb-4 max-w-xl mx-auto">
-              Document experiences, protect your rights, and contribute to public
-              accountability — without fear or paywalls.
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => navigate("/signup")}
-                className="px-6 py-2 rounded-xl bg-[#283d63] text-white font-semibold hover:bg-[#1f2f4f] transition"
-              >
-                Create Free Account
-              </button>
-              <button
-                onClick={() => navigate("/login")}
-                className="px-6 py-2 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 transition"
-              >
-                Log In
-              </button>
+        {/* =======================
+            PUBLIC CTA
+            (NOT LOGGED IN,
+             NOT LOGIN/SIGNUP)
+           ======================= */}
+        {!isAuthenticated &&
+          !authHiddenRoutes.includes(location.pathname) && (
+            <div className="mb-10 rounded-2xl border border-[#c2a76d]/40 bg-white/70 backdrop-blur p-6 text-center shadow-sm">
+              <h2 className="text-xl font-bold text-[#283d63] mb-2">
+                Create an account for free
+              </h2>
+              <p className="text-sm text-slate-600 mb-4 max-w-xl mx-auto">
+                Document experiences, protect your rights, and contribute to
+                public accountability — without fear or paywalls.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => navigate("/signup")}
+                  className="px-6 py-2 rounded-xl bg-[#283d63] text-white font-semibold hover:bg-[#1f2f4f] transition"
+                >
+                  Create Free Account
+                </button>
+                <button
+                  onClick={() => navigate("/login")}
+                  className="px-6 py-2 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 transition"
+                >
+                  Log In
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* CONTENT */}
         <main className="space-y-6">{children}</main>
