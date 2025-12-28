@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 
 export default function VaultPublic() {
   const navigate = useNavigate();
+
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -23,6 +25,28 @@ export default function VaultPublic() {
       .finally(() => setLoading(false));
   }, []);
 
+  /* =========================
+     SEARCH FILTER
+     ========================= */
+  const filteredFeed = useMemo(() => {
+    if (!search.trim()) return feed;
+
+    const q = search.toLowerCase();
+
+    return feed.filter((item) => {
+      const entityName = item.entity?.name?.toLowerCase() || "";
+      const testimony = item.testimony?.toLowerCase() || "";
+
+      return (
+        entityName.includes(q) ||
+        testimony.includes(q)
+      );
+    });
+  }, [feed, search]);
+
+  /* =========================
+     LIGHTBOX CONTROLS
+     ========================= */
   const openLightbox = (items, index) => {
     setLightboxItems(items);
     setLightboxIndex(index);
@@ -48,9 +72,20 @@ export default function VaultPublic() {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <h1 className="text-xl font-bold text-slate-900">
-          Public Records
-        </h1>
+
+        {/* HEADER */}
+        <div className="space-y-2">
+          <h1 className="text-xl font-bold text-slate-900">
+            Public Records
+          </h1>
+
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by entity or keywords…"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+          />
+        </div>
 
         {loading && (
           <p className="text-sm text-slate-500">
@@ -58,14 +93,23 @@ export default function VaultPublic() {
           </p>
         )}
 
-        {!loading && feed.length === 0 && (
-          <p className="text-sm text-slate-500 text-center py-12">
-            No public records yet.
-          </p>
+        {!loading && filteredFeed.length === 0 && (
+          <div className="text-center py-12 space-y-4">
+            <p className="text-sm text-slate-500">
+              No public records match your search.
+            </p>
+
+            <button
+              onClick={() => navigate("/vault/upload")}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+            >
+              + Add a public record
+            </button>
+          </div>
         )}
 
         <div className="space-y-6">
-          {feed.map((item) => (
+          {filteredFeed.map((item) => (
             <FeedCard
               key={item.id}
               item={item}
@@ -97,23 +141,27 @@ function FeedCard({ item, navigate, openLightbox }) {
 
   return (
     <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+
       {/* HEADER */}
       <div className="flex items-start gap-3 px-4 py-3 border-b bg-slate-50">
         <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
-          {entity?.name?.[0] || "A"}
+          {entity?.name?.[0] || "?"}
         </div>
 
         <div className="flex-1">
-          {entity && (
+          {entity ? (
             <button
-              onClick={() =>
-                navigate(`/ratings/${entity.id}`)
-              }
+              onClick={() => navigate(`/ratings/${entity.id}`)}
               className="text-sm font-semibold text-slate-900 hover:underline"
             >
               {entity.name}
             </button>
+          ) : (
+            <span className="text-sm font-semibold text-slate-500">
+              Unknown entity
+            </span>
           )}
+
           <p className="text-xs text-slate-500">
             Public record
           </p>
