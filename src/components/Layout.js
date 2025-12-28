@@ -55,10 +55,10 @@ export default function Layout({ children }) {
 
   const menuItems = [
     { label: "About ARES", route: "/about" },
-    { label: "Know Your Rights", route: "/know-your-rights" },
-    { label: "Community Rules", route: "/rules" },
-    { label: "Privacy Policy", route: "/privacy-policy" },
-    { label: "Terms of Use", route: "/terms-of-use" },
+    { label: "Know Your Rights", route: "/knowYourRights" },
+    { label: "Community Rules", route: "/RulesPage" },
+    { label: "Privacy Policy", route: "/privacypolicy" },
+    { label: "Terms of Use", route: "/termsofuse" },
   ];
 
   return (
