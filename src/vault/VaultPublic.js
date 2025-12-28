@@ -12,6 +12,8 @@ export default function VaultPublic() {
   // Filters
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
+  const [stateQuery, setStateQuery] = useState("");
+  const [countyQuery, setCountyQuery] = useState("");
   const [countyFilter, setCountyFilter] = useState("");
 
   // Evidence modal
@@ -66,7 +68,7 @@ export default function VaultPublic() {
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
 
         <h1 className="text-xl font-bold text-slate-900">
-          Public Records
+          Community Records
         </h1>
 
         {/* FILTER BAR */}
@@ -81,23 +83,26 @@ export default function VaultPublic() {
           {/* STATE AUTOCOMPLETE */}
           <div className="relative">
             <input
-              value={stateFilter}
+              value={stateQuery}
               onChange={e => {
-                setStateFilter(e.target.value);
+                setStateQuery(e.target.value);
+                setStateFilter("");
                 setCountyFilter("");
+                setCountyQuery("");
               }}
               placeholder="State"
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
             />
-            {stateFilter && (
+            {stateQuery && (
               <div className="absolute z-10 mt-1 w-full bg-white border rounded-xl shadow">
                 {states
-                  .filter(s => s.toLowerCase().startsWith(stateFilter.toLowerCase()))
+                  .filter(s => s.toLowerCase().startsWith(stateQuery.toLowerCase()))
                   .slice(0, 8)
                   .map(s => (
                     <button
                       key={s}
-                      onClick={() => setStateFilter(s)}
+                      onClick={() => setStateFilter(s);
+                        setStateQuery(s)}
                       className="block w-full text-left px-4 py-2 text-sm hover:bg-slate-100"
                     >
                       {s}
@@ -110,21 +115,25 @@ export default function VaultPublic() {
           {/* COUNTY AUTOCOMPLETE */}
           <div className="relative">
             <input
-              value={countyFilter}
-              onChange={e => setCountyFilter(e.target.value)}
+              value={countyQuery}
+              onChange={e => {
+                setCountyQuery(e.target.value);
+                setCountyFilter("");
+              }}
               placeholder="County"
               disabled={!stateFilter}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm disabled:opacity-60"
             />
-            {countyFilter && (
+            {countyQuery && (
               <div className="absolute z-10 mt-1 w-full bg-white border rounded-xl shadow">
                 {counties
-                  .filter(c => c.toLowerCase().startsWith(countyFilter.toLowerCase()))
+                  .filter(c => c.toLowerCase().startsWith(countyQuery.toLowerCase()))
                   .slice(0, 8)
                   .map(c => (
                     <button
                       key={c}
-                      onClick={() => setCountyFilter(c)}
+                      onClick={() => setCountyFilter(c);
+                        setCountyQuery(c)}
                       className="block w-full text-left px-4 py-2 text-sm hover:bg-slate-100"
                     >
                       {c}
