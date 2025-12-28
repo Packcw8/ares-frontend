@@ -13,7 +13,7 @@ export default function AddOfficialPage() {
 
   const [form, setForm] = useState({
     name: "",
-    type: "agency", // default away from individuals
+    type: "agency",
     category: "",
     jurisdiction: "",
     state: "",
@@ -28,6 +28,8 @@ export default function AddOfficialPage() {
 
   const [showStateDropdown, setShowStateDropdown] = useState(false);
   const [showCountyDropdown, setShowCountyDropdown] = useState(false);
+
+  const [isStatewide, setIsStatewide] = useState(true);
 
   const [nameQuery, setNameQuery] = useState("");
   const [entitySuggestions, setEntitySuggestions] = useState([]);
@@ -48,7 +50,9 @@ export default function AddOfficialPage() {
 
     const t = setTimeout(async () => {
       try {
-        const res = await api.get("/ratings/entities/search", { params: { q: nameQuery } });
+        const res = await api.get("/ratings/entities/search", {
+          params: { q: nameQuery },
+        });
         setEntitySuggestions(res.data || []);
         setShowSuggestions(true);
       } catch {
@@ -59,14 +63,13 @@ export default function AddOfficialPage() {
     return () => clearTimeout(t);
   }, [nameQuery]);
 
-  // STRICT CATEGORY RULES
   const categoryOptions = {
     individual: [
       "Judge",
       "Elected Official",
       "Cabinet Member",
       "Agency Director",
-      "Other (High-Level Only)",
+      "Other (Senior Official)",
     ],
     agency: [
       "Police Department",
@@ -112,6 +115,7 @@ export default function AddOfficialPage() {
 
     const payload = {
       ...form,
+      county: isStatewide ? "" : form.county,
       category: showCustomCategory ? customCategory : form.category,
     };
 
@@ -119,7 +123,7 @@ export default function AddOfficialPage() {
       const res = await api.post("/ratings/entities", payload);
 
       alert(
-        "✅ Entity submitted.\n\nAll entities are reviewed to ensure they meet ARES public-interest standards."
+        "✅ Entity submitted.\n\nAll new entities are reviewed by an administrator before becoming publicly visible. Please check back later."
       );
 
       if (returnTo) {
@@ -139,75 +143,42 @@ export default function AddOfficialPage() {
 
   return (
     <Layout>
-      <div className="p-4 max-w-xl mx-auto space-y-6 bg-white dark:bg-white rounded-lg">
-        <h1 className="text-2xl font-bold">Add Public Entity</h1>
+      <div className="p-4 max-w-xl mx-auto space-y-6 bg-white rounded-lg">
+        <h1 className="text-2xl font-bold">Add a Public Entity</h1>
 
-        <div className="text-sm bg-slate-100 text-slate-700 border border-slate-300 rounded p-3">
-          <strong>Important:</strong> ARES does not allow adding private or low-level individuals.
-          <br />
-          You may submit government agencies, institutions, or high-level public officials only.
+        <div className="text-sm bg-slate-100 text-slate-700 border border-slate-300 rounded p-4 space-y-2">
+          <p>
+            Use this form to add a <strong>public-facing entity</strong> such as a
+            government agency, court, detention facility, or senior public
+            official.
+          </p>
+          <p>
+            To protect accuracy and fairness, new submissions are{" "}
+            <strong>reviewed by an administrator</strong> before appearing
+            publicly.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-          <input
-            type="text"
-            placeholder="Entity name"
-            value={form.name}
-            onChange={(e) => {
-              setForm({ ...form, name: e.target.value });
-              setNameQuery(e.target.value);
-            }}
-            required
-            className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
-          />
-
-          {showSuggestions && entitySuggestions.length > 0 && (
-            <div className="absolute z-20 w-full bg-white border border-slate-300 rounded mt-1 shadow">
-              {entitySuggestions.map((ent) => (
-                <button
-                  key={ent.id}
-                  type="button"
-                  onClick={() => {
-                    setForm({
-                      name: ent.name,
-                      type: ent.type,
-                      category: ent.category,
-                      state: ent.state,
-                      county: ent.county,
-                      jurisdiction: ent.jurisdiction || "",
-                    });
-                    setShowSuggestions(false);
-                  }}
-                  className="block w-full text-left px-4 py-2 hover:bg-slate-100 text-slate-900"
-                >
-                  <div className="font-medium">{ent.name}</div>
-                  <div className="text-xs text-slate-500">
-                    {ent.category} · {ent.state}{ent.county ? `, ${ent.county}` : ""}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
+          {/* TYPE */}
           <select
             value={form.type}
             onChange={(e) =>
               setForm({ ...form, type: e.target.value, category: "" })
             }
-            className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-4 py-2 border rounded"
           >
             <option value="agency">Agency</option>
             <option value="institution">Institution</option>
-            <option value="individual">High-Level Individual</option>
+            <option value="individual">Senior Public Official</option>
           </select>
 
+          {/* CATEGORY */}
           <select
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
             required
-            className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-4 py-2 border rounded"
           >
             <option value="">Select category</option>
             {categoryOptions[form.type].map((opt) => (
@@ -224,7 +195,7 @@ export default function AddOfficialPage() {
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="w-full px-4 py-2 border rounded"
             />
           )}
 
@@ -232,43 +203,30 @@ export default function AddOfficialPage() {
           <div className="relative">
             <input
               type="text"
-              placeholder="Type state"
+              placeholder="State"
               value={stateQuery}
               onChange={(e) => {
                 setStateQuery(e.target.value);
                 setShowStateDropdown(true);
                 setForm({ ...form, state: "", county: "" });
                 setCountyQuery("");
-                setShowCountyDropdown(false);
               }}
               required
-              className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="w-full px-4 py-2 border rounded"
             />
 
-            {showStateDropdown && stateOptions.length > 0 && (
-              <div className="absolute z-10 w-full bg-white dark:bg-white border border-slate-300 rounded mt-1 shadow">
+            {showStateDropdown && (
+              <div className="absolute z-10 w-full bg-white border rounded shadow">
                 {stateOptions.map((s) => (
                   <button
-                    type="button"
                     key={s.abbr}
+                    type="button"
                     onClick={() => {
-                      if (s.abbr === "DC") {
-                        setForm({
-                          ...form,
-                          state: "DC",
-                          county: "Washington, DC",
-                        });
-                        setCountyQuery("Washington, DC");
-                        setShowCountyDropdown(false);
-                      } else {
-                        setForm({ ...form, state: s.abbr, county: "" });
-                        setCountyQuery("");
-                      }
-
+                      setForm({ ...form, state: s.abbr, county: "" });
                       setStateQuery(s.name);
                       setShowStateDropdown(false);
                     }}
-                    className="block w-full text-left px-4 py-2 hover:bg-slate-100 text-slate-900"
+                    className="block w-full text-left px-4 py-2 hover:bg-slate-100"
                   >
                     {s.name} ({s.abbr})
                   </button>
@@ -277,48 +235,59 @@ export default function AddOfficialPage() {
             )}
           </div>
 
-          {/* COUNTY */}
-          <div className="relative">
+          {/* STATEWIDE TOGGLE */}
+          <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
-              type="text"
-              placeholder={
-                form.state === "DC"
-                  ? "Washington, DC"
-                  : form.state
-                  ? "Type county"
-                  : "Select state first"
-              }
-              value={countyQuery}
+              type="checkbox"
+              checked={isStatewide}
               onChange={(e) => {
-                setCountyQuery(e.target.value);
-                setShowCountyDropdown(true);
-                setForm({ ...form, county: "" });
+                setIsStatewide(e.target.checked);
+                if (e.target.checked) {
+                  setForm({ ...form, county: "" });
+                  setCountyQuery("");
+                }
               }}
-              disabled={!form.state || form.state === "DC"}
-              required
-              className="w-full px-4 py-2 bg-white border border-slate-300 text-slate-900 rounded disabled:opacity-50"
             />
+            Statewide / no county (default)
+          </label>
 
-            {showCountyDropdown && countyOptions.length > 0 && (
-              <div className="absolute z-10 w-full bg-white dark:bg-white border border-slate-300 rounded mt-1 shadow">
-                {countyOptions.map((county) => (
-                  <button
-                    type="button"
-                    key={county}
-                    onClick={() => {
-                      setForm({ ...form, county });
-                      setCountyQuery(county);
-                      setShowCountyDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-slate-100 text-slate-900"
-                  >
-                    {county}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* COUNTY */}
+          {!isStatewide && (
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="County (optional)"
+                value={countyQuery}
+                onChange={(e) => {
+                  setCountyQuery(e.target.value);
+                  setShowCountyDropdown(true);
+                  setForm({ ...form, county: "" });
+                }}
+                className="w-full px-4 py-2 border rounded"
+              />
 
+              {showCountyDropdown && (
+                <div className="absolute z-10 w-full bg-white border rounded shadow">
+                  {countyOptions.map((county) => (
+                    <button
+                      key={county}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, county });
+                        setCountyQuery(county);
+                        setShowCountyDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-slate-100"
+                    >
+                      {county}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* JURISDICTION */}
           <input
             type="text"
             placeholder="Jurisdiction (optional)"
@@ -326,15 +295,62 @@ export default function AddOfficialPage() {
             onChange={(e) =>
               setForm({ ...form, jurisdiction: e.target.value })
             }
-            className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-4 py-2 border rounded"
           />
+
+          {/* NAME (LAST) */}
+          <div className="relative">
+            <label className="block text-sm font-medium mb-1">
+              Official entity name
+            </label>
+            <input
+              type="text"
+              placeholder="Begin typing the official name…"
+              value={form.name}
+              onChange={(e) => {
+                setForm({ ...form, name: e.target.value });
+                setNameQuery(e.target.value);
+              }}
+              required
+              className="w-full px-4 py-2 border rounded"
+            />
+
+            {showSuggestions && entitySuggestions.length > 0 && (
+              <div className="absolute z-20 w-full bg-white border rounded shadow">
+                {entitySuggestions.map((ent) => (
+                  <button
+                    key={ent.id}
+                    type="button"
+                    onClick={() => {
+                      setForm({
+                        name: ent.name,
+                        type: ent.type,
+                        category: ent.category,
+                        state: ent.state,
+                        county: ent.county,
+                        jurisdiction: ent.jurisdiction || "",
+                      });
+                      setShowSuggestions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-slate-100"
+                  >
+                    <div className="font-medium">{ent.name}</div>
+                    <div className="text-xs text-slate-500">
+                      {ent.category} · {ent.state}
+                      {ent.county ? `, ${ent.county}` : ""}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <button
             type="submit"
             disabled={submitting}
             className="bg-slate-800 hover:bg-slate-900 px-6 py-2 rounded font-semibold w-full text-white"
           >
-            {submitting ? "Submitting…" : "Create Entity"}
+            {submitting ? "Submitting…" : "Submit for Review"}
           </button>
         </form>
       </div>
