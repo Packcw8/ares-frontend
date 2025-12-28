@@ -24,9 +24,8 @@ export default function VaultUpload() {
   const [allEntities, setAllEntities] = useState([]);
 
   const [isPublic, setIsPublic] = useState(false);
-  const [isAnonymous, setIsAnonymous] = useState(false); // ✅ NEW
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [savedBanner, setSavedBanner] = useState("");
 
   /* =====================
      EVIDENCE STATE
@@ -79,7 +78,7 @@ export default function VaultUpload() {
       setTestimony(entry.testimony || "");
       setEntityId(entry.entity_id || null);
       setIsPublic(!!entry.is_public);
-      setIsAnonymous(!!entry.is_anonymous); // ✅ NEW
+      setIsAnonymous(!!entry.is_anonymous);
 
       const ent = (allEntities || []).find((e) => e.id === entry.entity_id);
       if (ent) {
@@ -101,7 +100,6 @@ export default function VaultUpload() {
     }
 
     setSaving(true);
-    setSavedBanner("");
 
     try {
       let entryId = vaultEntryId;
@@ -111,33 +109,39 @@ export default function VaultUpload() {
           entity_id: entityId,
           testimony,
           is_public: isPublic,
-          is_anonymous: isAnonymous, // ✅ NEW
+          is_anonymous: isAnonymous,
         });
 
         entryId = res.data.id;
         setVaultEntryId(entryId);
 
-        setSavedBanner("Record created. You can upload evidence below now.");
+        const hasEvidence = window.confirm(
+          "Do you have evidence you want to upload now?"
+        );
 
-        setTimeout(() => {
-          evidenceRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }, 50);
+        if (hasEvidence) {
+          setTimeout(() => {
+            evidenceRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }, 50);
+        } else {
+          navigate(isPublic ? "/vault/public" : "/vault/mine");
+        }
       } else {
         await api.patch(`/vault-entries/${vaultEntryId}`, {
           entity_id: entityId,
           testimony,
           is_public: isPublic,
-          is_anonymous: isAnonymous, // ✅ NEW
+          is_anonymous: isAnonymous,
         });
 
-        setSavedBanner("Changes saved.");
+        navigate(isPublic ? "/vault/public" : "/vault/mine");
       }
     } catch (err) {
       console.error("Failed to save vault record", err);
-      alert("Something went wrong while saving. Please try again.");
+      alert("Something went wrong while saving.");
     } finally {
       setSaving(false);
     }
@@ -151,51 +155,63 @@ export default function VaultUpload() {
   };
 
   /* =====================
+     PREVIEW RENDER
+     ===================== */
+  const renderPreview = (file) => {
+    const url = URL.createObjectURL(file);
+    const name = file.name.toLowerCase();
+
+    if (/\.(jpg|jpeg|png|webp|gif)$/.test(name)) {
+      return <img src={url} className="h-24 w-full object-cover rounded-lg" />;
+    }
+    if (/\.(mp4|webm)$/.test(name)) {
+      return <video src={url} className="h-24 rounded-lg" controls />;
+    }
+    if (/\.(mp3|wav|ogg)$/.test(name)) {
+      return <audio src={url} controls />;
+    }
+
+    return (
+      <div className="text-sm underline break-all">
+        {file.name}
+      </div>
+    );
+  };
+
+  /* =====================
      UPLOAD EVIDENCE
      ===================== */
   const uploadEvidence = async () => {
-    if (!vaultEntryId) {
-      alert("Create the record first, then upload evidence.");
-      return;
-    }
-    if (selectedFiles.length === 0) {
-      alert("Pick at least one file first.");
-      return;
-    }
+    if (!vaultEntryId || selectedFiles.length === 0) return;
 
     setUploading(true);
+
     try {
       for (const file of selectedFiles) {
         const fd = new FormData();
         fd.append("file", file);
         fd.append("description", evidenceNote);
         fd.append("vault_entry_id", vaultEntryId);
-        fd.append("is_anonymous", isAnonymous); // ✅ MATCH ENTRY
+        fd.append("is_anonymous", String(isAnonymous)); // ✅ FIX
 
         await api.post("/vault", fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
-      setSelectedFiles([]);
-      setEvidenceNote("");
-
-      const res = await api.get(`/vault-entries/${vaultEntryId}/evidence`);
-      setEvidenceList(res.data || []);
-      setSavedBanner("Evidence uploaded.");
+      navigate(isPublic ? "/vault/public" : "/vault/mine");
     } catch (err) {
       console.error("Upload failed", err);
-      alert("Upload failed. Check your server logs and try again.");
+      alert("Evidence upload failed.");
     } finally {
       setUploading(false);
     }
   };
 
-  const doneRoute = isPublic ? "/vault/public" : "/vault/mine";
-
   return (
     <Layout>
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+
         {/* ENTITY */}
         <div className="space-y-1">
           <h2 className="text-xs font-semibold text-slate-600">
@@ -235,7 +251,7 @@ export default function VaultUpload() {
           )}
         </div>
 
-        {/* RECORD CARD */}
+        {/* RECORD */}
         <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-5 space-y-5">
           <textarea
             rows={6}
@@ -245,64 +261,48 @@ export default function VaultUpload() {
             className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm"
           />
 
-          {/* VISIBILITY + ANON */}
-          <div className="flex flex-wrap items-center justify-between text-sm gap-4">
-            <div className="flex gap-4 items-center">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={!isPublic}
-                  onChange={() => setIsPublic(false)}
-                />
-                Private
-              </label>
-
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={isPublic}
-                  onChange={() => setIsPublic(true)}
-                />
-                Public
-              </label>
-
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={isAnonymous}
-                  onChange={(e) => setIsAnonymous(e.target.checked)}
-                />
-                Post anonymously
-              </label>
-            </div>
-
-            <button
-              onClick={saveRecord}
-              disabled={saving}
-              className="text-indigo-600 font-semibold"
-            >
-              {saving ? "Saving…" : isNewEntry ? "Create" : "Save"}
-            </button>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <label>
+              <input type="radio" checked={!isPublic} onChange={() => setIsPublic(false)} /> Private
+            </label>
+            <label>
+              <input type="radio" checked={isPublic} onChange={() => setIsPublic(true)} /> Public
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={isAnonymous}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
+              /> Post anonymously
+            </label>
           </div>
+
+          <button
+            onClick={saveRecord}
+            disabled={saving}
+            className="text-indigo-600 font-semibold"
+          >
+            {saving ? "Saving…" : isNewEntry ? "Create" : "Save"}
+          </button>
 
           {/* EVIDENCE */}
           <div ref={evidenceRef} className="pt-4 border-t space-y-4">
             <h3 className="text-sm font-semibold">Evidence</h3>
 
-            {vaultEntryId && (
-              <>
-                <label className="block cursor-pointer">
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFilePick}
-                    className="hidden"
-                  />
-                  <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-500">
-                    Tap to select photos, videos, or files
-                  </div>
-                </label>
+            <input type="file" multiple onChange={handleFilePick} />
 
+            {selectedFiles.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {selectedFiles.map((f, i) => (
+                  <div key={i} className="border rounded-xl p-2">
+                    {renderPreview(f)}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedFiles.length > 0 && (
+              <>
                 <textarea
                   rows={2}
                   value={evidenceNote}
