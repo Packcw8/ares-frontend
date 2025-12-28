@@ -1,9 +1,3 @@
-// Updated AddOfficialPage.js
-// Changes:
-// 1. Removed low-level individual creation
-// 2. Allow ONLY agencies/institutions + high-level individuals
-// 3. Clear guardrails explained in UI
-
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
