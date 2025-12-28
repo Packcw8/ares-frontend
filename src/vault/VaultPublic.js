@@ -14,6 +14,9 @@ export default function VaultPublic() {
   const [stateFilter, setStateFilter] = useState("");
   const [countyFilter, setCountyFilter] = useState("");
 
+  // Evidence modal
+  const [activeEvidence, setActiveEvidence] = useState(null);
+
   useEffect(() => {
     api
       .get("/feed")
@@ -22,7 +25,7 @@ export default function VaultPublic() {
   }, []);
 
   /* =========================
-     BUILD FILTER OPTIONS
+     AUTOCOMPLETE DATA
      ========================= */
   const states = useMemo(() => {
     return [...new Set(feed.map(f => f.entity?.state).filter(Boolean))].sort();
@@ -63,7 +66,7 @@ export default function VaultPublic() {
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
 
         <h1 className="text-xl font-bold text-slate-900">
-          Community Records
+          Public Records
         </h1>
 
         {/* FILTER BAR */}
@@ -75,31 +78,61 @@ export default function VaultPublic() {
             className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
           />
 
-          <select
-            value={stateFilter}
-            onChange={e => {
-              setStateFilter(e.target.value);
-              setCountyFilter("");
-            }}
-            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
-          >
-            <option value="">All states</option>
-            {states.map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+          {/* STATE AUTOCOMPLETE */}
+          <div className="relative">
+            <input
+              value={stateFilter}
+              onChange={e => {
+                setStateFilter(e.target.value);
+                setCountyFilter("");
+              }}
+              placeholder="State"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+            />
+            {stateFilter && (
+              <div className="absolute z-10 mt-1 w-full bg-white border rounded-xl shadow">
+                {states
+                  .filter(s => s.toLowerCase().startsWith(stateFilter.toLowerCase()))
+                  .slice(0, 8)
+                  .map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setStateFilter(s)}
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-slate-100"
+                    >
+                      {s}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
 
-          <select
-            value={countyFilter}
-            onChange={e => setCountyFilter(e.target.value)}
-            disabled={!stateFilter}
-            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm disabled:opacity-60"
-          >
-            <option value="">All counties</option>
-            {counties.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+          {/* COUNTY AUTOCOMPLETE */}
+          <div className="relative">
+            <input
+              value={countyFilter}
+              onChange={e => setCountyFilter(e.target.value)}
+              placeholder="County"
+              disabled={!stateFilter}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm disabled:opacity-60"
+            />
+            {countyFilter && (
+              <div className="absolute z-10 mt-1 w-full bg-white border rounded-xl shadow">
+                {counties
+                  .filter(c => c.toLowerCase().startsWith(countyFilter.toLowerCase()))
+                  .slice(0, 8)
+                  .map(c => (
+                    <button
+                      key={c}
+                      onClick={() => setCountyFilter(c)}
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-slate-100"
+                    >
+                      {c}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {loading && (
@@ -118,18 +151,39 @@ export default function VaultPublic() {
               key={item.id}
               item={item}
               navigate={navigate}
+              onOpenEvidence={setActiveEvidence}
             />
           ))}
         </div>
       </div>
+
+      {/* EVIDENCE MODAL */}
+      {activeEvidence && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full p-4 relative">
+            <button
+              onClick={() => setActiveEvidence(null)}
+              className="absolute top-3 right-3 text-slate-500 hover:text-black"
+            >
+              ✕
+            </button>
+            {renderEvidence(activeEvidence, true)}
+            {activeEvidence.description && (
+              <p className="mt-3 text-sm text-slate-600">
+                {activeEvidence.description}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
 
 /* ======================================================
-   PUBLIC VAULT CARD (MYVAULT PARITY)
+   PUBLIC VAULT CARD
    ====================================================== */
-function PublicVaultCard({ item, navigate }) {
+function PublicVaultCard({ item, navigate, onOpenEvidence }) {
   const entity = item.entity;
 
   return (
@@ -166,17 +220,13 @@ function PublicVaultCard({ item, navigate }) {
         {item.evidence?.length > 0 && (
           <div className="grid grid-cols-2 gap-3">
             {item.evidence.map(ev => (
-              <div
+              <button
                 key={ev.id}
-                className="border rounded-xl p-3 flex flex-col gap-2"
+                onClick={() => onOpenEvidence(ev)}
+                className="border rounded-xl p-2 hover:ring-2 ring-indigo-500"
               >
                 {renderEvidence(ev)}
-                {ev.description && (
-                  <p className="text-xs text-slate-600">
-                    {ev.description}
-                  </p>
-                )}
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -191,17 +241,18 @@ function PublicVaultCard({ item, navigate }) {
 }
 
 /* ======================================================
-   EVIDENCE RENDER (SAME AS MYVAULT)
+   EVIDENCE RENDER
    ====================================================== */
-function renderEvidence(ev) {
+function renderEvidence(ev, large = false) {
   const url = ev.blob_url?.toLowerCase() || "";
+  const size = large ? "max-h-[70vh]" : "h-32";
 
   if (/\.(jpg|jpeg|png|webp|gif)$/.test(url)) {
-    return <img src={ev.blob_url} className="h-32 w-full object-cover rounded-lg" />;
+    return <img src={ev.blob_url} className={`${size} w-full object-contain rounded-lg`} />;
   }
 
   if (/\.(mp4|webm)$/.test(url)) {
-    return <video src={ev.blob_url} controls className="h-32 w-full rounded-lg" />;
+    return <video src={ev.blob_url} controls className={`${size} w-full rounded-lg`} />;
   }
 
   if (/\.(mp3|wav|ogg)$/.test(url)) {
