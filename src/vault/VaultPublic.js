@@ -68,7 +68,9 @@ export default function VaultPublic() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-        <h1 className="text-xl font-bold text-slate-900">Community Records</h1>
+        <h1 className="text-xl font-bold text-slate-900">
+          Community Records
+        </h1>
 
         {/* FILTER BAR */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -254,9 +256,9 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
         )}
       </div>
 
-      {/* FOOTER */}
+      {/* FOOTER – UPDATED */}
       <div className="px-6 py-3 border-t bg-slate-50 text-xs text-slate-500">
-        Posted publicly
+        Posted by {item.user?.display_name || "Anonymous"}
       </div>
     </div>
   );
