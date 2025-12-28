@@ -121,7 +121,7 @@ export default function AddOfficialPage() {
 
   return (
     <Layout>
-      <div className="p-4 max-w-xl mx-auto space-y-6">
+      <div className="p-4 max-w-xl mx-auto space-y-6 bg-white dark:bg-white rounded-lg">
         <h1 className="text-2xl font-bold">Add Public Entity</h1>
 
         <div className="text-sm bg-slate-100 text-slate-700 border border-slate-300 rounded p-3">
@@ -137,7 +137,7 @@ export default function AddOfficialPage() {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
-            className="w-full px-4 py-2 bg-white border border-slate-300 text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
           />
 
           <select
@@ -145,7 +145,7 @@ export default function AddOfficialPage() {
             onChange={(e) =>
               setForm({ ...form, type: e.target.value, category: "" })
             }
-            className="w-full px-4 py-2 bg-white border border-slate-300 text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
           >
             <option value="agency">Agency</option>
             <option value="institution">Institution</option>
@@ -156,7 +156,7 @@ export default function AddOfficialPage() {
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
             required
-            className="w-full px-4 py-2 bg-white border border-slate-300 text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
           >
             <option value="">Select category</option>
             {categoryOptions[form.type].map((opt) => (
@@ -173,7 +173,7 @@ export default function AddOfficialPage() {
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-white border border-slate-300 text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
             />
           )}
 
@@ -191,11 +191,11 @@ export default function AddOfficialPage() {
                 setShowCountyDropdown(false);
               }}
               required
-              className="w-full px-4 py-2 bg-white border border-slate-300 text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
             />
 
             {showStateDropdown && stateOptions.length > 0 && (
-              <div className="absolute z-10 w-full bg-white border border-slate-300 rounded mt-1 shadow">
+              <div className="absolute z-10 w-full bg-white dark:bg-white border border-slate-300 rounded mt-1 shadow">
                 {stateOptions.map((s) => (
                   <button
                     type="button"
@@ -249,7 +249,7 @@ export default function AddOfficialPage() {
             />
 
             {showCountyDropdown && countyOptions.length > 0 && (
-              <div className="absolute z-10 w-full bg-white border border-slate-300 rounded mt-1 shadow">
+              <div className="absolute z-10 w-full bg-white dark:bg-white border border-slate-300 rounded mt-1 shadow">
                 {countyOptions.map((county) => (
                   <button
                     type="button"
@@ -275,7 +275,7 @@ export default function AddOfficialPage() {
             onChange={(e) =>
               setForm({ ...form, jurisdiction: e.target.value })
             }
-            className="w-full px-4 py-2 bg-white border border-slate-300 text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-4 py-2 bg-white dark:bg-white border border-slate-300 text-slate-900 dark:text-slate-900 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
           />
 
           <button
