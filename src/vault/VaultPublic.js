@@ -13,9 +13,13 @@ export default function VaultPublic() {
   const [lightboxItems, setLightboxItems] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  /* =========================
+     LOAD PUBLIC VAULT FEED
+     ========================= */
   useEffect(() => {
-    api.get("/feed")
-      .then(res => setFeed(res.data || []))
+    api
+      .get("/vault-entries/feed")
+      .then((res) => setFeed(res.data || []))
       .finally(() => setLoading(false));
   }, []);
 
@@ -32,23 +36,26 @@ export default function VaultPublic() {
   };
 
   const next = () => {
-    setLightboxIndex(i => Math.min(i + 1, lightboxItems.length - 1));
+    setLightboxIndex((i) =>
+      Math.min(i + 1, lightboxItems.length - 1)
+    );
   };
 
   const prev = () => {
-    setLightboxIndex(i => Math.max(i - 1, 0));
+    setLightboxIndex((i) => Math.max(i - 1, 0));
   };
 
   return (
     <Layout>
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-
         <h1 className="text-xl font-bold text-slate-900">
-          Community Records
+          Public Records
         </h1>
 
         {loading && (
-          <p className="text-sm text-slate-500">Loading activity…</p>
+          <p className="text-sm text-slate-500">
+            Loading activity…
+          </p>
         )}
 
         {!loading && feed.length === 0 && (
@@ -58,7 +65,7 @@ export default function VaultPublic() {
         )}
 
         <div className="space-y-6">
-          {feed.map(item => (
+          {feed.map((item) => (
             <FeedCard
               key={item.id}
               item={item}
@@ -90,7 +97,6 @@ function FeedCard({ item, navigate, openLightbox }) {
 
   return (
     <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-
       {/* HEADER */}
       <div className="flex items-start gap-3 px-4 py-3 border-b bg-slate-50">
         <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
@@ -100,7 +106,9 @@ function FeedCard({ item, navigate, openLightbox }) {
         <div className="flex-1">
           {entity && (
             <button
-              onClick={() => navigate(`/ratings/${entity.id}`)}
+              onClick={() =>
+                navigate(`/ratings/${entity.id}`)
+              }
               className="text-sm font-semibold text-slate-900 hover:underline"
             >
               {entity.name}
@@ -115,7 +123,7 @@ function FeedCard({ item, navigate, openLightbox }) {
       {/* BODY */}
       <div className="px-4 py-4 space-y-4">
         <p className="text-sm text-slate-800 whitespace-pre-line">
-          {item.testimony || item.description}
+          {item.testimony}
         </p>
 
         {item.evidence?.length > 0 && (
@@ -162,6 +170,7 @@ function EvidenceThumb({ ev, index, all, openLightbox }) {
         src={ev.blob_url}
         onClick={() => openLightbox(all, index)}
         className="h-36 w-full object-cover rounded-xl cursor-pointer"
+        alt="evidence"
       />
     );
   }
@@ -225,6 +234,7 @@ function Lightbox({ items, index, onClose, onNext, onPrev }) {
           <img
             src={item.blob_url}
             className="max-h-[90vh] max-w-[90vw] rounded-xl"
+            alt="evidence"
           />
         )}
 
