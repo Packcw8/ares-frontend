@@ -44,15 +44,14 @@ export default function AdminPendingEntities() {
 
   async function retireEntity(id) {
     if (!window.confirm("Retire this entity? It will be hidden but preserved.")) return;
-    await api.patch(`/admin/entities/${id}`, {
-      approval_status: "retired",
-    });
+    await api.post(`/admin/entities/${id}/retire`);
     fetchEntities();
   }
 
   async function saveEdit() {
     try {
       setSaving(true);
+
       const { id, name, category, jurisdiction, state, county } = editing;
 
       await api.patch(`/admin/entities/${id}`, {
