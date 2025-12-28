@@ -21,29 +21,26 @@ export default function Layout({ children }) {
     showHamburger &&
     !hideHamburgerRoutes.includes(location.pathname);
 
-  const showBottomNav = !hideHamburgerRoutes.includes(location.pathname);
+  const showBottomNav =
+    isAuthenticated && !hideHamburgerRoutes.includes(location.pathname);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
-  /* Close menu on route change */
   useEffect(() => {
     setShowMenu(false);
   }, [location.pathname]);
 
-  /* Show hamburger only when near top */
   useEffect(() => {
     const handleScroll = () => {
       setShowHamburger(window.scrollY < 48);
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* Auto-close menu if hamburger hides */
   useEffect(() => {
     if (!showHamburger) setShowMenu(false);
   }, [showHamburger]);
@@ -66,7 +63,7 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f7f5ef] to-[#efe9dc] text-slate-900 relative font-sans">
-      {/* HAMBURGER */}
+      {/* HAMBURGER (AUTH ONLY) */}
       {shouldShowHamburger && (
         <>
           <button
@@ -136,6 +133,33 @@ export default function Layout({ children }) {
           </div>
         </header>
 
+        {/* PUBLIC CTA (NOT LOGGED IN) */}
+        {!isAuthenticated && (
+          <div className="mb-10 rounded-2xl border border-[#c2a76d]/40 bg-white/70 backdrop-blur p-6 text-center shadow-sm">
+            <h2 className="text-xl font-bold text-[#283d63] mb-2">
+              Create an account for free
+            </h2>
+            <p className="text-sm text-slate-600 mb-4 max-w-xl mx-auto">
+              Document experiences, protect your rights, and contribute to public
+              accountability — without fear or paywalls.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => navigate("/signup")}
+                className="px-6 py-2 rounded-xl bg-[#283d63] text-white font-semibold hover:bg-[#1f2f4f] transition"
+              >
+                Create Free Account
+              </button>
+              <button
+                onClick={() => navigate("/login")}
+                className="px-6 py-2 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 transition"
+              >
+                Log In
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* CONTENT */}
         <main className="space-y-6">{children}</main>
 
@@ -145,8 +169,8 @@ export default function Layout({ children }) {
         </footer>
       </div>
 
-      {/* MOBILE NAV */}
-      {isAuthenticated && showBottomNav && <BottomNav />}
+      {/* MOBILE NAV (AUTH ONLY) */}
+      {showBottomNav && <BottomNav />}
     </div>
   );
 }
