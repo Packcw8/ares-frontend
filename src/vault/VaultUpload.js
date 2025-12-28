@@ -24,6 +24,7 @@ export default function VaultUpload() {
   const [allEntities, setAllEntities] = useState([]);
 
   const [isPublic, setIsPublic] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false); // ✅ NEW
   const [saving, setSaving] = useState(false);
   const [savedBanner, setSavedBanner] = useState("");
 
@@ -78,6 +79,7 @@ export default function VaultUpload() {
       setTestimony(entry.testimony || "");
       setEntityId(entry.entity_id || null);
       setIsPublic(!!entry.is_public);
+      setIsAnonymous(!!entry.is_anonymous); // ✅ NEW
 
       const ent = (allEntities || []).find((e) => e.id === entry.entity_id);
       if (ent) {
@@ -90,7 +92,7 @@ export default function VaultUpload() {
   }, [vaultEntryId, allEntities, navigate]);
 
   /* =====================
-     SAVE RECORD (NO AUTO-NAV)
+     SAVE RECORD
      ===================== */
   const saveRecord = async () => {
     if (!entityId || !testimony.trim()) {
@@ -109,23 +111,26 @@ export default function VaultUpload() {
           entity_id: entityId,
           testimony,
           is_public: isPublic,
+          is_anonymous: isAnonymous, // ✅ NEW
         });
 
         entryId = res.data.id;
         setVaultEntryId(entryId);
 
-        // ✅ Stay on page so they can upload evidence
         setSavedBanner("Record created. You can upload evidence below now.");
 
-        // Scroll to evidence section
         setTimeout(() => {
-          evidenceRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          evidenceRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
         }, 50);
       } else {
         await api.patch(`/vault-entries/${vaultEntryId}`, {
           entity_id: entityId,
           testimony,
           is_public: isPublic,
+          is_anonymous: isAnonymous, // ✅ NEW
         });
 
         setSavedBanner("Changes saved.");
@@ -165,6 +170,7 @@ export default function VaultUpload() {
         fd.append("file", file);
         fd.append("description", evidenceNote);
         fd.append("vault_entry_id", vaultEntryId);
+        fd.append("is_anonymous", isAnonymous); // ✅ MATCH ENTRY
 
         await api.post("/vault", fd, {
           headers: { "Content-Type": "multipart/form-data" },
@@ -185,26 +191,6 @@ export default function VaultUpload() {
     }
   };
 
-  const renderPreview = (url) => {
-    if (!url) return null;
-    const l = url.toLowerCase();
-
-    if (/\.(jpg|jpeg|png|webp|gif)$/.test(l)) {
-      return <img src={url} className="h-24 w-24 object-cover rounded-lg" alt="evidence" />;
-    }
-    if (/\.(mp4|webm)$/.test(l)) {
-      return <video src={url} controls className="h-24 rounded-lg" />;
-    }
-    if (/\.(mp3|wav|ogg)$/.test(l)) {
-      return <audio src={url} controls />;
-    }
-    return (
-      <a href={url} target="_blank" rel="noreferrer" className="text-indigo-600 text-sm">
-        Open file
-      </a>
-    );
-  };
-
   const doneRoute = isPublic ? "/vault/public" : "/vault/mine";
 
   return (
@@ -212,7 +198,9 @@ export default function VaultUpload() {
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
         {/* ENTITY */}
         <div className="space-y-1">
-          <h2 className="text-xs font-semibold text-slate-600">This record is about</h2>
+          <h2 className="text-xs font-semibold text-slate-600">
+            This record is about
+          </h2>
 
           <input
             value={entitySearch}
@@ -240,15 +228,12 @@ export default function VaultUpload() {
             </div>
           )}
 
-          {entityId && <p className="text-xs text-slate-500">Selected: {entityLabel}</p>}
+          {entityId && (
+            <p className="text-xs text-slate-500">
+              Selected: {entityLabel}
+            </p>
+          )}
         </div>
-
-        {/* SAVED BANNER */}
-        {savedBanner && (
-          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-            {savedBanner}
-          </div>
-        )}
 
         {/* RECORD CARD */}
         <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-5 space-y-5">
@@ -260,58 +245,63 @@ export default function VaultUpload() {
             className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm"
           />
 
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex gap-4">
+          {/* VISIBILITY + ANON */}
+          <div className="flex flex-wrap items-center justify-between text-sm gap-4">
+            <div className="flex gap-4 items-center">
               <label className="flex items-center gap-2">
-                <input type="radio" checked={!isPublic} onChange={() => setIsPublic(false)} />
+                <input
+                  type="radio"
+                  checked={!isPublic}
+                  onChange={() => setIsPublic(false)}
+                />
                 Private
               </label>
+
               <label className="flex items-center gap-2">
-                <input type="radio" checked={isPublic} onChange={() => setIsPublic(true)} />
+                <input
+                  type="radio"
+                  checked={isPublic}
+                  onChange={() => setIsPublic(true)}
+                />
                 Public
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                />
+                Post anonymously
               </label>
             </div>
 
-            <div className="flex items-center gap-3">
-              {!isNewEntry && (
-                <button
-                  onClick={() => navigate(doneRoute)}
-                  className="text-slate-600 font-semibold hover:underline"
-                >
-                  Done
-                </button>
-              )}
-
-              <button onClick={saveRecord} disabled={saving} className="text-indigo-600 font-semibold">
-                {saving ? "Saving…" : isNewEntry ? "Create" : "Save"}
-              </button>
-            </div>
+            <button
+              onClick={saveRecord}
+              disabled={saving}
+              className="text-indigo-600 font-semibold"
+            >
+              {saving ? "Saving…" : isNewEntry ? "Create" : "Save"}
+            </button>
           </div>
 
           {/* EVIDENCE */}
           <div ref={evidenceRef} className="pt-4 border-t space-y-4">
             <h3 className="text-sm font-semibold">Evidence</h3>
 
-            {!vaultEntryId && (
-              <p className="text-xs text-slate-500">Create the record first to add evidence.</p>
-            )}
-
             {vaultEntryId && (
               <>
                 <label className="block cursor-pointer">
-                  <input type="file" multiple onChange={handleFilePick} className="hidden" />
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFilePick}
+                    className="hidden"
+                  />
                   <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-500">
                     Tap to select photos, videos, or files
                   </div>
                 </label>
-
-                {selectedFiles.length > 0 && (
-                  <div className="space-y-1 text-xs">
-                    {selectedFiles.map((f, i) => (
-                      <p key={i}>{f.name}</p>
-                    ))}
-                  </div>
-                )}
 
                 <textarea
                   rows={2}
@@ -328,33 +318,9 @@ export default function VaultUpload() {
                 >
                   {uploading ? "Uploading…" : "Upload Evidence"}
                 </button>
-
-                {evidenceList.length > 0 && (
-                  <div className="space-y-3">
-                    {evidenceList.map((ev) => (
-                      <div
-                        key={ev.id}
-                        className="flex gap-3 items-start rounded-xl border border-slate-200 p-3"
-                      >
-                        {renderPreview(ev.blob_url)}
-                        <p className="text-sm">{ev.description || "Evidence"}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </>
             )}
           </div>
-
-          {/* DONE BUTTON (NEW ENTRY) */}
-          {vaultEntryId && isNewEntry && (
-            <button
-              onClick={() => navigate(doneRoute)}
-              className="w-full rounded-xl border border-slate-300 py-3 font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              Done
-            </button>
-          )}
         </div>
       </div>
     </Layout>
