@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
@@ -13,42 +13,62 @@ export default function VaultPublic() {
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [stateQuery, setStateQuery] = useState("");
-  const [countyQuery, setCountyQuery] = useState("");
   const [countyFilter, setCountyFilter] = useState("");
+  const [countyQuery, setCountyQuery] = useState("");
 
   // Evidence modal
   const [activeEvidence, setActiveEvidence] = useState(null);
 
+  // refs for closing dropdowns
+  const stateRef = useRef(null);
+  const countyRef = useRef(null);
+
   useEffect(() => {
     api
       .get("/feed")
-      .then((res) => setFeed(res.data || []))
+      .then(res => setFeed(res.data || []))
       .finally(() => setLoading(false));
   }, []);
+
+  /* =========================
+     CLICK OUTSIDE TO CLOSE
+     ========================= */
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (stateRef.current && !stateRef.current.contains(e.target)) {
+        setStateQuery(stateFilter || "");
+      }
+      if (countyRef.current && !countyRef.current.contains(e.target)) {
+        setCountyQuery(countyFilter || "");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [stateFilter, countyFilter]);
 
   /* =========================
      AUTOCOMPLETE DATA
      ========================= */
   const states = useMemo(() => {
-    return [...new Set(feed.map((f) => f.entity?.state).filter(Boolean))].sort();
+    return [...new Set(feed.map(f => f.entity?.state).filter(Boolean))].sort();
   }, [feed]);
 
   const counties = useMemo(() => {
     return [
       ...new Set(
         feed
-          .filter((f) => !stateFilter || f.entity?.state === stateFilter)
-          .map((f) => f.entity?.county)
+          .filter(f => !stateFilter || f.entity?.state === stateFilter)
+          .map(f => f.entity?.county)
           .filter(Boolean)
       ),
     ].sort();
   }, [feed, stateFilter]);
 
   /* =========================
-     APPLY FILTERS
+     FILTERED FEED
      ========================= */
   const filteredFeed = useMemo(() => {
-    return feed.filter((item) => {
+    return feed.filter(item => {
       const entity = item.entity || {};
 
       if (stateFilter && entity.state !== stateFilter) return false;
@@ -56,9 +76,13 @@ export default function VaultPublic() {
 
       if (search.trim()) {
         const q = search.toLowerCase();
-        const name = entity.name?.toLowerCase() || "";
-        const text = (item.testimony || item.description || "").toLowerCase();
-        if (!name.includes(q) && !text.includes(q)) return false;
+        const text = (
+          entity.name ||
+          item.description ||
+          item.testimony ||
+          ""
+        ).toLowerCase();
+        if (!text.includes(q)) return false;
       }
 
       return true;
@@ -76,16 +100,16 @@ export default function VaultPublic() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             placeholder="Search entity or text…"
             className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
           />
 
-          {/* STATE AUTOCOMPLETE */}
-          <div className="relative">
+          {/* STATE */}
+          <div ref={stateRef} className="relative">
             <input
               value={stateQuery}
-              onChange={(e) => {
+              onChange={e => {
                 setStateQuery(e.target.value);
                 setStateFilter("");
                 setCountyFilter("");
@@ -98,11 +122,11 @@ export default function VaultPublic() {
             {stateQuery && (
               <div className="absolute z-10 mt-1 w-full bg-white border rounded-xl shadow">
                 {states
-                  .filter((s) =>
+                  .filter(s =>
                     s.toLowerCase().startsWith(stateQuery.toLowerCase())
                   )
                   .slice(0, 8)
-                  .map((s) => (
+                  .map(s => (
                     <button
                       key={s}
                       type="button"
@@ -119,11 +143,11 @@ export default function VaultPublic() {
             )}
           </div>
 
-          {/* COUNTY AUTOCOMPLETE */}
-          <div className="relative">
+          {/* COUNTY */}
+          <div ref={countyRef} className="relative">
             <input
               value={countyQuery}
-              onChange={(e) => {
+              onChange={e => {
                 setCountyQuery(e.target.value);
                 setCountyFilter("");
               }}
@@ -135,11 +159,11 @@ export default function VaultPublic() {
             {countyQuery && (
               <div className="absolute z-10 mt-1 w-full bg-white border rounded-xl shadow">
                 {counties
-                  .filter((c) =>
+                  .filter(c =>
                     c.toLowerCase().startsWith(countyQuery.toLowerCase())
                   )
                   .slice(0, 8)
-                  .map((c) => (
+                  .map(c => (
                     <button
                       key={c}
                       type="button"
@@ -168,9 +192,9 @@ export default function VaultPublic() {
         )}
 
         <div className="space-y-6">
-          {filteredFeed.map((item) => (
+          {filteredFeed.map(item => (
             <PublicVaultCard
-              key={item.id}
+              key={`${item.type}-${item.created_at}`}
               item={item}
               navigate={navigate}
               onOpenEvidence={setActiveEvidence}
@@ -179,40 +203,21 @@ export default function VaultPublic() {
         </div>
       </div>
 
-      {/* EVIDENCE MODAL */}
       {activeEvidence && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full p-4 relative">
-            <button
-              onClick={() => setActiveEvidence(null)}
-              className="absolute top-3 right-3 text-slate-500 hover:text-black"
-            >
-              ✕
-            </button>
-
-            {renderEvidence(activeEvidence, true)}
-
-            {activeEvidence.description && (
-              <p className="mt-3 text-sm text-slate-600">
-                {activeEvidence.description}
-              </p>
-            )}
-          </div>
-        </div>
+        <EvidenceModal ev={activeEvidence} onClose={() => setActiveEvidence(null)} />
       )}
     </Layout>
   );
 }
 
 /* ======================================================
-   PUBLIC VAULT CARD
+   PUBLIC CARD
    ====================================================== */
 function PublicVaultCard({ item, navigate, onOpenEvidence }) {
   const entity = item.entity;
 
   return (
     <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-      {/* HEADER */}
       <div className="flex items-start gap-3 px-6 py-4 border-b bg-slate-50">
         <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
           {entity?.name?.[0] || "?"}
@@ -229,34 +234,60 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
           )}
 
           <p className="text-xs text-slate-500">
-            {entity?.county && `${entity.county}, `}
-            {entity?.state}
+            {entity?.county && `${entity.county}, `}{entity?.state}
           </p>
         </div>
       </div>
 
-      {/* BODY */}
       <div className="px-6 py-4 space-y-4">
-        <p className="text-sm text-slate-800 whitespace-pre-line">
-          {item.testimony || item.description}
-        </p>
 
-        {item.evidence?.length > 0 && (
-          <div className="grid grid-cols-2 gap-3">
-            {item.evidence.map((ev) => (
-              <button
-                key={ev.id}
-                onClick={() => onOpenEvidence(ev)}
-                className="border rounded-xl p-2 hover:ring-2 ring-indigo-500"
-              >
-                {renderEvidence(ev)}
-              </button>
-            ))}
-          </div>
+        {/* RATING */}
+        {item.type === "rating" && (
+          <>
+            <p className="text-sm font-semibold text-slate-900">
+              This official was ranked
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {Object.entries(item.rating?.scores || {}).map(([k, v]) => (
+                <div
+                  key={k}
+                  className="flex justify-between bg-slate-50 rounded-lg px-3 py-2"
+                >
+                  <span className="capitalize text-slate-600">
+                    {k.replace("_", " ")}
+                  </span>
+                  <span className="font-semibold">{v}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* VAULT RECORD */}
+        {item.type === "vault_record" && (
+          <>
+            <p className="text-sm text-slate-800 whitespace-pre-line">
+              {item.description}
+            </p>
+
+            {item.evidence?.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {item.evidence.map(ev => (
+                  <button
+                    key={ev.id}
+                    onClick={() => onOpenEvidence(ev)}
+                    className="border rounded-xl p-2 hover:ring-2 ring-indigo-500"
+                  >
+                    {renderEvidence(ev)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* FOOTER – UPDATED */}
       <div className="px-6 py-3 border-t bg-slate-50 text-xs text-slate-500">
         Posted by {item.user?.display_name || "Anonymous"}
       </div>
@@ -265,43 +296,42 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
 }
 
 /* ======================================================
-   EVIDENCE RENDER
+   EVIDENCE
    ====================================================== */
+function EvidenceModal({ ev, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full p-4 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-slate-500 hover:text-black"
+        >
+          ✕
+        </button>
+        {renderEvidence(ev, true)}
+        {ev.description && (
+          <p className="mt-3 text-sm text-slate-600">{ev.description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function renderEvidence(ev, large = false) {
   const url = ev.blob_url?.toLowerCase() || "";
   const size = large ? "max-h-[70vh]" : "h-32";
 
   if (/\.(jpg|jpeg|png|webp|gif)$/.test(url)) {
-    return (
-      <img
-        src={ev.blob_url}
-        alt="Evidence"
-        className={`${size} w-full object-contain rounded-lg`}
-      />
-    );
+    return <img src={ev.blob_url} className={`${size} w-full object-contain rounded-lg`} />;
   }
-
   if (/\.(mp4|webm)$/.test(url)) {
-    return (
-      <video
-        src={ev.blob_url}
-        controls
-        className={`${size} w-full rounded-lg`}
-      />
-    );
+    return <video src={ev.blob_url} controls className={`${size} w-full rounded-lg`} />;
   }
-
   if (/\.(mp3|wav|ogg)$/.test(url)) {
     return <audio src={ev.blob_url} controls className="w-full" />;
   }
-
   return (
-    <a
-      href={ev.blob_url}
-      target="_blank"
-      rel="noreferrer"
-      className="text-indigo-600 text-sm underline"
-    >
+    <a href={ev.blob_url} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
       Open file
     </a>
   );
