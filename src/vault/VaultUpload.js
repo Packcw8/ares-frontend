@@ -9,13 +9,11 @@ export default function VaultUpload() {
 
   const initialEntryId = locationState?.vault_entry_id || null;
   const [vaultEntryId, setVaultEntryId] = useState(initialEntryId);
-  const isNewEntry = !vaultEntryId;
 
   const evidenceRef = useRef(null);
 
   const [testimony, setTestimony] = useState("");
   const [entityId, setEntityId] = useState(null);
-  const [entityLabel, setEntityLabel] = useState("");
   const [entitySearch, setEntitySearch] = useState("");
   const [entityResults, setEntityResults] = useState([]);
   const [allEntities, setAllEntities] = useState([]);
@@ -75,11 +73,9 @@ export default function VaultUpload() {
           evidenceRef.current?.scrollIntoView({ behavior: "smooth" });
         }, 100);
       } else {
-        alert("Your record has been saved successfully.");
         navigate(isPublic ? "/vault/public" : "/vault/mine");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Failed to save testimony.");
     } finally {
       setSaving(false);
@@ -125,10 +121,8 @@ export default function VaultUpload() {
         });
       }
 
-      alert("Evidence uploaded successfully.");
       navigate(isPublic ? "/vault/public" : "/vault/mine");
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Evidence upload failed.");
     } finally {
       setUploading(false);
@@ -140,35 +134,47 @@ export default function VaultUpload() {
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
         {/* INFO BAR */}
-        <div className="rounded-2xl border border-slate-300 bg-slate-50 p-5 text-sm text-slate-700 space-y-2">
+        <div className="rounded-2xl border border-slate-300 bg-slate-50 p-5 text-sm text-slate-700 space-y-3">
           <p className="font-semibold text-slate-900">
-            What is this page?
+            How records work
           </p>
 
           <p>
-            This is where you create a personal record connected to a public
-            entity. A record begins with written testimony and may include
-            supporting evidence such as photos, videos, audio, or documents.
+            Every record created here must be attached to a{" "}
+            <strong>public-facing entity</strong> such as an official, agency,
+            court, institution, or program. This keeps records organized,
+            searchable, and contextual.
           </p>
 
           <p>
-            Records are <strong>private by default</strong>. You choose whether
-            a record is private or public, and you may change that later from
-            My Vault.
+            If you cannot find the entity you are looking for, you can add a new
+            one. New entities are reviewed before becoming publicly visible.
           </p>
 
-          <p>
-            Evidence is optional and can be added now or later. Adding evidence
-            does not make claims — it simply provides additional context to the
-            written record.
-          </p>
+          <button
+            onClick={() => navigate("/ratings/new")}
+            className="
+              inline-flex items-center
+              rounded-lg
+              border border-slate-300
+              bg-white
+              px-4 py-2
+              text-sm font-medium
+              text-slate-700
+              hover:bg-slate-100
+              transition
+            "
+          >
+            Add a public entity →
+          </button>
 
           <p className="text-slate-600">
-            You may also choose to submit records anonymously. Anonymity applies
-            to public display only and does not affect moderation or review.
+            Records are private by default. You control whether they are made
+            public, and you may add evidence now or later.
           </p>
         </div>
 
+        {/* ENTITY SEARCH */}
         <div className="space-y-2">
           <h2 className="text-xs font-semibold text-slate-600">
             This record is about
@@ -188,7 +194,6 @@ export default function VaultUpload() {
                   key={ent.id}
                   onClick={() => {
                     setEntityId(ent.id);
-                    setEntityLabel(ent.name);
                     setEntitySearch(ent.name);
                     setEntityResults([]);
                   }}
@@ -201,6 +206,7 @@ export default function VaultUpload() {
           )}
         </div>
 
+        {/* TESTIMONY + EVIDENCE */}
         <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-5 space-y-5">
           <textarea
             rows={6}
