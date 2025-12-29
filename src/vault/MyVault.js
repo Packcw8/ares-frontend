@@ -69,7 +69,7 @@ export default function MyVault() {
         { params: { make_public: makePublic } }
       );
 
-      await loadEntries(); // 🔄 rehydrate
+      await loadEntries();
     } catch {
       alert("Failed to update visibility.");
     } finally {
@@ -119,12 +119,42 @@ export default function MyVault() {
     <Layout>
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* HEADER */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-slate-900">
             My Vault
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Your private and public evidence archive
+          </p>
+        </div>
+
+        {/* INFO BAR */}
+        <div className="mb-8 rounded-2xl border border-slate-300 bg-slate-50 p-5 text-sm text-slate-700 space-y-2">
+          <p className="font-semibold text-slate-900">
+            What is My Vault?
+          </p>
+
+          <p>
+            My Vault is your personal workspace for writing testimony and
+            attaching supporting materials such as images, video, audio, or
+            documents.
+          </p>
+
+          <p>
+            Entries you create here are <strong>private by default</strong>.
+            You decide if and when an entry becomes public and appears in the
+            Community Records feed.
+          </p>
+
+          <p>
+            Publishing an entry does not make claims or conclusions. It simply
+            makes the record visible alongside other public-facing materials
+            connected to an entity.
+          </p>
+
+          <p className="text-slate-600">
+            You can continue adding evidence to an entry at any time, whether
+            it is private or public.
           </p>
         </div>
 

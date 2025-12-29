@@ -139,12 +139,45 @@ export default function VaultUpload() {
     <Layout>
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
+        {/* INFO BAR */}
+        <div className="rounded-2xl border border-slate-300 bg-slate-50 p-5 text-sm text-slate-700 space-y-2">
+          <p className="font-semibold text-slate-900">
+            What is this page?
+          </p>
+
+          <p>
+            This is where you create a personal record connected to a public
+            entity. A record begins with written testimony and may include
+            supporting evidence such as photos, videos, audio, or documents.
+          </p>
+
+          <p>
+            Records are <strong>private by default</strong>. You choose whether
+            a record is private or public, and you may change that later from
+            My Vault.
+          </p>
+
+          <p>
+            Evidence is optional and can be added now or later. Adding evidence
+            does not make claims — it simply provides additional context to the
+            written record.
+          </p>
+
+          <p className="text-slate-600">
+            You may also choose to submit records anonymously. Anonymity applies
+            to public display only and does not affect moderation or review.
+          </p>
+        </div>
+
         <div className="space-y-2">
-          <h2 className="text-xs font-semibold text-slate-600">This record is about</h2>
+          <h2 className="text-xs font-semibold text-slate-600">
+            This record is about
+          </h2>
+
           <input
             value={entitySearch}
             onChange={(e) => setEntitySearch(e.target.value)}
-            placeholder="Search an official or agency"
+            placeholder="Search an official, agency, or institution"
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
           />
 
@@ -178,9 +211,32 @@ export default function VaultUpload() {
           />
 
           <div className="flex flex-wrap gap-4 text-sm">
-            <label><input type="radio" checked={!isPublic} onChange={() => setIsPublic(false)} /> Private</label>
-            <label><input type="radio" checked={isPublic} onChange={() => setIsPublic(true)} /> Public</label>
-            <label><input type="checkbox" checked={isAnonymous} onChange={e => setIsAnonymous(e.target.checked)} /> Anonymous</label>
+            <label>
+              <input
+                type="radio"
+                checked={!isPublic}
+                onChange={() => setIsPublic(false)}
+              />{" "}
+              Private
+            </label>
+
+            <label>
+              <input
+                type="radio"
+                checked={isPublic}
+                onChange={() => setIsPublic(true)}
+              />{" "}
+              Public
+            </label>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={isAnonymous}
+                onChange={e => setIsAnonymous(e.target.checked)}
+              />{" "}
+              Anonymous
+            </label>
           </div>
 
           <button
@@ -192,7 +248,9 @@ export default function VaultUpload() {
           </button>
 
           <div ref={evidenceRef} className="pt-4 border-t space-y-4">
-            <h3 className="text-sm font-semibold">Add Evidence (optional)</h3>
+            <h3 className="text-sm font-semibold">
+              Add Evidence (optional)
+            </h3>
 
             <input type="file" multiple onChange={handleFilePick} />
 
