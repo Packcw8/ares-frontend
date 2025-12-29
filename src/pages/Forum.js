@@ -44,7 +44,7 @@ function Forum() {
       <div className="px-4 pb-24 max-w-7xl mx-auto">
 
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-[#283d63]">
             Public Statements & Forums
           </h1>
@@ -54,9 +54,32 @@ function Forum() {
               to="/forum/new"
               className="bg-[#283d63] text-white px-5 py-2 rounded-xl font-semibold hover:bg-[#1d2c49]"
             >
-              + New Discussion
+              + New Statement
             </Link>
           )}
+        </div>
+
+        {/* INFO BOX */}
+        <div className="mb-8 rounded-2xl border border-[#c2a76d] bg-[#fffaf0] p-5 text-sm text-[#3a2f14]">
+          <p className="font-semibold mb-2">
+            What is this forum?
+          </p>
+          <p className="mb-2">
+            This space is reserved for <strong>approved officials and verified
+            professionals</strong> who are directly connected to an entity
+            (such as agencies, courts, programs, or departments) to share
+            public-facing statements, context, or clarifications.
+          </p>
+          <p className="mb-2">
+            These posts are not debates or private responses. They are intended
+            to provide transparency, explain processes, and communicate directly
+            with the public in a documented and accountable way.
+          </p>
+          <p>
+            The public may read and reference these statements alongside
+            community records and assessments to better understand the full
+            context surrounding an entity.
+          </p>
         </div>
 
         {/* SEARCH */}
