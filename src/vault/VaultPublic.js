@@ -70,7 +70,7 @@ export default function VaultPublic() {
           Community Records
         </h1>
 
-        {/* FILTER BAR – TEXT ONLY */}
+        {/* FILTER BAR */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
             value={search}
@@ -159,7 +159,7 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
 
       {/* BODY */}
       <div className="px-6 py-4 space-y-4">
-        {/* RATING */}
+        {/* RATING ENTRY */}
         {item.type === "rating" && (
           <>
             <p className="text-sm font-semibold text-slate-900">
@@ -181,6 +181,27 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
                 </div>
               ))}
             </div>
+
+            {entity && (
+              <div className="pt-2">
+                <button
+                  onClick={() => navigate(`/ratings/${entity.id}`)}
+                  className="
+                    inline-flex items-center
+                    rounded-lg
+                    border border-slate-200
+                    bg-white
+                    px-3 py-1.5
+                    text-xs font-medium
+                    text-slate-700
+                    hover:bg-slate-100
+                    transition
+                  "
+                >
+                  View entity & add insight →
+                </button>
+              </div>
+            )}
           </>
         )}
 
