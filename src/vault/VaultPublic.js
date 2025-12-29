@@ -70,6 +70,48 @@ export default function VaultPublic() {
           Community Records
         </h1>
 
+        {/* INFO BOX */}
+        <div className="rounded-2xl border border-slate-300 bg-slate-50 p-5 text-sm text-slate-700 space-y-2">
+          <p className="font-semibold text-slate-900">
+            What is the Community Records feed?
+          </p>
+
+          <p>
+            This page displays publicly shared records, assessments, and
+            supporting materials connected to <strong>public-facing entities</strong>
+            such as agencies, courts, institutions, programs, or senior officials.
+          </p>
+
+          <p>
+            Entries here reflect community experience, documentation, or
+            context — not conclusions. Together, they help build a transparent,
+            searchable public record.
+          </p>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+            <p className="text-slate-600">
+              Can’t find the entity you’re looking for?
+            </p>
+
+            <button
+              onClick={() => navigate("/ratings/new")}
+              className="
+                inline-flex items-center
+                rounded-lg
+                border border-slate-300
+                bg-white
+                px-4 py-2
+                text-sm font-medium
+                text-slate-700
+                hover:bg-slate-100
+                transition
+              "
+            >
+              Add a public entity →
+            </button>
+          </div>
+        </div>
+
         {/* FILTER BAR */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
