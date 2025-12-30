@@ -9,12 +9,10 @@ export default function VaultPublic() {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Simple text filters (no dropdowns)
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [countyFilter, setCountyFilter] = useState("");
 
-  // Evidence modal
   const [activeEvidence, setActiveEvidence] = useState(null);
 
   useEffect(() => {
@@ -24,9 +22,6 @@ export default function VaultPublic() {
       .finally(() => setLoading(false));
   }, []);
 
-  /* =========================
-     FILTERED FEED (TYPE-TO-FILTER)
-     ========================= */
   const filteredFeed = useMemo(() => {
     return feed.filter((item) => {
       const entity = item.entity || {};
@@ -51,6 +46,7 @@ export default function VaultPublic() {
           entity.name,
           item.description,
           item.testimony,
+          item.rating?.comment,
         ]
           .filter(Boolean)
           .join(" ")
@@ -70,49 +66,18 @@ export default function VaultPublic() {
           Community Records
         </h1>
 
-        {/* INFO BOX */}
+        {/* INFO */}
         <div className="rounded-2xl border border-slate-300 bg-slate-50 p-5 text-sm text-slate-700 space-y-2">
           <p className="font-semibold text-slate-900">
             What is the Community Records feed?
           </p>
-
           <p>
-            This page displays publicly shared records, assessments, and
-            supporting materials connected to <strong>public-facing entities</strong>
-            such as agencies, courts, institutions, programs, or senior officials.
+            This feed displays publicly shared records, ratings, and supporting
+            materials connected to public-facing entities.
           </p>
-
-          <p>
-            Entries here reflect community experience, documentation, or
-            context — not conclusions. Together, they help build a transparent,
-            searchable public record.
-          </p>
-
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
-            <p className="text-slate-600">
-              Can’t find the entity you’re looking for?
-            </p>
-
-            <button
-              onClick={() => navigate("/ratings/new")}
-              className="
-                inline-flex items-center
-                rounded-lg
-                border border-slate-300
-                bg-white
-                px-4 py-2
-                text-sm font-medium
-                text-slate-700
-                hover:bg-slate-100
-                transition
-              "
-            >
-              Add a public entity →
-            </button>
-          </div>
         </div>
 
-        {/* FILTER BAR */}
+        {/* FILTERS */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
             value={search}
@@ -120,14 +85,12 @@ export default function VaultPublic() {
             placeholder="Search entity or text…"
             className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
           />
-
           <input
             value={stateFilter}
             onChange={(e) => setStateFilter(e.target.value)}
             placeholder="State (e.g. WV)"
             className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
           />
-
           <input
             value={countyFilter}
             onChange={(e) => setCountyFilter(e.target.value)}
@@ -201,53 +164,76 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
 
       {/* BODY */}
       <div className="px-6 py-4 space-y-4">
-        {/* RATING ENTRY */}
-        {item.type === "rating" && (
-          <>
-            <p className="text-sm font-semibold text-slate-900">
-              Community insight was shared. Others may add context or experience.
-            </p>
 
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {Object.entries(item.rating?.scores || {}).map(([k, v]) => (
+        {/* ===== RATING ENTRY ===== */}
+        {item.type === "rating" && (
+          <div className="space-y-4">
+
+            {/* COMMENT */}
+            {item.rating?.comment && (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm text-slate-700 italic">
+                  “{item.rating.comment}”
+                </p>
+              </div>
+            )}
+
+            {/* CATEGORY SCORES */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              {[
+                ["Accountability", item.rating.accountability],
+                ["Respect", item.rating.respect],
+                ["Effectiveness", item.rating.effectiveness],
+                ["Transparency", item.rating.transparency],
+                ["Public Impact", item.rating.public_impact],
+              ].map(([label, value]) => (
                 <div
-                  key={k}
-                  className="flex justify-between bg-slate-50 rounded-lg px-3 py-2"
+                  key={label}
+                  className="flex justify-between rounded-lg bg-slate-50 px-3 py-2"
                 >
-                  <span className="capitalize text-slate-600">
-                    {k.replace("_", " ")}
-                  </span>
+                  <span className="text-slate-600">{label}</span>
                   <span className="font-semibold text-slate-900">
-                    {v}
+                    {value}
                   </span>
                 </div>
               ))}
             </div>
 
+            {/* ENTITY SCORE */}
             {entity && (
-              <div className="pt-2">
-                <button
-                  onClick={() => navigate(`/ratings/${entity.id}`)}
-                  className="
-                    inline-flex items-center
-                    rounded-lg
-                    border border-slate-200
-                    bg-white
-                    px-3 py-1.5
-                    text-xs font-medium
-                    text-slate-700
-                    hover:bg-slate-100
-                    transition
-                  "
-                >
-                  View entity & add insight →
-                </button>
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
+                <span className="text-sm text-slate-600">
+                  Community Score
+                </span>
+                <span className="text-lg font-bold text-slate-900">
+                  {Math.round(entity.reputation_score)}
+                </span>
               </div>
             )}
-          </>
+
+            {/* CTA */}
+            {entity && (
+              <button
+                onClick={() => navigate(`/ratings/${entity.id}`)}
+                className="
+                  inline-flex items-center
+                  rounded-lg
+                  border border-slate-200
+                  bg-white
+                  px-3 py-1.5
+                  text-xs font-medium
+                  text-slate-700
+                  hover:bg-slate-100
+                  transition
+                "
+              >
+                View entity & full record →
+              </button>
+            )}
+          </div>
         )}
 
-        {/* VAULT RECORD */}
+        {/* ===== VAULT RECORD ===== */}
         {item.type === "vault_record" && (
           <>
             <p className="text-sm text-slate-800 whitespace-pre-line">
