@@ -15,6 +15,8 @@ import ForumPost from "./pages/ForumPost";
 import Forum from "./pages/Forum";
 import NewForumPost from "./pages/NewForumPost";
 import About from "./pages/About";
+import PoliciesPage from "./pages/PoliciesPage";
+import PolicyDetailPage from "./pages/PolicyDetailPage";
 
 import AdminDashboard from "./pages/admin/Dashboard";
 import FlaggedRatingsPage from "./pages/admin/FlaggedRatingsPage";
@@ -22,6 +24,8 @@ import VerifyOfficialsPage from "./pages/admin/VerifyOfficialsPage";
 import VerifyRatingsPage from "./pages/admin/VerifyRatingsPage";
 import AdminEvidence from "./pages/admin/AdminEvidence";
 import AdminPendingEntities from "./pages/admin/AdminPendingEntities";
+import AdminPolicyQueue from "./pages/admin/AdminPolicyQueue";
+
 
 import VaultUpload from "./vault/VaultUpload";
 import VaultPublic from "./vault/VaultPublic";
@@ -79,6 +83,8 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/policies" element={<PoliciesPage />} />
+          <Route path="/policies/:id" element={<PolicyDetailPage />} />
 
           {/* 🔐 ADMIN (SECURED) */}
           <Route
@@ -132,6 +138,14 @@ function App() {
               <AdminRoute>
                 <AdminPendingEntities />
               </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/policies"
+            element={
+            <AdminRoute>
+             <AdminPolicyQueue />
+            </AdminRoute>
             }
           />
         </Routes>
