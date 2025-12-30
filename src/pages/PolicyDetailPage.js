@@ -54,8 +54,8 @@ export default function PolicyDetailPage() {
           </p>
 
           <p>
-            <strong>Status ID:</strong>{" "}
-            {policy.current_status_id ?? "—"}
+            <strong>Status:</strong>{" "}
+            {policy.status_label || "Unverified"}
           </p>
         </div>
 
@@ -64,6 +64,17 @@ export default function PolicyDetailPage() {
             {policy.summary || "No summary available."}
           </p>
         </div>
+
+        {policy.source_url && (
+          <a
+            href={policy.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-sm text-indigo-600 underline"
+          >
+            Read the full policy →
+          </a>
+        )}
 
         <button
           onClick={() => setShowRequest(true)}

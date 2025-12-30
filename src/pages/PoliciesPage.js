@@ -105,7 +105,7 @@ export default function PoliciesPage() {
                   </span>
 
                   <span className="italic">
-                    Status ID: {policy.current_status_id ?? "—"}
+                    Status: {policy.status_label || "Unverified"}
                   </span>
                 </div>
               </button>
