@@ -3,7 +3,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 export default function BottomNav() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showPicker, setShowPicker] = useState(false);
+  const [showViewPicker, setShowViewPicker] = useState(false);
+  const [showCreatePicker, setShowCreatePicker] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,18 +28,18 @@ export default function BottomNav() {
           active={isActive("/vault/public")}
         />
 
-        {/* RATINGS / POLICIES PICKER */}
+        {/* VIEW PICKER (Ratings / Policies) */}
         <NavButton
-          label="Ratings"
+          label="Browse"
           icon="📜"
-          onClick={() => setShowPicker(true)}
+          onClick={() => setShowViewPicker(true)}
           active={isActive("/ratings") || isActive("/policies")}
         />
 
-        {/* CENTER ACTION (UNCHANGED) */}
+        {/* CENTER CREATE BUTTON */}
         <button
-          onClick={() => navigate("/vault/upload")}
-          aria-label="Add Record"
+          onClick={() => setShowCreatePicker(true)}
+          aria-label="Create"
           className="-mt-8 h-16 w-16 rounded-full bg-indigo-600 text-white text-3xl flex items-center justify-center shadow-xl active:scale-95"
         >
           +
@@ -58,112 +60,153 @@ export default function BottomNav() {
         />
       </nav>
 
-      {/* PICKER MODAL */}
-      {showPicker && (
-        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40">
-          <div
-            className="absolute inset-0"
-            onClick={() => setShowPicker(false)}
+      {/* ================= VIEW PICKER ================= */}
+      {showViewPicker && (
+        <PickerModal
+          title="What would you like to view?"
+          onClose={() => setShowViewPicker(false)}
+        >
+          <PickerButton
+            icon="🏛️"
+            title="Public Ratings"
+            subtitle="Officials, agencies, institutions"
+            onClick={() => {
+              setShowViewPicker(false);
+              navigate("/ratings");
+            }}
           />
 
-          <div className="
-            relative
-            w-full
-            sm:max-w-md
-            bg-white
-            rounded-t-3xl
-            sm:rounded-3xl
-            p-6
-            space-y-4
-            shadow-2xl
-          ">
-            <h2 className="text-lg font-bold text-slate-800 text-center">
-              What would you like to view?
-            </h2>
+          <PickerButton
+            icon="📜"
+            title="Policies & Laws"
+            subtitle="Track public policy and legal status"
+            onClick={() => {
+              setShowViewPicker(false);
+              navigate("/policies");
+            }}
+          />
+        </PickerModal>
+      )}
 
-            <button
-              onClick={() => {
-                setShowPicker(false);
-                navigate("/ratings");
-              }}
-              className="
-                w-full
-                flex
-                items-center
-                gap-4
-                p-4
-                rounded-2xl
-                border
-                border-slate-200
-                hover:border-indigo-500
-                hover:bg-indigo-50
-                transition
-              "
-            >
-              <span className="text-3xl">🏛️</span>
-              <div className="text-left">
-                <div className="font-semibold text-slate-900">
-                  Public Ratings
-                </div>
-                <div className="text-sm text-slate-600">
-                  Courts, agencies, and public officials
-                </div>
-              </div>
-            </button>
+      {/* ================= CREATE PICKER ================= */}
+      {showCreatePicker && (
+        <PickerModal
+          title="What would you like to add?"
+          onClose={() => setShowCreatePicker(false)}
+        >
+          <PickerButton
+            icon="📜"
+            title="Policy"
+            subtitle="Submit a policy or law for review"
+            onClick={() => {
+              setShowCreatePicker(false);
+              navigate("/policies/new");
+            }}
+          />
 
-            <button
-              onClick={() => {
-                setShowPicker(false);
-                navigate("/policies");
-              }}
-              className="
-                w-full
-                flex
-                items-center
-                gap-4
-                p-4
-                rounded-2xl
-                border
-                border-slate-200
-                hover:border-indigo-500
-                hover:bg-indigo-50
-                transition
-              "
-            >
-              <span className="text-3xl">📜</span>
-              <div className="text-left">
-                <div className="font-semibold text-slate-900">
-                  Policies & Laws
-                </div>
-                <div className="text-sm text-slate-600">
-                  Track public policy and legal status
-                </div>
-              </div>
-            </button>
+          <PickerButton
+            icon="🏛️"
+            title="Public Entity"
+            subtitle="Agency, court, official, or institution"
+            onClick={() => {
+              setShowCreatePicker(false);
+              navigate("/ratings/new");
+            }}
+          />
 
-            <button
-              onClick={() => setShowPicker(false)}
-              className="w-full text-sm text-slate-500 pt-2"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+          <PickerButton
+            icon="🧾"
+            title="Record / Testimony"
+            subtitle="Create a personal or public record"
+            onClick={() => {
+              setShowCreatePicker(false);
+              navigate("/vault/upload");
+            }}
+          />
+        </PickerModal>
       )}
     </>
   );
 }
+
+/* ===================== COMPONENTS ===================== */
 
 function NavButton({ icon, label, onClick, active }) {
   return (
     <button
       onClick={onClick}
       className={`flex flex-col items-center justify-center text-xs transition-all ${
-        active ? "text-indigo-600 scale-110" : "text-slate-400 hover:text-slate-600"
+        active
+          ? "text-indigo-600 scale-110"
+          : "text-slate-400 hover:text-slate-600"
       }`}
     >
       <span className="text-xl leading-none">{icon}</span>
       <span className="mt-1">{label}</span>
+    </button>
+  );
+}
+
+function PickerModal({ title, children, onClose }) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40">
+      <div className="absolute inset-0" onClick={onClose} />
+
+      <div className="
+        relative
+        w-full
+        sm:max-w-md
+        bg-white
+        rounded-t-3xl
+        sm:rounded-3xl
+        p-6
+        space-y-4
+        shadow-2xl
+      ">
+        <h2 className="text-lg font-bold text-slate-800 text-center">
+          {title}
+        </h2>
+
+        {children}
+
+        <button
+          onClick={onClose}
+          className="w-full text-sm text-slate-500 pt-2"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PickerButton({ icon, title, subtitle, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="
+        w-full
+        flex
+        items-center
+        gap-4
+        p-4
+        rounded-2xl
+        border
+        border-slate-200
+        hover:border-indigo-500
+        hover:bg-indigo-50
+        transition
+      "
+    >
+      <span className="text-3xl">{icon}</span>
+      <div className="text-left">
+        <div className="font-semibold text-slate-900">
+          {title}
+        </div>
+        <div className="text-sm text-slate-600">
+          {subtitle}
+        </div>
+      </div>
     </button>
   );
 }

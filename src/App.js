@@ -17,6 +17,8 @@ import NewForumPost from "./pages/NewForumPost";
 import About from "./pages/About";
 import PoliciesPage from "./pages/PoliciesPage";
 import PolicyDetailPage from "./pages/PolicyDetailPage";
+import CreatePolicyPage from "./pages/CreatePolicyPage";
+
 
 import AdminDashboard from "./pages/admin/Dashboard";
 import FlaggedRatingsPage from "./pages/admin/FlaggedRatingsPage";
@@ -85,6 +87,8 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/policies" element={<PoliciesPage />} />
           <Route path="/policies/:id" element={<PolicyDetailPage />} />
+          <Route path="/policies/new" element={<CreatePolicyPage />} />
+
 
           {/* 🔐 ADMIN (SECURED) */}
           <Route
