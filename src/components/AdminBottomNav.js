@@ -53,26 +53,26 @@ export default function AdminBottomNav() {
 
         <button
           onClick={() => navigate("/admin/flagged")}
-          title="Due Process"
+          title="Flagged Ratings"
         >
           ⚠️
         </button>
 
         <button
           onClick={() => navigate("/admin/verify-officials")}
-          title="Office Vetting"
+          title="Verify Officials"
         >
           🗳️
         </button>
 
         <button
           onClick={() => navigate("/admin/verify-ratings")}
-          title="Public Record"
+          title="Verify Ratings"
         >
           ✅
         </button>
 
-        {/* 🆕 Entity Review */}
+        {/* Entity Review */}
         <button
           onClick={() => navigate("/admin/entities")}
           title="Entity Review"
@@ -80,12 +80,20 @@ export default function AdminBottomNav() {
           🏷️
         </button>
 
-        {/* 🆕 Evidence Review */}
+        {/* Evidence Review */}
         <button
           onClick={() => navigate("/admin/evidence")}
           title="Evidence Review"
         >
           🗂️
+        </button>
+
+        {/* 🆕 Policy Review */}
+        <button
+          onClick={() => navigate("/admin/policies")}
+          title="Policy Review"
+        >
+          📜
         </button>
 
         <button
