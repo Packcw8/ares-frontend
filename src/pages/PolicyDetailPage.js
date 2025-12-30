@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 import PolicyStatusRequestModal from "../components/PolicyStatusRequestModal";
 
 export default function PolicyDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [policy, setPolicy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showRequest, setShowRequest] = useState(false);
@@ -52,11 +54,6 @@ export default function PolicyDetailPage() {
             <strong>Governing Body:</strong>{" "}
             {policy.governing_body || "—"}
           </p>
-
-          <p>
-            <strong>Status:</strong>{" "}
-            {policy.status_label || "Unverified"}
-          </p>
         </div>
 
         <div className="bg-[#f7f1e1] border border-[#c2a76d] rounded-xl p-4">
@@ -65,15 +62,19 @@ export default function PolicyDetailPage() {
           </p>
         </div>
 
-        {policy.source_url && (
-          <a
-            href={policy.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-sm text-indigo-600 underline"
+        {policy.rated_entity_id ? (
+          <button
+            onClick={() =>
+              navigate(`/ratings/${policy.rated_entity_id}/rate`)
+            }
+            className="px-5 py-3 rounded-xl bg-[#c2a76d] text-[#283d63] font-semibold"
           >
-            Read the full policy →
-          </a>
+            Rate This Policy
+          </button>
+        ) : (
+          <p className="text-sm italic opacity-60">
+            This policy is not yet approved for public rating.
+          </p>
         )}
 
         <button

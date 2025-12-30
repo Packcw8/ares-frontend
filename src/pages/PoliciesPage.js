@@ -5,43 +5,71 @@ import api from "../services/api";
 
 export default function PoliciesPage() {
   const [policies, setPolicies] = useState([]);
+  const [entities, setEntities] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("all");
+  const [sort, setSort] = useState("worst"); // worst | best | neutral
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    api
-      .get("/policies")
-      .then(res => setPolicies(res.data || []))
-      .finally(() => setLoading(false));
+    async function load() {
+      try {
+        const [policyRes, entityRes] = await Promise.all([
+          api.get("/policies"),
+          api.get("/ratings/entities"),
+        ]);
+
+        setPolicies(policyRes.data || []);
+        setEntities(entityRes.data || []);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
-  const filtered = policies.filter(p => {
-    if (level !== "all" && p.jurisdiction_level !== level) return false;
-    if (search.trim()) {
-      return (
-        p.title.toLowerCase().includes(search.toLowerCase()) ||
-        (p.summary || "").toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    return true;
+  // attach reputation score from rated_entities
+  const enriched = policies.map(p => {
+    const entity = entities.find(e => e.id === p.rated_entity_id);
+    return {
+      ...p,
+      reputation_score: entity?.reputation_score ?? null,
+    };
   });
+
+  const filtered = enriched
+    .filter(p => {
+      if (level !== "all" && p.jurisdiction_level !== level) return false;
+      if (search.trim()) {
+        return (
+          p.title.toLowerCase().includes(search.toLowerCase()) ||
+          (p.summary || "").toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === "neutral") return 0;
+      if (a.reputation_score == null) return 1;
+      if (b.reputation_score == null) return -1;
+      return sort === "worst"
+        ? a.reputation_score - b.reputation_score
+        : b.reputation_score - a.reputation_score;
+    });
 
   return (
     <Layout>
       <div className="space-y-6">
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-2xl font-bold text-[#3a2f1b]">
-            Public Policies & Laws
-          </h1>
-        </div>
+        <h1 className="text-2xl font-bold text-[#3a2f1b]">
+          Public Policies & Laws
+        </h1>
 
         <p className="text-sm text-[#5a4635] max-w-3xl">
-          This section documents public policies and laws across federal and state
-          jurisdictions. Status changes are reviewed for accuracy before appearing publicly.
+          Publicly reviewed policies ranked by real-world impact.
         </p>
 
         {/* FILTERS */}
@@ -63,6 +91,16 @@ export default function PoliciesPage() {
             <option value="federal">Federal</option>
             <option value="state">State</option>
           </select>
+
+          <select
+            value={sort}
+            onChange={e => setSort(e.target.value)}
+            className="px-4 py-3 rounded-lg bg-[#ede3cb] border border-[#c2a76d]"
+          >
+            <option value="worst">Most Harmful</option>
+            <option value="best">Least Harmful</option>
+            <option value="neutral">Unsorted</option>
+          </select>
         </div>
 
         {/* RESULTS */}
@@ -77,17 +115,9 @@ export default function PoliciesPage() {
                 key={policy.id}
                 onClick={() => navigate(`/policies/${policy.id}`)}
                 className="
-                  text-left
-                  rounded-2xl
-                  border
-                  border-[#c2a76d]
-                  bg-[#f7f1e1]
-                  p-5
-                  shadow-sm
-                  transition-all
-                  hover:-translate-y-1
-                  hover:shadow-xl
-                  hover:border-[#8b1e3f]
+                  text-left rounded-2xl border border-[#c2a76d]
+                  bg-[#f7f1e1] p-5 shadow-sm transition-all
+                  hover:-translate-y-1 hover:shadow-xl
                 "
               >
                 <h2 className="text-lg font-bold text-[#283d63]">
@@ -104,9 +134,11 @@ export default function PoliciesPage() {
                     {policy.state_code ? ` — ${policy.state_code}` : ""}
                   </span>
 
-                  <span className="italic">
-                    Status: {policy.status_label || "Unverified"}
-                  </span>
+                  {policy.reputation_score != null && (
+                    <span className="font-bold text-[#8b1e3f]">
+                      Score: {policy.reputation_score.toFixed(1)}
+                    </span>
+                  )}
                 </div>
               </button>
             ))}
