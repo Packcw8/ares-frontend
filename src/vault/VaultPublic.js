@@ -29,23 +29,18 @@ export default function VaultPublic() {
       if (
         stateFilter &&
         !entity.state?.toLowerCase().includes(stateFilter.toLowerCase())
-      ) {
-        return false;
-      }
+      ) return false;
 
       if (
         countyFilter &&
         !entity.county?.toLowerCase().includes(countyFilter.toLowerCase())
-      ) {
-        return false;
-      }
+      ) return false;
 
       if (search.trim()) {
         const q = search.toLowerCase();
         const haystack = [
           entity.name,
           item.description,
-          item.testimony,
           item.rating?.comment,
         ]
           .filter(Boolean)
@@ -66,36 +61,71 @@ export default function VaultPublic() {
           Community Records
         </h1>
 
-        {/* INFO */}
-        <div className="rounded-2xl border border-slate-300 bg-slate-50 p-5 text-sm text-slate-700 space-y-2">
-          <p className="font-semibold text-slate-900">
+        {/* INFO BOX */}
+        <div className="
+          relative
+          rounded-2xl
+          border border-indigo-200
+          bg-gradient-to-br from-indigo-50 to-slate-50
+          p-6
+          text-sm
+          text-slate-700
+        ">
+          <div className="absolute left-0 top-0 h-full w-1 bg-indigo-500 rounded-l-2xl" />
+
+          <p className="font-semibold text-slate-900 mb-1">
             What is the Community Records feed?
           </p>
-          <p>
-            This feed displays publicly shared records, ratings, and supporting
-            materials connected to public-facing entities.
+
+          <p className="mb-3">
+            This page displays publicly shared records, ratings, and supporting
+            materials connected to public-facing entities. Entries document
+            experiences and observations — not legal conclusions.
           </p>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p className="text-slate-600">
+              Don’t see the entity you’re looking for?
+            </p>
+
+            <button
+              onClick={() => navigate("/ratings/new")}
+              className="
+                inline-flex items-center
+                rounded-lg
+                bg-indigo-600
+                px-4 py-2
+                text-sm font-medium
+                text-white
+                hover:bg-indigo-700
+                transition
+                shadow-sm
+              "
+            >
+              Add a public entity →
+            </button>
+          </div>
         </div>
 
-        {/* FILTERS */}
+        {/* FILTER BAR */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search entity or text…"
-            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
           />
           <input
             value={stateFilter}
             onChange={(e) => setStateFilter(e.target.value)}
             placeholder="State (e.g. WV)"
-            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
           />
           <input
             value={countyFilter}
             onChange={(e) => setCountyFilter(e.target.value)}
             placeholder="County (optional)"
-            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
           />
         </div>
 
@@ -138,7 +168,15 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
   const entity = item.entity;
 
   return (
-    <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+    <div className="
+      rounded-3xl
+      bg-white
+      border border-slate-200
+      shadow-md
+      hover:shadow-lg
+      transition
+      overflow-hidden
+    ">
       {/* HEADER */}
       <div className="flex items-start gap-3 px-6 py-4 border-b bg-slate-50">
         <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
@@ -154,7 +192,6 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
               {entity.name}
             </button>
           )}
-
           <p className="text-xs text-slate-500">
             {entity?.county && `${entity.county}, `}
             {entity?.state}
@@ -164,21 +201,16 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
 
       {/* BODY */}
       <div className="px-6 py-4 space-y-4">
-
-        {/* ===== RATING ENTRY ===== */}
         {item.type === "rating" && (
-          <div className="space-y-4">
-
-            {/* COMMENT */}
+          <>
             {item.rating?.comment && (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-indigo-50 p-4">
                 <p className="text-sm text-slate-700 italic">
                   “{item.rating.comment}”
                 </p>
               </div>
             )}
 
-            {/* CATEGORY SCORES */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
               {[
                 ["Accountability", item.rating.accountability],
@@ -192,48 +224,31 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
                   className="flex justify-between rounded-lg bg-slate-50 px-3 py-2"
                 >
                   <span className="text-slate-600">{label}</span>
-                  <span className="font-semibold text-slate-900">
-                    {value}
-                  </span>
+                  <span className="font-semibold text-slate-900">{value}</span>
                 </div>
               ))}
             </div>
 
-            {/* ENTITY SCORE */}
             {entity && (
               <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
-                <span className="text-sm text-slate-600">
-                  Community Score
-                </span>
-                <span className="text-lg font-bold text-slate-900">
+                <span className="text-sm text-slate-600">Community Score</span>
+                <span className="text-lg font-bold text-indigo-600">
                   {Math.round(entity.reputation_score)}
                 </span>
               </div>
             )}
 
-            {/* CTA */}
             {entity && (
               <button
                 onClick={() => navigate(`/ratings/${entity.id}`)}
-                className="
-                  inline-flex items-center
-                  rounded-lg
-                  border border-slate-200
-                  bg-white
-                  px-3 py-1.5
-                  text-xs font-medium
-                  text-slate-700
-                  hover:bg-slate-100
-                  transition
-                "
+                className="inline-flex items-center text-sm font-medium text-indigo-600 hover:underline"
               >
                 View entity & full record →
               </button>
             )}
-          </div>
+          </>
         )}
 
-        {/* ===== VAULT RECORD ===== */}
         {item.type === "vault_record" && (
           <>
             <p className="text-sm text-slate-800 whitespace-pre-line">
@@ -257,7 +272,6 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
         )}
       </div>
 
-      {/* FOOTER */}
       <div className="px-6 py-3 border-t bg-slate-50 text-xs text-slate-500">
         Posted by {item.user?.display_name || "Anonymous"}
       </div>
@@ -266,7 +280,7 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
 }
 
 /* ======================================================
-   EVIDENCE MODAL
+   EVIDENCE MODAL + RENDER
    ====================================================== */
 function EvidenceModal({ ev, onClose }) {
   return (
@@ -282,18 +296,13 @@ function EvidenceModal({ ev, onClose }) {
         {renderEvidence(ev, true)}
 
         {ev.description && (
-          <p className="mt-3 text-sm text-slate-600">
-            {ev.description}
-          </p>
+          <p className="mt-3 text-sm text-slate-600">{ev.description}</p>
         )}
       </div>
     </div>
   );
 }
 
-/* ======================================================
-   EVIDENCE RENDER
-   ====================================================== */
 function renderEvidence(ev, large = false) {
   const url = ev.blob_url?.toLowerCase() || "";
   const size = large ? "max-h-[70vh]" : "h-32";
