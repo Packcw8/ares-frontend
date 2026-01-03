@@ -18,10 +18,17 @@ function NewForumPost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
+  // =========================
+  // Entity search / selection
+  // =========================
   const [entityQuery, setEntityQuery] = useState("");
   const [entityId, setEntityId] = useState(null);
   const [entities, setEntities] = useState([]);
+  const [loadingEntities, setLoadingEntities] = useState(false);
 
+  // =========================
+  // Inline entity creation
+  // =========================
   const [creatingEntity, setCreatingEntity] = useState(false);
   const [entityForm, setEntityForm] = useState({
     name: "",
@@ -34,17 +41,26 @@ function NewForumPost() {
   const [stateQuery, setStateQuery] = useState("");
   const [countyQuery, setCountyQuery] = useState("");
 
+  // =========================
+  // SERVER-SIDE ENTITY SEARCH
+  // =========================
   useEffect(() => {
-    api.get("/ratings/entities").then((res) => setEntities(res.data));
-  }, []);
+    if (entityQuery.length < 2) {
+      setEntities([]);
+      return;
+    }
 
-  const filteredEntities = useMemo(() => {
-    if (!entityQuery) return [];
-    return entities.filter((e) =>
-      e.name.toLowerCase().includes(entityQuery.toLowerCase())
-    );
-  }, [entityQuery, entities]);
+    setLoadingEntities(true);
 
+    api
+      .get("/entities/search", { params: { q: entityQuery } })
+      .then((res) => setEntities(res.data || []))
+      .finally(() => setLoadingEntities(false));
+  }, [entityQuery]);
+
+  // =========================
+  // State / County helpers
+  // =========================
   const stateOptions = useMemo(() => {
     if (!stateQuery) return [];
     return Object.entries(stateCountyData)
@@ -61,22 +77,35 @@ function NewForumPost() {
     );
   }, [entityForm.state, countyQuery]);
 
+  // =========================
+  // Create Entity
+  // =========================
   const handleCreateEntity = async () => {
     try {
       const res = await api.post("/ratings/entities", entityForm);
-      setEntities((prev) => [...prev, res.data]);
+
       setEntityId(res.data.id);
       setEntityQuery(res.data.name);
       setCreatingEntity(false);
+
+      setEntities([]);
       setStateQuery("");
       setCountyQuery("");
-    } catch (err) {
+
+      alert(
+        "Entity submitted. If you are not an admin, it may require approval before appearing publicly."
+      );
+    } catch {
       alert("Failed to create entity");
     }
   };
 
+  // =========================
+  // Submit Forum Post
+  // =========================
   const handleSubmitPost = async (e) => {
     e.preventDefault();
+
     if (!entityId) {
       alert("Select or create an entity first.");
       return;
@@ -98,9 +127,12 @@ function NewForumPost() {
           New Forum Discussion
         </h1>
 
-        {/* ENTITY SEARCH */}
+        {/* =========================
+            ENTITY SEARCH
+           ========================= */}
         <div className="bg-white p-4 rounded-xl border">
           <label className="text-sm font-semibold">Entity</label>
+
           <input
             value={entityQuery}
             onChange={(e) => {
@@ -112,44 +144,61 @@ function NewForumPost() {
             className="w-full mt-2 p-2 border rounded"
           />
 
-          {filteredEntities.length > 0 && !entityId && (
-            <div className="mt-2 border rounded bg-white">
-              {filteredEntities.map((e) => (
+          {loadingEntities && (
+            <div className="mt-2 text-sm text-gray-500">
+              Searching…
+            </div>
+          )}
+
+          {entities.length > 0 && !entityId && (
+            <div className="mt-2 border rounded bg-white max-h-56 overflow-y-auto">
+              {entities.map((e) => (
                 <button
                   key={e.id}
                   type="button"
                   onClick={() => {
                     setEntityId(e.id);
                     setEntityQuery(e.name);
+                    setEntities([]);
                   }}
                   className="block w-full text-left px-3 py-2 hover:bg-gray-100"
                 >
-                  {e.name}
+                  <div className="font-medium">{e.name}</div>
+                  <div className="text-xs text-gray-500">
+                    {e.state}
+                    {e.county ? ` • ${e.county}` : ""}
+                  </div>
                 </button>
               ))}
             </div>
           )}
 
-          {entityQuery && filteredEntities.length === 0 && !entityId && (
-            <button
-              type="button"
-              onClick={() => {
-                setCreatingEntity(true);
-                setEntityForm((f) => ({ ...f, name: entityQuery }));
-              }}
-              className="mt-3 text-blue-600 font-semibold"
-            >
-              + Create new entity
-            </button>
+          {entityQuery.length >= 2 && entities.length === 0 && !entityId && !loadingEntities && (
+            <div className="mt-3 space-y-2">
+              <p className="text-sm text-gray-600">
+                Can’t find it? It may be pending approval or not yet listed.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatingEntity(true);
+                  setEntityForm((f) => ({ ...f, name: entityQuery }));
+                }}
+                className="text-blue-600 font-semibold"
+              >
+                + Create new entity
+              </button>
+            </div>
           )}
         </div>
 
-        {/* INLINE ENTITY CREATE */}
+        {/* =========================
+            INLINE ENTITY CREATE
+           ========================= */}
         {creatingEntity && (
           <div className="bg-gray-50 p-4 rounded-xl border space-y-3">
             <h2 className="font-semibold">Create Entity</h2>
 
-            {/* ROLE (NOT FREE TEXT) */}
             <select
               value={entityForm.role}
               onChange={(e) =>
@@ -165,7 +214,6 @@ function NewForumPost() {
               ))}
             </select>
 
-            {/* STATE TYPEAHEAD */}
             <input
               placeholder="State"
               value={stateQuery}
@@ -191,7 +239,6 @@ function NewForumPost() {
               </div>
             )}
 
-            {/* COUNTY TYPEAHEAD */}
             {entityForm.state && (
               <>
                 <input
@@ -231,7 +278,9 @@ function NewForumPost() {
           </div>
         )}
 
-        {/* POST */}
+        {/* =========================
+            POST FORM
+           ========================= */}
         <form onSubmit={handleSubmitPost} className="space-y-4">
           <input
             placeholder="Title"
