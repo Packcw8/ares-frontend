@@ -27,6 +27,8 @@ import VerifyRatingsPage from "./pages/admin/VerifyRatingsPage";
 import AdminEvidence from "./pages/admin/AdminEvidence";
 import AdminPendingEntities from "./pages/admin/AdminPendingEntities";
 import AdminPolicyQueue from "./pages/admin/AdminPolicyQueue";
+import ReviewUsersPage from "./pages/admin/ReviewUsersPage";
+
 
 
 import VaultUpload from "./vault/VaultUpload";
@@ -152,6 +154,14 @@ function App() {
             </AdminRoute>
             }
           />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <ReviewUsersPage />
+              </AdminRoute>
+             }
+            />
         </Routes>
       </div>
     </Router>
