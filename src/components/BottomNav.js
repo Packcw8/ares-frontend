@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 export default function BottomNav() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showViewPicker, setShowViewPicker] = useState(false);
   const [showCreatePicker, setShowCreatePicker] = useState(false);
 
   const navigate = useNavigate();
@@ -28,11 +27,11 @@ export default function BottomNav() {
           active={isActive("/vault/public")}
         />
 
-        {/* VIEW PICKER (Ratings / Policies) */}
+        {/* BROWSE (direct link, no picker) */}
         <NavButton
           label="Browse"
           icon="📜"
-          onClick={() => setShowViewPicker(true)}
+          onClick={() => navigate("/ratings")}
           active={isActive("/ratings") || isActive("/policies")}
         />
 
@@ -59,34 +58,6 @@ export default function BottomNav() {
           active={isActive("/vault/mine")}
         />
       </nav>
-
-      {/* ================= VIEW PICKER ================= */}
-      {showViewPicker && (
-        <PickerModal
-          title="What would you like to view?"
-          onClose={() => setShowViewPicker(false)}
-        >
-          <PickerButton
-            icon="🏛️"
-            title="Public Ratings"
-            subtitle="Officials, agencies, institutions"
-            onClick={() => {
-              setShowViewPicker(false);
-              navigate("/ratings");
-            }}
-          />
-
-          <PickerButton
-            icon="📜"
-            title="Policies & Laws"
-            subtitle="Track public policy and legal status"
-            onClick={() => {
-              setShowViewPicker(false);
-              navigate("/policies");
-            }}
-          />
-        </PickerModal>
-      )}
 
       {/* ================= CREATE PICKER ================= */}
       {showCreatePicker && (
@@ -152,17 +123,19 @@ function PickerModal({ title, children, onClose }) {
     <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40">
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="
-        relative
-        w-full
-        sm:max-w-md
-        bg-white
-        rounded-t-3xl
-        sm:rounded-3xl
-        p-6
-        space-y-4
-        shadow-2xl
-      ">
+      <div
+        className="
+          relative
+          w-full
+          sm:max-w-md
+          bg-white
+          rounded-t-3xl
+          sm:rounded-3xl
+          p-6
+          space-y-4
+          shadow-2xl
+        "
+      >
         <h2 className="text-lg font-bold text-slate-800 text-center">
           {title}
         </h2>
