@@ -42,6 +42,8 @@ export default function VaultPublic() {
           entity.name,
           item.description,
           item.rating?.comment,
+          item.title,       // ✅ forum title
+          item.body,        // ✅ forum body
         ]
           .filter(Boolean)
           .join(" ")
@@ -78,9 +80,9 @@ export default function VaultPublic() {
           </p>
 
           <p className="mb-3">
-            This page displays publicly shared records, ratings, and supporting
-            materials connected to public-facing entities. Entries document
-            experiences and observations — not legal conclusions.
+            This page displays publicly shared records, ratings, official statements,
+            and supporting materials connected to public-facing entities.
+            Entries document experiences and observations — not legal conclusions.
           </p>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -180,7 +182,7 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
       {/* HEADER */}
       <div className="flex items-start gap-3 px-6 py-4 border-b bg-slate-50">
         <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
-          {entity?.name?.[0] || "?"}
+          {entity?.name?.[0] || "A"}
         </div>
 
         <div className="flex-1">
@@ -196,11 +198,39 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
             {entity?.county && `${entity.county}, `}
             {entity?.state}
           </p>
+
+          {item.type === "forum_post" && (
+            <span className="inline-block mt-1 text-xs font-semibold text-indigo-600">
+              Official Post
+            </span>
+          )}
         </div>
       </div>
 
       {/* BODY */}
       <div className="px-6 py-4 space-y-4">
+
+        {/* FORUM / OFFICIAL POST */}
+        {item.type === "forum_post" && (
+          <>
+            <h2 className="text-lg font-semibold text-slate-900">
+              {item.title}
+            </h2>
+
+            <p className="text-sm text-slate-800 whitespace-pre-line">
+              {item.body}
+            </p>
+
+            <button
+              onClick={() => navigate("/forum")}
+              className="inline-flex items-center text-sm font-medium text-indigo-600 hover:underline"
+            >
+              View forum →
+            </button>
+          </>
+        )}
+
+        {/* RATING */}
         {item.type === "rating" && (
           <>
             {item.rating?.comment && (
@@ -249,6 +279,7 @@ function PublicVaultCard({ item, navigate, onOpenEvidence }) {
           </>
         )}
 
+        {/* VAULT RECORD */}
         {item.type === "vault_record" && (
           <>
             <p className="text-sm text-slate-800 whitespace-pre-line">
