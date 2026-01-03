@@ -34,15 +34,18 @@ export default function EntityRatingPage() {
 
   /* --------------------------------------------------
      Load entity + existing rating (if any)
-  -------------------------------------------------- */
+     -------------------------------------------------- */
   useEffect(() => {
     async function load() {
       try {
-        const entityRes = await api.get("/ratings/entities");
-        const found = entityRes.data.find((e) => e.id.toString() === id);
-        if (!found) return navigate("/ratings");
+        if (!id || isNaN(Number(id))) {
+          navigate("/ratings");
+          return;
+        }
 
-        setEntity(found);
+        // ✅ Fetch entity directly (NO pagination dependency)
+        const entityRes = await api.get(`/ratings/entity/${id}`);
+        setEntity(entityRes.data);
 
         // Try to load existing rating
         try {
@@ -78,13 +81,13 @@ export default function EntityRatingPage() {
 
   /* --------------------------------------------------
      Submit or Update Rating
-  -------------------------------------------------- */
+     -------------------------------------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       await api.post("/ratings/submit", {
-        entity_id: parseInt(id),
+        entity_id: parseInt(id, 10),
         ...form,
         violated_rights: violatedRights,
       });

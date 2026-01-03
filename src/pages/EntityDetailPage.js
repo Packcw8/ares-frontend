@@ -39,12 +39,16 @@ export default function EntityDetailPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const entityRes = await api.get("/ratings/entities");
-        const found = entityRes.data.find((e) => e.id.toString() === id);
-        if (!found) return navigate("/ratings");
+        if (!id || isNaN(Number(id))) {
+          navigate("/ratings");
+          return;
+        }
 
-        setEntity(found);
+        // ✅ Fetch entity directly (NO pagination dependency)
+        const entityRes = await api.get(`/ratings/entity/${id}`);
+        setEntity(entityRes.data);
 
+        // ✅ Fetch reviews
         const reviewsRes = await api.get(`/ratings/entity/${id}/reviews`);
         setReviews(
           reviewsRes.data.map((r) => ({
@@ -63,12 +67,13 @@ export default function EntityDetailPage() {
     fetchData();
   }, [id, navigate]);
 
-  if (loading)
+  if (loading) {
     return (
       <Layout>
         <div className="p-4">Loading…</div>
       </Layout>
     );
+  }
 
   if (!entity) return null;
 
@@ -96,7 +101,6 @@ export default function EntityDetailPage() {
 
         {/* ENTITY PROFILE CARD */}
         <div className="bg-white rounded-2xl border border-[#e5dcc3] p-6 shadow">
-
           <div className="flex items-start gap-4">
             {/* SILHOUETTE BADGE */}
             <div
