@@ -51,7 +51,6 @@ export default function AdminPendingEntities() {
   async function saveEdit() {
     try {
       setSaving(true);
-
       const { id, name, category, jurisdiction, state, county } = editing;
 
       await api.patch(`/admin/entities/${id}`, {
@@ -134,6 +133,31 @@ export default function AdminPendingEntities() {
                 <p className="text-xs italic mt-1">
                   Jurisdiction: {e.jurisdiction || "—"}
                 </p>
+
+                {/* 👤 SUBMITTED BY + EMAIL BUTTON */}
+                {e.created_by && (
+                  <div className="mt-3 text-xs bg-[#f4efe9] border rounded p-3">
+                    <div className="font-semibold text-[#283d63]">
+                      Submitted by
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 mt-1">
+                      <div>
+                        <div>👤 {e.created_by.username}</div>
+                        <div className="italic text-[#444]">
+                          📧 {e.created_by.email}
+                        </div>
+                      </div>
+
+                      <a
+                        href={`mailto:${e.created_by.email}?subject=ARES%20Entity%20Submission`}
+                        className="text-xs px-3 py-1 rounded border bg-white hover:bg-[#e8e1d8] transition"
+                      >
+                        Email User
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <span className="text-xs px-2 py-1 rounded border capitalize">
