@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -10,15 +11,23 @@ export default function Dashboard() {
     pendingRatings: 0,
   });
 
+  const [newUsers, setNewUsers] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Placeholder — replace with real API data later
-    setStats({
-      totalRatings: 124,
-      flagged: 3,
-      pendingOfficials: 2,
-      pendingRatings: 5,
+    // Admin counts
+    api.get("/admin/counts").then(res => {
+      setStats({
+        totalRatings: 0, // You can wire this later
+        flagged: res.data.flagged_ratings,
+        pendingOfficials: res.data.pending_entities,
+        pendingRatings: res.data.unverified_ratings,
+      });
+    });
+
+    // New users (last 7 days)
+    api.get("/admin/users/new?days=7").then(res => {
+      setNewUsers(res.data.length);
     });
   }, []);
 
@@ -33,6 +42,12 @@ export default function Dashboard() {
             <li><strong>Flagged Ratings:</strong> {stats.flagged}</li>
             <li><strong>Pending Officials:</strong> {stats.pendingOfficials}</li>
             <li><strong>Pending Ratings:</strong> {stats.pendingRatings}</li>
+            <li>
+              <strong>New Users (7 days):</strong>{" "}
+              <span className="text-blue-700 font-semibold">
+                {newUsers}
+              </span>
+            </li>
           </ul>
         </div>
 
@@ -41,23 +56,26 @@ export default function Dashboard() {
           <h2 className="text-xl font-bold mb-3">🧭 Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
-              onClick={() => navigate("/admin/flagged")}
+              onClick={() => navigate("/admin/users")}
               className="constitution-btn"
             >
-              ⚠️ Review Flagged Ratings
+              👤 Review Users
             </button>
+
             <button
               onClick={() => navigate("/admin/verify-officials")}
               className="constitution-btn"
             >
               🗳️ Verify New Officials
             </button>
+
             <button
               onClick={() => navigate("/admin/verify-ratings")}
               className="constitution-btn"
             >
               ✅ Approve New Ratings
             </button>
+
             <button
               onClick={() => navigate("/admin/logs")}
               className="constitution-btn"
