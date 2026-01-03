@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
+import BrowseSwitcher from "../components/BrowseSwitcher";
 
 export default function PoliciesPage() {
   const [policies, setPolicies] = useState([]);
@@ -32,8 +33,8 @@ export default function PoliciesPage() {
   }, []);
 
   // attach reputation score from rated_entities
-  const enriched = policies.map(p => {
-    const entity = entities.find(e => e.id === p.rated_entity_id);
+  const enriched = policies.map((p) => {
+    const entity = entities.find((e) => e.id === p.rated_entity_id);
     return {
       ...p,
       reputation_score: entity?.reputation_score ?? null,
@@ -41,7 +42,7 @@ export default function PoliciesPage() {
   });
 
   const filtered = enriched
-    .filter(p => {
+    .filter((p) => {
       if (level !== "all" && p.jurisdiction_level !== level) return false;
       if (search.trim()) {
         return (
@@ -63,10 +64,14 @@ export default function PoliciesPage() {
   return (
     <Layout>
       <div className="space-y-6">
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-2xl font-bold text-[#3a2f1b]">
+            Public Policies & Laws
+          </h1>
 
-        <h1 className="text-2xl font-bold text-[#3a2f1b]">
-          Public Policies & Laws
-        </h1>
+          <BrowseSwitcher />
+        </div>
 
         <p className="text-sm text-[#5a4635] max-w-3xl">
           Publicly reviewed policies ranked by real-world impact.
@@ -78,13 +83,13 @@ export default function PoliciesPage() {
             type="text"
             placeholder="Search policies…"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="flex-1 px-4 py-3 rounded-lg bg-[#ede3cb] border border-[#c2a76d]"
           />
 
           <select
             value={level}
-            onChange={e => setLevel(e.target.value)}
+            onChange={(e) => setLevel(e.target.value)}
             className="px-4 py-3 rounded-lg bg-[#ede3cb] border border-[#c2a76d]"
           >
             <option value="all">All Jurisdictions</option>
@@ -94,7 +99,7 @@ export default function PoliciesPage() {
 
           <select
             value={sort}
-            onChange={e => setSort(e.target.value)}
+            onChange={(e) => setSort(e.target.value)}
             className="px-4 py-3 rounded-lg bg-[#ede3cb] border border-[#c2a76d]"
           >
             <option value="worst">Most Harmful</option>
@@ -110,14 +115,21 @@ export default function PoliciesPage() {
           <p className="italic opacity-60">No policies found.</p>
         ) : (
           <div className="grid gap-5 grid-cols-1 sm:grid-cols-2">
-            {filtered.map(policy => (
+            {filtered.map((policy) => (
               <button
                 key={policy.id}
                 onClick={() => navigate(`/policies/${policy.id}`)}
                 className="
-                  text-left rounded-2xl border border-[#c2a76d]
-                  bg-[#f7f1e1] p-5 shadow-sm transition-all
-                  hover:-translate-y-1 hover:shadow-xl
+                  text-left
+                  rounded-2xl
+                  border
+                  border-[#c2a76d]
+                  bg-[#f7f1e1]
+                  p-5
+                  shadow-sm
+                  transition-all
+                  hover:-translate-y-1
+                  hover:shadow-xl
                 "
               >
                 <h2 className="text-lg font-bold text-[#283d63]">

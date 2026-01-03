@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
+import BrowseSwitcher from "../components/BrowseSwitcher";
 
 export default function RatingsPage() {
   const [entities, setEntities] = useState([]);
@@ -167,12 +168,16 @@ export default function RatingsPage() {
             Public Ratings
           </h1>
 
-          <button
-            onClick={() => navigate("/ratings/new")}
-            className="bg-[#8b1e3f] hover:bg-[#72162f] text-white px-4 py-2 rounded-lg font-semibold"
-          >
-            + Add New Entity
-          </button>
+          <div className="flex items-center gap-3">
+            <BrowseSwitcher />
+
+            <button
+              onClick={() => navigate("/ratings/new")}
+              className="bg-[#8b1e3f] hover:bg-[#72162f] text-white px-4 py-2 rounded-lg font-semibold"
+            >
+              + Add New Entity
+            </button>
+          </div>
         </div>
 
         {/* EXPLANATION */}
