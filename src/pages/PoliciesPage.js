@@ -11,7 +11,7 @@ export default function PoliciesPage() {
 
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("all");
-  const [sort, setSort] = useState("worst"); // worst | best | neutral
+  const [sort, setSort] = useState("neutral"); // neutral | best
 
   const navigate = useNavigate();
 
@@ -56,9 +56,7 @@ export default function PoliciesPage() {
       if (sort === "neutral") return 0;
       if (a.reputation_score == null) return 1;
       if (b.reputation_score == null) return -1;
-      return sort === "worst"
-        ? a.reputation_score - b.reputation_score
-        : b.reputation_score - a.reputation_score;
+      return b.reputation_score - a.reputation_score;
     });
 
   return (
@@ -66,15 +64,63 @@ export default function PoliciesPage() {
       <div className="space-y-6">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-2xl font-bold text-[#3a2f1b]">
-            Public Policies & Laws
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-[#3a2f1b]">
+              Public Policies & Laws
+            </h1>
 
-          <BrowseSwitcher />
+            {/* DISCLAIMER TOOLTIP */}
+            <div className="relative group">
+              <span className="cursor-help text-[#8b1e3f] font-bold text-sm">
+                ⓘ
+              </span>
+
+              <div
+                className="
+                  absolute
+                  left-1/2
+                  -translate-x-1/2
+                  top-full
+                  mt-2
+                  w-64
+                  rounded-lg
+                  bg-white
+                  border
+                  border-[#c2a76d]
+                  p-3
+                  text-xs
+                  text-[#3a2f1b]
+                  shadow-lg
+                  opacity-0
+                  group-hover:opacity-100
+                  pointer-events-none
+                  transition
+                  z-50
+                "
+              >
+                This page is used to <strong>list and track public policies</strong>.
+                Policies are submitted by users to help people stay informed and
+                up to date. Community ranking and deeper analysis features will
+                be added in future updates.
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <BrowseSwitcher />
+
+            <button
+              onClick={() => navigate("/policies/new")}
+              className="bg-[#8b1e3f] hover:bg-[#72162f] text-white px-4 py-2 rounded-lg font-semibold"
+            >
+              + List a Policy
+            </button>
+          </div>
         </div>
 
         <p className="text-sm text-[#5a4635] max-w-3xl">
-          Publicly reviewed policies ranked by real-world impact.
+          Publicly listed government policies that can be tracked, reviewed,
+          and discussed by the community.
         </p>
 
         {/* FILTERS */}
@@ -102,9 +148,8 @@ export default function PoliciesPage() {
             onChange={(e) => setSort(e.target.value)}
             className="px-4 py-3 rounded-lg bg-[#ede3cb] border border-[#c2a76d]"
           >
-            <option value="worst">Most Harmful</option>
-            <option value="best">Least Harmful</option>
             <option value="neutral">Unsorted</option>
+            <option value="best">Highest Rated</option>
           </select>
         </div>
 
