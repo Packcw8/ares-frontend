@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 
@@ -51,9 +51,19 @@ export default function RatingsPage() {
 
       const newItems = Array.isArray(res.data) ? res.data : [];
 
-      setEntities(prev =>
-        reset ? newItems : [...prev, ...newItems]
-      );
+      // ✅ DE-DUPE BY ID (critical fix)
+      setEntities((prev) => {
+        const merged = reset ? newItems : [...prev, ...newItems];
+        const map = new Map();
+
+        for (const e of merged) {
+          if (e && e.id != null) {
+            map.set(e.id, e);
+          }
+        }
+
+        return Array.from(map.values());
+      });
 
       if (newItems.length < 20) {
         setHasMore(false);
@@ -204,10 +214,11 @@ export default function RatingsPage() {
                 const trend = getTrend(entity);
 
                 return (
-                  <button
+                  <Link
                     key={entity.id}
-                    onClick={() => navigate(`/ratings/${entity.id}`)}
+                    to={`/ratings/${entity.id}`}
                     className="
+                      block
                       text-left
                       rounded-2xl
                       border
@@ -273,7 +284,7 @@ export default function RatingsPage() {
                         </div>
                       </div>
                     </div>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
