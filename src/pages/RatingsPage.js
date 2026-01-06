@@ -182,7 +182,7 @@ export default function RatingsPage() {
 
         {/* EXPLANATION */}
         <p className="text-sm text-[#5a4635] max-w-3xl">
-          Reputation scores begin at <strong>100</strong> as a neutral
+          Reputation scores begin at <strong>50</strong> as a neutral
           baseline. Scores may rise or fall over time based on community
           ratings and verification.
         </p>
